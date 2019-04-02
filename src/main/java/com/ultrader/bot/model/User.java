@@ -20,9 +20,9 @@ public class User {
     @Column(name="username", unique=true, updatable=false, nullable=false)
     private String username;
 
-    @Column(name="password_hash", unique=true, updatable=false, nullable=false)
+    @Column(name="password_hash", unique=true, nullable=false)
     private String passwordHash;
 
-    @Column(name="roleId", unique=true, updatable=false, nullable=false)
+    @Column(name="roleId", nullable=false)
     private String roleId;
 }
