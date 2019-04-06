@@ -6,6 +6,10 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import javax.persistence.*;
 
+/**
+ * setting model
+ * @author ytx1991
+ */
 @EntityScan
 @Entity
 @Table(name = "settings")

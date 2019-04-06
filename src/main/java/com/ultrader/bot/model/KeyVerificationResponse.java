@@ -5,7 +5,10 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.Date;
-
+/**
+ * License verification response model
+ * @author ytx1991
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

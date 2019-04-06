@@ -7,7 +7,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+/**
+ * Setting Controller
+ * @author ytx1991
+ */
 @CrossOrigin(origins = "http://localhost:9191")
 @RequestMapping("/setting")
 @RestController

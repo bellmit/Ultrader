@@ -1,6 +1,10 @@
 package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.model.Setting;
+import com.ultrader.bot.service.LicenseService;
+import com.ultrader.bot.service.alpaca.AlpacaTradingService;
+import com.ultrader.bot.util.RepositoryUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,10 +13,13 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
+import java.util.Optional;
+
 
 /**
  * Manager of all long running tasks.
  * It will in charge of all automatic functions.
+ * @author ytx1991
  */
 @Component
 public class MonitorManager implements CommandLineRunner {
@@ -20,7 +27,9 @@ public class MonitorManager implements CommandLineRunner {
 
     private ThreadPoolTaskExecutor threadPoolTaskExecutor =new ThreadPoolTaskExecutor();
     @Autowired
-    RestTemplateBuilder restTemplateBuilder;
+    LicenseService licenseService;
+    @Autowired
+    AlpacaTradingService alpacaTradingService;
     @Autowired
     SettingDao  settingDao;
 
@@ -30,9 +39,13 @@ public class MonitorManager implements CommandLineRunner {
         threadPoolTaskExecutor.setMaxPoolSize(3);
         threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
         threadPoolTaskExecutor.initialize();
-        LicenseMonitor licenseMonitor = new LicenseMonitor(24 * 3600L * 1000, restTemplateBuilder, settingDao);
-        threadPoolTaskExecutor.execute(licenseMonitor);
-
+        //Start License Monitor
+        LicenseMonitor.init(24 * 3600L * 1000, licenseService, settingDao);
+        threadPoolTaskExecutor.execute(LicenseMonitor.getInstance());
+        //Start MarketDate Monitor
+        long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao,"TRADE_INTERVAL_SECOND", "60000"));
+        MarketDataMonitor.init(interval, alpacaTradingService, settingDao);
+        threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
     }
 
 

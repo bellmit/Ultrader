@@ -5,13 +5,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  * For long running task
+ * @author ytx1991
  */
-public class Monitor implements Runnable {
+public abstract class Monitor implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(Monitor.class);
     //The frequency of running scanning (millisecond)
     private Long interval;
 
-    public Monitor(long interval) {
+    Monitor(long interval) {
         this.interval = interval;
     }
 
@@ -30,9 +31,7 @@ public class Monitor implements Runnable {
         }
     }
 
-    void scan() {
-        //Override child class
-    }
+    abstract void  scan();
 
     public void setInterval(long interval) {
         this.interval = interval;

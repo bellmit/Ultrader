@@ -6,6 +6,10 @@ import lombok.NoArgsConstructor;
 
 import java.util.Date;
 
+/**
+ * License verification request model
+ * @author ytx1991
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
