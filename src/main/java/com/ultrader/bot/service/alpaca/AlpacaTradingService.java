@@ -1,6 +1,7 @@
 package com.ultrader.bot.service.alpaca;
 
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.model.alpaca.Asset;
 import com.ultrader.bot.model.alpaca.Clock;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.RepositoryUtil;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import java.util.*;
 
 /**
  * Alpaca Trading API
@@ -62,6 +65,30 @@ public class AlpacaTradingService implements TradingService {
         } catch (Exception e) {
             LOGGER.error("Failed to call /clock api.", e);
             return false;
+        }
+    }
+
+    public Map<String, Set<String>> getAvailableStocks() {
+        try {
+            HttpEntity<String> entity = new HttpEntity<>("", generateHeader());
+            ResponseEntity<Asset[]> stocks = client.exchange("/assets?status=active", HttpMethod.GET, entity, Asset[].class);
+            if (stocks.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                return new HashMap<>();
+            }
+            Map<String, Set<String>> exchangeStockMap = new HashMap<>();
+            for(Asset asset : stocks.getBody()) {
+                if(!exchangeStockMap.containsKey(asset.getExchange())) {
+                    exchangeStockMap.put(asset.getExchange(), new HashSet<String>());
+                }
+                if(asset.getTradable()) {
+                    exchangeStockMap.get(asset.getExchange()).add(asset.getSymbol());
+                }
+            }
+            return exchangeStockMap;
+        } catch (Exception e) {
+            LOGGER.error("Failed to call /assets api.", e);
+            return new HashMap<>();
         }
     }
 }
