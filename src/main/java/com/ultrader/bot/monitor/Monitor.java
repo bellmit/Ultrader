@@ -36,4 +36,7 @@ public abstract class Monitor implements Runnable {
     public void setInterval(long interval) {
         this.interval = interval;
     }
+    public long getInterval() {
+        return this.interval;
+    }
 }

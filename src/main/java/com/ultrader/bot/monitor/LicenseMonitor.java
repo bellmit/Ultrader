@@ -5,6 +5,7 @@ import com.ultrader.bot.model.KeyVerificationRequest;
 import com.ultrader.bot.model.KeyVerificationResponse;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.service.LicenseService;
+import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
@@ -22,10 +23,6 @@ import java.util.Date;
 public class LicenseMonitor extends Monitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(LicenseMonitor.class);
     private static LicenseMonitor singleton_instance = null;
-    private static final String BOT_KEY_NAME = "KEY_ULTRADER_KEY";
-    private static final String BOT_SECRET_NAME = "KEY_ULTRADER_SECRET";
-    private static final String ALPACA_KEY_NAME = "KEY_ALPACA_KEY";
-    private static final String TRADING_PLATFORM_NAME = "GLOBAL_TRADING_PLATFORM";
 
     private boolean validLicense = false;
     private LicenseService licenseService;
@@ -42,13 +39,13 @@ public class LicenseMonitor extends Monitor {
     @Override
     void scan() {
         try{
-            String ultraderKey = settingDao.findById(BOT_KEY_NAME).map(Setting::getValue).orElse(null);
-            String ultraderSecret = settingDao.findById(BOT_SECRET_NAME).map(Setting::getValue).orElse(null);
+            String ultraderKey = settingDao.findById(SettingConstant.BOT_KEY_NAME.getName()).map(Setting::getValue).orElse(null);
+            String ultraderSecret = settingDao.findById(SettingConstant.BOT_SECRET_NAME.getName()).map(Setting::getValue).orElse(null);
             String tradingKey = null;
-            String platformName = settingDao.findById(TRADING_PLATFORM_NAME).map(Setting::getValue).orElse("Alpaca");
+            String platformName = settingDao.findById(SettingConstant.TRADING_PLATFORM_NAME.getName()).map(Setting::getValue).orElse("Alpaca");
             switch (platformName) {
                 case "Alpaca":
-                    tradingKey = settingDao.findById(ALPACA_KEY_NAME).map(Setting::getValue).orElse(null);
+                    tradingKey = settingDao.findById(SettingConstant.ALPACA_KEY_NAME.getName()).map(Setting::getValue).orElse(null);
                     break;
             }
             if(StringUtils.isEmpty(ultraderKey) || StringUtils.isEmpty(ultraderSecret) || StringUtils.isEmpty(tradingKey)) {

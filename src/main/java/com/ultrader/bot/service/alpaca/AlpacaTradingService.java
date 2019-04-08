@@ -5,6 +5,7 @@ import com.ultrader.bot.model.alpaca.Asset;
 import com.ultrader.bot.model.alpaca.Clock;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.RepositoryUtil;
+import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,8 +27,6 @@ import java.util.*;
 @Service
 public class AlpacaTradingService implements TradingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaTradingService.class);
-    private static final String ALPACA_KEY_NAME = "KEY_ALPACA_KEY";
-    private static final String ALPACA_SECRET_NAME = "KEY_ALPACA_SECRET";
     private String alpacaKey;
     private String alpacaSecret;
     private RestTemplate client;
@@ -37,8 +36,8 @@ public class AlpacaTradingService implements TradingService {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
 
-        this.alpacaKey = RepositoryUtil.getSetting(settingDao, ALPACA_KEY_NAME, "");
-        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, ALPACA_SECRET_NAME, "");
+        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY_NAME.getName(), "");
+        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_SECRET_NAME.getName(), "");
         if(alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
@@ -55,12 +54,13 @@ public class AlpacaTradingService implements TradingService {
 
     public boolean isMarketOpen() {
         try {
-            HttpEntity<String> entity = new HttpEntity<>("", generateHeader());
+            HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
             ResponseEntity<Clock> clock = client.exchange("/clock", HttpMethod.GET, entity, Clock.class);
             if (clock.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
                 return false;
             }
+            LOGGER.info(clock.getBody().toString());
             return clock.getBody().getIs_open();
         } catch (Exception e) {
             LOGGER.error("Failed to call /clock api.", e);
@@ -70,7 +70,7 @@ public class AlpacaTradingService implements TradingService {
 
     public Map<String, Set<String>> getAvailableStocks() {
         try {
-            HttpEntity<String> entity = new HttpEntity<>("", generateHeader());
+            HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
             ResponseEntity<Asset[]> stocks = client.exchange("/assets?status=active", HttpMethod.GET, entity, Asset[].class);
             if (stocks.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
