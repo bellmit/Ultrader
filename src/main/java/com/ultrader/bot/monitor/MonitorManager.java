@@ -1,9 +1,12 @@
 package com.ultrader.bot.monitor;
 
+import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.service.LicenseService;
 import com.ultrader.bot.service.alpaca.AlpacaMarketDataService;
+import com.ultrader.bot.service.alpaca.AlpacaPaperTradingService;
 import com.ultrader.bot.service.alpaca.AlpacaTradingService;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
@@ -35,7 +38,13 @@ public class MonitorManager implements CommandLineRunner {
     @Autowired
     AlpacaMarketDataService alpacaMarketDataService;
     @Autowired
+    AlpacaPaperTradingService alpacaPaperTradingService;
+    @Autowired
     SettingDao  settingDao;
+    @Autowired
+    StrategyDao strategyDao;
+    @Autowired
+    RuleDao ruleDao;
 
     @Override
     public void run(String... args) throws Exception {
@@ -50,6 +59,10 @@ public class MonitorManager implements CommandLineRunner {
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60000"));
         MarketDataMonitor.init(interval, alpacaTradingService, alpacaMarketDataService, settingDao);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
+        //Start Trading strategy monitor
+        Thread.sleep(10000);
+        TradingStrategyMonitor.init(interval, alpacaTradingService, alpacaPaperTradingService, settingDao, strategyDao, ruleDao);
+        threadPoolTaskExecutor.execute(TradingStrategyMonitor.getInstance());
     }
 
 

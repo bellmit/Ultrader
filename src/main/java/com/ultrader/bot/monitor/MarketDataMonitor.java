@@ -23,17 +23,17 @@ import static com.ultrader.bot.util.SettingConstant.DELIMITER;
 public class MarketDataMonitor extends Monitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataMonitor.class);
     private static MarketDataMonitor singleton_instance = null;
-
+    private static boolean marketOpen = false;
 
     private final AlpacaTradingService alpacaTradingService;
     private final AlpacaMarketDataService alpacaMarketDataService;
     private final SettingDao settingDao;
 
-    private boolean marketOpen = false;
+
     private boolean firstRun = true;
     private Date lastUpdateDate;
     private Map<String, Set<String>> availableStocks = null;
-    private Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
+    public static Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
     private MarketDataMonitor(final long interval, final AlpacaTradingService alpacaTradingService, final AlpacaMarketDataService alpacaMarketDataService, final SettingDao settingDao) {
         super(interval);
         Validate.notNull(alpacaTradingService, "alpacaTradingService is required");
@@ -108,9 +108,11 @@ public class MarketDataMonitor extends Monitor {
             updateSeries = alpacaMarketDataService.updateTimeSeries(updateSeries, getInterval());
             for (TimeSeries timeSeries : updateSeries) {
                 currentTimeSeries.put(timeSeries.getName(), timeSeries);
-                LOGGER.info(String.format("Stock %s has %d bars", timeSeries.getName(), timeSeries.getBarCount()));
+                LOGGER.debug(String.format("Stock %s has %d bars", timeSeries.getName(), timeSeries.getBarCount()));
             }
-            this.timeSeriesMap = currentTimeSeries;
+            synchronized (TradingStrategyMonitor.lock) {
+                this.timeSeriesMap = currentTimeSeries;
+            }
             lastUpdateDate = new Date();
         } catch (Exception e) {
             LOGGER.error("Update market data failed. Your trading will be impacted", e);
@@ -118,7 +120,7 @@ public class MarketDataMonitor extends Monitor {
         firstRun = false;
     }
 
-    public boolean isMarketOpen() {
+    public static boolean isMarketOpen() {
         return marketOpen;
     }
 

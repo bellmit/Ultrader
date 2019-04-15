@@ -42,10 +42,13 @@ public class LicenseMonitor extends Monitor {
             String ultraderKey = settingDao.findById(SettingConstant.BOT_KEY_NAME.getName()).map(Setting::getValue).orElse(null);
             String ultraderSecret = settingDao.findById(SettingConstant.BOT_SECRET_NAME.getName()).map(Setting::getValue).orElse(null);
             String tradingKey = null;
-            String platformName = settingDao.findById(SettingConstant.TRADING_PLATFORM_NAME.getName()).map(Setting::getValue).orElse("Alpaca");
+            String platformName = settingDao.findById(SettingConstant.TRADING_PLATFORM_NAME.getName()).map(Setting::getValue).orElse("AlpacaPaper");
             switch (platformName) {
                 case "Alpaca":
                     tradingKey = settingDao.findById(SettingConstant.ALPACA_KEY_NAME.getName()).map(Setting::getValue).orElse(null);
+                    break;
+                case "AlpacaPaper":
+                    tradingKey = settingDao.findById(SettingConstant.ALPACA_PAPER_KEY_NAME.getName()).map(Setting::getValue).orElse(null);
                     break;
             }
             if(StringUtils.isEmpty(ultraderKey) || StringUtils.isEmpty(ultraderSecret) || StringUtils.isEmpty(tradingKey)) {

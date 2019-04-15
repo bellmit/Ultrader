@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 @Service
 public class AlpacaMarketDataService implements MarketDataService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaMarketDataService.class);
-    private static final int MAX_STOCK = 1;
+    private static final int MAX_STOCK = 200;
     private static final String TIME_ZONE = "America/New_York";
     private String alpacaKey;
     private String alpacaSecret;
@@ -113,7 +113,7 @@ public class AlpacaMarketDataService implements MarketDataService {
     private void updateBars(String symbols, Long interval, int limit, Map<String, TimeSeries> batchTimeSeries) {
         HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
         StringBuilder parameter = new StringBuilder("?");
-        LOGGER.info(String.format("Update stocks time series :[%s]", symbols));
+
         parameter.append("symbols=" + symbols);
         parameter.append("&limit=" + limit);
 
@@ -123,12 +123,17 @@ public class AlpacaMarketDataService implements MarketDataService {
             LOGGER.error("Invalid Alpaca key, please check you key and secret");
             return;
         }
+
+
         //Update time series
         for(String stock : responseEntity.getBody().keySet()) {
+            LOGGER.debug(String.format("Update stocks %s, %d bars", symbols, responseEntity.getBody().get(stock).size()));
             for(Bar bar : responseEntity.getBody().get(stock)) {
                 Instant i = Instant.ofEpochSecond(bar.getT() + interval/1000);
-                    ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TIME_ZONE));
-                batchTimeSeries.get(stock).addBar(endDate, bar.getO(), bar.getH(), bar.getL(), bar.getC(), bar.getV());
+                ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TIME_ZONE));
+                if( batchTimeSeries.get(stock).getBarCount() == 0 || !batchTimeSeries.get(stock).getLastBar().getEndTime().equals(endDate)) {
+                    batchTimeSeries.get(stock).addBar(endDate, bar.getO(), bar.getH(), bar.getL(), bar.getC(), bar.getV());
+                }
             }
         }
     }
