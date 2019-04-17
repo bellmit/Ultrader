@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -33,10 +34,13 @@ public class MonitorManager implements CommandLineRunner {
     @Autowired
     SettingDao  settingDao;
 
+    @Autowired
+    private SimpMessagingTemplate template;
+
     @Override
     public void run(String... args) throws Exception {
-        threadPoolTaskExecutor.setCorePoolSize(3);
-        threadPoolTaskExecutor.setMaxPoolSize(3);
+        threadPoolTaskExecutor.setCorePoolSize(4);
+        threadPoolTaskExecutor.setMaxPoolSize(4);
         threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
         threadPoolTaskExecutor.initialize();
         //Start License Monitor
@@ -46,6 +50,10 @@ public class MonitorManager implements CommandLineRunner {
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao,"TRADE_INTERVAL_SECOND", "60000"));
         MarketDataMonitor.init(interval, alpacaTradingService, settingDao);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
+
+
+        FakeMonitor.init(1000, template);
+        threadPoolTaskExecutor.execute(FakeMonitor.getInstance());
     }
 
 

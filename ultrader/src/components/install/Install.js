@@ -41,7 +41,7 @@ constructor(props) {
       }
     }
     console.log(settings);
-    axios.post('http://localhost:9191/setting/addSettings', settings).then(res => {
+    axios.post('http://localhost:9191/settings', settings).then(res => {
       alert("Saved " + res.data.length + " settings");
     }).catch(error => {
       alert(error);
