@@ -1,19 +1,20 @@
 package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.SettingDao;
-import com.ultrader.bot.model.Setting;
-import com.ultrader.bot.model.alpaca.Asset;
-import com.ultrader.bot.service.LicenseService;
+import com.ultrader.bot.service.alpaca.AlpacaMarketDataService;
 import com.ultrader.bot.service.alpaca.AlpacaTradingService;
 import com.ultrader.bot.util.RepositoryUtil;
+import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
+import org.ta4j.core.Bar;
+import org.ta4j.core.BaseTimeSeries;
+import org.ta4j.core.TimeSeries;
 
 import java.util.*;
+
+import static com.ultrader.bot.util.SettingConstant.DELIMITER;
 
 /**
  * Market data monitor
@@ -22,32 +23,32 @@ import java.util.*;
 public class MarketDataMonitor extends Monitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataMonitor.class);
     private static MarketDataMonitor singleton_instance = null;
-    private static final String WHITE_LIST_ENABLE_NAME = "TRADE_WHITE_LIST_ENABLE";
-    private static final String TRADE_STOCK_LIST_NAME = "TRADE_STOCK_LIST";
-    private static final String TRADE_EXCHANGE_NAME = "TRADE_EXCHANGE_LIST";
-    private static final String MARKET_DATA_PLATFORM_NAME = "GLOBAL_MARKETDATA_PLATFORM";
-    private static final String ALPACA_NAME = "Alpaca";
-    private static final String DELIMITER = ",";
+    private static boolean marketOpen = false;
 
     private final AlpacaTradingService alpacaTradingService;
+    private final AlpacaMarketDataService alpacaMarketDataService;
     private final SettingDao settingDao;
 
-    private boolean marketOpen = false;
+
     private boolean firstRun = true;
+    private Date lastUpdateDate;
     private Map<String, Set<String>> availableStocks = null;
-    private MarketDataMonitor(final long interval, final AlpacaTradingService alpacaTradingService, final SettingDao settingDao) {
+    public static Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
+    private MarketDataMonitor(final long interval, final AlpacaTradingService alpacaTradingService, final AlpacaMarketDataService alpacaMarketDataService, final SettingDao settingDao) {
         super(interval);
         Validate.notNull(alpacaTradingService, "alpacaTradingService is required");
+        Validate.notNull(alpacaMarketDataService, "alpacaMarketDataService is required");
         Validate.notNull(settingDao, "settingDao is required");
 
         this.settingDao = settingDao;
+        this.alpacaMarketDataService = alpacaMarketDataService;
         this.alpacaTradingService = alpacaTradingService;
     }
 
     @Override
     void scan() {
         try {
-            String platform = RepositoryUtil.getSetting(settingDao, MARKET_DATA_PLATFORM_NAME, "IEX");
+            String platform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM_NAME.getName(), "IEX");
             LOGGER.info(String.format("Update market data, platform: %s", platform));
             boolean marketStatusChanged = false;
             //Check if the market is open
@@ -71,7 +72,7 @@ public class MarketDataMonitor extends Monitor {
             //Get the list of stocks need to update
             Set<String> stockInExchange = new HashSet<>();
             //Filter by exchange
-            String[] setExchanges = RepositoryUtil.getSetting(settingDao, TRADE_EXCHANGE_NAME, "NASDAQ,NYSE").split(DELIMITER);
+            String[] setExchanges = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_EXCHANGE_NAME.getName(), "NASDAQ,NYSE").split(DELIMITER);
             for(String exchange : setExchanges) {
                 if(availableStocks.containsKey(exchange)) {
                     stockInExchange.addAll(availableStocks.get(exchange));
@@ -79,8 +80,8 @@ public class MarketDataMonitor extends Monitor {
             }
             LOGGER.info(String.format("Found %d stocks in the exchanges.", stockInExchange.size()));
             //Filter by list
-            boolean isWhiteList = Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, WHITE_LIST_ENABLE_NAME, "true"));
-            String[] customizedStockList = RepositoryUtil.getSetting(settingDao, TRADE_STOCK_LIST_NAME, "AMZN").split(DELIMITER);
+            boolean isWhiteList = Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.WHITE_LIST_ENABLE_NAME.getName(), "true"));
+            String[] customizedStockList = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_STOCK_LIST_NAME.getName(), "AMZN,AAPL,NVDA,GOOGL").split(DELIMITER);
             Set<String> watchList = new HashSet<>();
             for(String stock : customizedStockList) {
                 if(stockInExchange.contains(stock)) {
@@ -89,22 +90,42 @@ public class MarketDataMonitor extends Monitor {
             }
             LOGGER.info(String.format("Found %d stocks need to update.", watchList.size()));
             //Update
-            if(firstRun) {
-
+            //TODO Currently we force all the indicator have to use same period, we should support different period for different indicators
+            Map<String, TimeSeries> currentTimeSeries = new HashMap<>();
+            int maxLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "100")) * 2;
+            maxLength = maxLength > 1000 ? 1000 : maxLength;
+            List<TimeSeries> updateSeries = new ArrayList<>();
+            for(String stock : watchList) {
+                if(timeSeriesMap.containsKey(stock)) {
+                    updateSeries.add(timeSeriesMap.get(stock));
+                    timeSeriesMap.get(stock).setMaximumBarCount(maxLength);
+                } else {
+                    TimeSeries timeSeries = new BaseTimeSeries(stock);
+                    timeSeries.setMaximumBarCount(maxLength);
+                    updateSeries.add(timeSeries);
+                }
             }
-
+            updateSeries = alpacaMarketDataService.updateTimeSeries(updateSeries, getInterval());
+            for (TimeSeries timeSeries : updateSeries) {
+                currentTimeSeries.put(timeSeries.getName(), timeSeries);
+                LOGGER.debug(String.format("Stock %s has %d bars", timeSeries.getName(), timeSeries.getBarCount()));
+            }
+            synchronized (TradingStrategyMonitor.lock) {
+                this.timeSeriesMap = currentTimeSeries;
+            }
+            lastUpdateDate = new Date();
         } catch (Exception e) {
             LOGGER.error("Update market data failed. Your trading will be impacted", e);
         }
         firstRun = false;
     }
 
-    public boolean isMarketOpen() {
+    public static boolean isMarketOpen() {
         return marketOpen;
     }
 
-    public static void init(long interval, AlpacaTradingService alpacaTradingService, SettingDao settingDao) {
-        singleton_instance = new MarketDataMonitor(interval, alpacaTradingService, settingDao);
+    public static void init(long interval, AlpacaTradingService alpacaTradingService, AlpacaMarketDataService alpacaMarketDataService, SettingDao settingDao) {
+        singleton_instance = new MarketDataMonitor(interval, alpacaTradingService, alpacaMarketDataService, settingDao);
     }
 
     public static MarketDataMonitor getInstance() throws IllegalAccessException {

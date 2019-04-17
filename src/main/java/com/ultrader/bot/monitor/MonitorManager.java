@@ -1,10 +1,15 @@
 package com.ultrader.bot.monitor;
 
+import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.service.LicenseService;
+import com.ultrader.bot.service.alpaca.AlpacaMarketDataService;
+import com.ultrader.bot.service.alpaca.AlpacaPaperTradingService;
 import com.ultrader.bot.service.alpaca.AlpacaTradingService;
 import com.ultrader.bot.util.RepositoryUtil;
+import com.ultrader.bot.util.SettingConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +37,15 @@ public class MonitorManager implements CommandLineRunner {
     @Autowired
     AlpacaTradingService alpacaTradingService;
     @Autowired
+    AlpacaMarketDataService alpacaMarketDataService;
+    @Autowired
+    AlpacaPaperTradingService alpacaPaperTradingService;
+    @Autowired
     SettingDao  settingDao;
+    @Autowired
+    StrategyDao strategyDao;
+    @Autowired
+    RuleDao ruleDao;
 
     @Autowired
     private SimpMessagingTemplate template;
@@ -47,13 +60,17 @@ public class MonitorManager implements CommandLineRunner {
         LicenseMonitor.init(24 * 3600L * 1000, licenseService, settingDao);
         threadPoolTaskExecutor.execute(LicenseMonitor.getInstance());
         //Start MarketDate Monitor
-        long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao,"TRADE_INTERVAL_SECOND", "60000"));
-        MarketDataMonitor.init(interval, alpacaTradingService, settingDao);
+        long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60000"));
+        MarketDataMonitor.init(interval, alpacaTradingService, alpacaMarketDataService, settingDao);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
-
 
         FakeMonitor.init(1000, template);
         threadPoolTaskExecutor.execute(FakeMonitor.getInstance());
+
+        //Start Trading strategy monitor
+        Thread.sleep(10000);
+        TradingStrategyMonitor.init(interval, alpacaTradingService, alpacaPaperTradingService, settingDao, strategyDao, ruleDao);
+        threadPoolTaskExecutor.execute(TradingStrategyMonitor.getInstance());
     }
 
 

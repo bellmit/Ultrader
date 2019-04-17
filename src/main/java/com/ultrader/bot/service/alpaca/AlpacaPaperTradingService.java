@@ -18,31 +18,34 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Alpaca Trading API
  * @author ytx1991
  */
 @Service
-public class AlpacaTradingService implements TradingService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaTradingService.class);
+public class AlpacaPaperTradingService implements TradingService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaPaperTradingService.class);
     private String alpacaKey;
     private String alpacaSecret;
     private RestTemplate client;
 
     @Autowired
-    public AlpacaTradingService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
+    public AlpacaPaperTradingService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
 
-        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY_NAME.getName(), "");
-        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_SECRET_NAME.getName(), "");
+        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY_NAME.getName(), "");
+        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET_NAME.getName(), "");
         if(alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
         }
-        client = restTemplateBuilder.rootUri("https://api.alpaca.markets/v1/").build();
+        client = restTemplateBuilder.rootUri("https://paper-api.alpaca.markets/v1/").build();
     }
 
     private HttpHeaders generateHeader() {

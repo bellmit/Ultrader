@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
  * Setting Controller
  * @author ytx1991
  */
-@CrossOrigin(origins = "http://localhost:9191")
+
 @RequestMapping("/setting")
 @RestController
 public class SettingController {

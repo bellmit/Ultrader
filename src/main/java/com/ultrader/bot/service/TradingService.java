@@ -21,4 +21,6 @@ public interface TradingService {
      * @return
      */
     Map<String, Set<String>> getAvailableStocks();
+
+
 }

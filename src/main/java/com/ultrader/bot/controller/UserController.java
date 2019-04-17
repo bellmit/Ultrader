@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
  * User Controller
  * @author ytx1991
  */
-@CrossOrigin(origins = "http://localhost")
+
 @RequestMapping("/user")
 @RestController
 public class UserController {
