@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -44,6 +45,28 @@ public class StrategyController {
         } catch (Exception e) {
             LOGGER.error("Get strategy failed.", e);
             return null;
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getStrategies")
+    @ResponseBody
+    public Iterable<Strategy> getStrategies() {
+        try {
+            Iterable<Strategy> strategies = strategyDao.findAll();
+            return strategies;
+        } catch (Exception e) {
+            LOGGER.error("Get strategies failed.", e);
+            return null;
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.DELETE, value = "/deleteStrategy")
+    @ResponseBody
+    public void deleteStrategies(@PathVariable Long id) {
+        try {
+            strategyDao.deleteById(id);
+        } catch (Exception e) {
+            LOGGER.error("Delete strategy failed.", e);
         }
     }
 

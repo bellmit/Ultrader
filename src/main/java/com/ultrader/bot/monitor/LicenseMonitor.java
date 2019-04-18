@@ -6,6 +6,7 @@ import com.ultrader.bot.model.KeyVerificationResponse;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.service.LicenseService;
 import com.ultrader.bot.util.SettingConstant;
+import com.ultrader.bot.util.TradingPlatformConstant;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
@@ -42,7 +43,7 @@ public class LicenseMonitor extends Monitor {
             String ultraderKey = settingDao.findById(SettingConstant.BOT_KEY_NAME.getName()).map(Setting::getValue).orElse(null);
             String ultraderSecret = settingDao.findById(SettingConstant.BOT_SECRET_NAME.getName()).map(Setting::getValue).orElse(null);
             String tradingKey = null;
-            String platformName = settingDao.findById(SettingConstant.TRADING_PLATFORM_NAME.getName()).map(Setting::getValue).orElse("AlpacaPaper");
+            String platformName = settingDao.findById(SettingConstant.TRADING_PLATFORM_NAME.getName()).map(Setting::getValue).orElse(TradingPlatformConstant.ALPACA_PAPER);
             switch (platformName) {
                 case "Alpaca":
                     tradingKey = settingDao.findById(SettingConstant.ALPACA_KEY_NAME.getName()).map(Setting::getValue).orElse(null);

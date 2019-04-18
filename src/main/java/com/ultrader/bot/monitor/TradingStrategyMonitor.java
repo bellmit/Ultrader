@@ -38,25 +38,22 @@ public class TradingStrategyMonitor extends Monitor {
     private final StrategyDao strategyDao;
     private final RuleDao ruleDao;
     private final TradingService tradingService;
-    private final OrderDao orderDao;
 
-    TradingStrategyMonitor(long interval, final TradingService tradingService, final SettingDao settingDao, final StrategyDao strategyDao, final RuleDao ruleDao, final OrderDao orderDao) {
+    TradingStrategyMonitor(long interval, final TradingService tradingService, final SettingDao settingDao, final StrategyDao strategyDao, final RuleDao ruleDao) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(strategyDao, "strategyDao is required");
         Validate.notNull(ruleDao, "ruleDao is required");
-        Validate.notNull(orderDao, "orderDao is required");
 
         this.settingDao = settingDao;
         this.strategyDao = strategyDao;
         this.ruleDao = ruleDao;
-        this.orderDao = orderDao;
         this.tradingService = tradingService;
     }
 
-    public static void init(long interval, final TradingService tradingService, SettingDao settingDao, StrategyDao strategyDao, RuleDao ruleDao, OrderDao orderDao) {
-        singleton_instance = new TradingStrategyMonitor(interval, tradingService, settingDao, strategyDao, ruleDao, orderDao);
+    public static void init(long interval, final TradingService tradingService, SettingDao settingDao, StrategyDao strategyDao, RuleDao ruleDao) {
+        singleton_instance = new TradingStrategyMonitor(interval, tradingService, settingDao, strategyDao, ruleDao);
     }
 
     public static TradingStrategyMonitor getInstance() throws IllegalAccessException {
@@ -90,7 +87,8 @@ public class TradingStrategyMonitor extends Monitor {
                 return;
             }
             String buyLimit = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "1%");
-
+            int holdLimit = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "0"));
+            holdLimit = holdLimit == 0 ? Integer.MAX_VALUE : holdLimit;
             synchronized (lock) {
                 TradingUtil.updateStrategies(strategyDao, ruleDao, settingDao);
                 LOGGER.info(String.format("Updated trading strategies for %d stocks", strategies.size()));
@@ -104,9 +102,10 @@ public class TradingStrategyMonitor extends Monitor {
                             tradingRecord.enter(1, PrecisionNum.valueOf(positionMap.get(stock).getAverageCost()), PrecisionNum.valueOf(positionMap.get(stock).getQuantity()));
                         }
 
-
-                        if(entry.getValue().shouldEnter(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex()) && !positionMap.containsKey(stock) && positionMap.size() < 10) {
-                            //buy strategy satisfy & no position
+                        if(entry.getValue().shouldEnter(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex())
+                                && !positionMap.containsKey(stock)
+                                && positionMap.size() < holdLimit) {
+                            //buy strategy satisfy & no position & hold stock < limit
                             int buyQuantity = calculateBuyShares(buyLimit, currentPrice, account);
                             if(buyQuantity > 0) {
                                 if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyQuantity, currentPrice, "")) != null) {
@@ -114,7 +113,8 @@ public class TradingStrategyMonitor extends Monitor {
                                     LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
                                 }
                             }
-                        } else if (entry.getValue().shouldExit(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex(), tradingRecord) && positionMap.containsKey(stock)) {
+                        } else if (entry.getValue().shouldExit(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex(), tradingRecord)
+                                && positionMap.containsKey(stock)) {
                             //sell strategy satisfy & has position
                             tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", positionMap.get(stock).getQuantity(), currentPrice, ""));
                             LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positionMap.get(stock).getQuantity(), currentPrice));

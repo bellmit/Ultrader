@@ -1,11 +1,15 @@
 package com.ultrader.bot.util;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import static com.ultrader.bot.util.TradingUtil.*;
 
 /**
  * Rule Types
  * @author ytx1991
  */
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum RuleType {
     BooleanIndicatorRule("BooleanIndicatorRule", new String[]{BOOLEAN_INDICATOR}),
 
@@ -60,12 +64,21 @@ public enum RuleType {
 
     StopLossRule("StopLossRule", new String[]{
             TradingUtil.translateToString(CLOSE_PRICE, NUMBER)});
+
     private final String name;
+
     private String[] args;
     RuleType(String name, String[] args) {
         this.name = name;
         this.args = args;
     }
 
+    public String getName() {
+        return this.name;
+    }
+
+    public String[] getArgs() {
+        return this.args;
+    }
 
 }
