@@ -1,6 +1,9 @@
 package com.ultrader.bot.service.alpaca;
 
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.model.Account;
+import com.ultrader.bot.model.Order;
+import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.alpaca.Asset;
 import com.ultrader.bot.model.alpaca.Clock;
 import com.ultrader.bot.service.TradingService;
@@ -18,13 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
- * Alpaca Trading API
+ * Alpaca Order API
  * @author ytx1991
  */
 @Service
@@ -63,7 +63,7 @@ public class AlpacaPaperTradingService implements TradingService {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
                 return false;
             }
-            LOGGER.info(clock.getBody().toString());
+            LOGGER.debug(clock.getBody().toString());
             return clock.getBody().getIs_open();
         } catch (Exception e) {
             LOGGER.error("Failed to call /clock api.", e);
@@ -92,6 +92,81 @@ public class AlpacaPaperTradingService implements TradingService {
         } catch (Exception e) {
             LOGGER.error("Failed to call /assets api.", e);
             return new HashMap<>();
+        }
+    }
+
+    @Override
+    public Map<String, Position> getAllPositions() {
+        try {
+            HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
+            ResponseEntity<com.ultrader.bot.model.alpaca.Position[]> positions = client.exchange("/positions", HttpMethod.GET, entity, com.ultrader.bot.model.alpaca.Position[].class);
+            if (positions.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                return null;
+            }
+            Map<String, Position> positionMap = new HashMap<>();
+            for (com.ultrader.bot.model.alpaca.Position position : positions.getBody()) {
+                positionMap.put(position.getSymbol(), new Position(position.getSymbol(), position.getQty(), position.getAvg_entry_price(), new Date()));
+            }
+            return positionMap;
+        } catch (Exception e) {
+            LOGGER.error("Failed to call /positions api.", e);
+            return null;
+        }
+    }
+
+    @Override
+    public Account getAccountInfo() {
+        try {
+            HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
+            ResponseEntity<com.ultrader.bot.model.alpaca.Account> account = client.exchange("/account", HttpMethod.GET, entity, com.ultrader.bot.model.alpaca.Account.class);
+            if (account.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                return null;
+            }
+            return new Account(account.getBody().getId(),
+                    account.getBody().getStatus(),
+                    account.getBody().getCurrency(),
+                    account.getBody().getBuying_power(),
+                    account.getBody().getCash(),
+                    account.getBody().getCash_withdrawable(),
+                    account.getBody().getPortfolio_value(),
+                    account.getBody().isPattern_day_trader(),
+                    account.getBody().isTrading_blocked(),
+                    account.getBody().isTransfers_blocked(),
+                    account.getBody().isAccount_blocked());
+        } catch (Exception e) {
+            LOGGER.error("Failed to call /account api.", e);
+            return null;
+        }
+    }
+
+    @Override
+    public Order postOrder(Order order) {
+        try {
+            Map<String, String> request = new HashMap<>();
+            request.put("symbol", order.getSymbol());
+            request.put("qty", String.valueOf(order.getQuantity()));
+            request.put("type", "market");
+            request.put("side", order.getType());
+            request.put("time_in_force", "gtc");
+            HttpEntity<Map<String,String>> entity = new HttpEntity<>(request, generateHeader());
+            ResponseEntity<com.ultrader.bot.model.alpaca.Order> orderResponseEntity = client.exchange("/orders", HttpMethod.POST, entity, com.ultrader.bot.model.alpaca.Order.class);
+            if (orderResponseEntity.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                return null;
+            }
+            Order responseOrder = new Order(
+                    orderResponseEntity.getBody().getId(),
+                    orderResponseEntity.getBody().getSymbol(),
+                    orderResponseEntity.getBody().getSide(),
+                    orderResponseEntity.getBody().getQty(),
+                    order.getAveragePrice(),
+                    orderResponseEntity.getBody().getStatus());
+            return responseOrder;
+        } catch (Exception e) {
+            LOGGER.error("Failed to call /orders api.", e);
+            return null;
         }
     }
 }

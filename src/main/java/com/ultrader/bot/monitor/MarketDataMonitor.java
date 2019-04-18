@@ -1,6 +1,7 @@
 package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.service.alpaca.AlpacaMarketDataService;
 import com.ultrader.bot.service.alpaca.AlpacaTradingService;
 import com.ultrader.bot.util.RepositoryUtil;
@@ -25,7 +26,7 @@ public class MarketDataMonitor extends Monitor {
     private static MarketDataMonitor singleton_instance = null;
     private static boolean marketOpen = false;
 
-    private final AlpacaTradingService alpacaTradingService;
+    private final TradingService tradingService;
     private final AlpacaMarketDataService alpacaMarketDataService;
     private final SettingDao settingDao;
 
@@ -34,15 +35,15 @@ public class MarketDataMonitor extends Monitor {
     private Date lastUpdateDate;
     private Map<String, Set<String>> availableStocks = null;
     public static Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
-    private MarketDataMonitor(final long interval, final AlpacaTradingService alpacaTradingService, final AlpacaMarketDataService alpacaMarketDataService, final SettingDao settingDao) {
+    private MarketDataMonitor(final long interval, final TradingService tradingService, final AlpacaMarketDataService alpacaMarketDataService, final SettingDao settingDao) {
         super(interval);
-        Validate.notNull(alpacaTradingService, "alpacaTradingService is required");
+        Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(alpacaMarketDataService, "alpacaMarketDataService is required");
         Validate.notNull(settingDao, "settingDao is required");
 
         this.settingDao = settingDao;
         this.alpacaMarketDataService = alpacaMarketDataService;
-        this.alpacaTradingService = alpacaTradingService;
+        this.tradingService = tradingService;
     }
 
     @Override
@@ -52,7 +53,7 @@ public class MarketDataMonitor extends Monitor {
             LOGGER.info(String.format("Update market data, platform: %s", platform));
             boolean marketStatusChanged = false;
             //Check if the market is open
-            if(alpacaTradingService.isMarketOpen()) {
+            if(tradingService.isMarketOpen()) {
                 if(!marketOpen) {
                     marketStatusChanged = true;
                 }
@@ -67,7 +68,7 @@ public class MarketDataMonitor extends Monitor {
             }
             //Get all stocks info, only do this once in a same trading day or on the first run
             if(marketStatusChanged || firstRun) {
-                availableStocks = alpacaTradingService.getAvailableStocks();
+                availableStocks = tradingService.getAvailableStocks();
             }
             //Get the list of stocks need to update
             Set<String> stockInExchange = new HashSet<>();
@@ -78,7 +79,7 @@ public class MarketDataMonitor extends Monitor {
                     stockInExchange.addAll(availableStocks.get(exchange));
                 }
             }
-            LOGGER.info(String.format("Found %d stocks in the exchanges.", stockInExchange.size()));
+            LOGGER.debug(String.format("Found %d stocks in the exchanges.", stockInExchange.size()));
             //Filter by list
             boolean isWhiteList = Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.WHITE_LIST_ENABLE_NAME.getName(), "true"));
             String[] customizedStockList = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_STOCK_LIST_NAME.getName(), "AMZN,AAPL,NVDA,GOOGL").split(DELIMITER);
@@ -124,8 +125,8 @@ public class MarketDataMonitor extends Monitor {
         return marketOpen;
     }
 
-    public static void init(long interval, AlpacaTradingService alpacaTradingService, AlpacaMarketDataService alpacaMarketDataService, SettingDao settingDao) {
-        singleton_instance = new MarketDataMonitor(interval, alpacaTradingService, alpacaMarketDataService, settingDao);
+    public static void init(long interval, TradingService tradingService, AlpacaMarketDataService alpacaMarketDataService, SettingDao settingDao) {
+        singleton_instance = new MarketDataMonitor(interval, tradingService, alpacaMarketDataService, settingDao);
     }
 
     public static MarketDataMonitor getInstance() throws IllegalAccessException {

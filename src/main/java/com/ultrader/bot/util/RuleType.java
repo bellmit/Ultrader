@@ -59,10 +59,7 @@ public enum RuleType {
             TradingUtil.translateToString(CLOSE_PRICE, NUMBER)}),
 
     StopLossRule("StopLossRule", new String[]{
-            TradingUtil.translateToString(CLOSE_PRICE, NUMBER)}),
-
-    WaitForRule("WaitForRule", new String[]{
-            TradingUtil.translateToString(ORDER_TYPE, INTEGER)});
+            TradingUtil.translateToString(CLOSE_PRICE, NUMBER)});
     private final String name;
     private String[] args;
     RuleType(String name, String[] args) {

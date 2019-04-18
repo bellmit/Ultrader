@@ -6,7 +6,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import javax.persistence.*;
 
 /**
- * Trading rule model
+ * Order rule model
  * @author ytx1991
  */
 @EntityScan

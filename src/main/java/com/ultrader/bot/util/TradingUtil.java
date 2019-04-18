@@ -62,13 +62,13 @@ public class TradingUtil {
                     } else {
                         switch (logicOperator) {
                             case "&":
-                                rules.and(generateTradingRule(ruleDao, ruleId, stock));
+                                rules = rules.and(generateTradingRule(ruleDao, ruleId, stock));
                                 break;
                             case "|":
-                                rules.or(generateTradingRule(ruleDao, ruleId, stock));
+                                rules = rules.or(generateTradingRule(ruleDao, ruleId, stock));
                                 break;
                             case "^":
-                                rules.xor(generateTradingRule(ruleDao,  ruleId, stock));
+                                rules = rules.xor(generateTradingRule(ruleDao,  ruleId, stock));
                                 break;
                         }
                         logicOperator = str.substring(str.length()-1);

@@ -57,7 +57,6 @@ public class AlpacaMarketDataService implements MarketDataService {
 
     @Override
     public List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) {
-        String timeframe = convertIntervalToTimeframe(interval);
         List<TimeSeries> newStocks = new ArrayList<>();
         List<TimeSeries> oldStocks = new ArrayList<>();
         int maxLength = 0;
