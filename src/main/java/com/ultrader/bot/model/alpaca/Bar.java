@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Bar {
-    private int t;
+    private long t;
     private float o;
     private float h;
     private float l;

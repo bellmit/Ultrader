@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.text.DecimalFormat;
 import java.util.*;
 
 /**
@@ -145,11 +146,13 @@ public class AlpacaPaperTradingService implements TradingService {
     public Order postOrder(Order order) {
         try {
             Map<String, String> request = new HashMap<>();
+            DecimalFormat df = new DecimalFormat("#.00");
             request.put("symbol", order.getSymbol());
             request.put("qty", String.valueOf(order.getQuantity()));
-            request.put("type", "market");
+            request.put("type", "limit");
             request.put("side", order.getType());
             request.put("time_in_force", "gtc");
+            request.put("limit_price", df.format(order.getAveragePrice()));
             HttpEntity<Map<String,String>> entity = new HttpEntity<>(request, generateHeader());
             ResponseEntity<com.ultrader.bot.model.alpaca.Order> orderResponseEntity = client.exchange("/orders", HttpMethod.POST, entity, com.ultrader.bot.model.alpaca.Order.class);
             if (orderResponseEntity.getStatusCode().is4xxClientError()) {
@@ -166,6 +169,33 @@ public class AlpacaPaperTradingService implements TradingService {
             return responseOrder;
         } catch (Exception e) {
             LOGGER.error("Failed to call /orders api.", e);
+            return null;
+        }
+    }
+
+    @Override
+    public Map<String, Order> getOpenOrders() {
+        try {
+            HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
+            ResponseEntity<com.ultrader.bot.model.alpaca.Order[]> orders = client.exchange("/orders?limit=500", HttpMethod.GET, entity, com.ultrader.bot.model.alpaca.Order[].class);
+            if (orders.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                return null;
+            }
+            Map<String, Order> orderMap = new HashMap<>();
+            for (com.ultrader.bot.model.alpaca.Order order : orders.getBody()) {
+                LOGGER.debug("Found open order {}", order.toString());
+                orderMap.put(order.getSymbol(),new Order(
+                        order.getId(),
+                        order.getSymbol(),
+                        order.getSide(),
+                        order.getQty(),
+                        order.getLimit_price(),
+                        order.getStatus()));
+            }
+            return orderMap;
+        } catch (Exception e) {
+            LOGGER.error("Failed to get open orders.", e);
             return null;
         }
     }

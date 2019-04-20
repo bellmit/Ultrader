@@ -1,6 +1,5 @@
 package com.ultrader.bot.monitor;
 
-import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.StrategyDao;
@@ -8,22 +7,18 @@ import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Position;
 import com.ultrader.bot.service.TradingService;
-import com.ultrader.bot.service.alpaca.AlpacaPaperTradingService;
-import com.ultrader.bot.service.alpaca.AlpacaTradingService;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingUtil;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.ResponseEntity;
 import org.ta4j.core.*;
 import org.ta4j.core.num.PrecisionNum;
-;
+
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Order strategy monitor
@@ -79,22 +74,54 @@ public class TradingStrategyMonitor extends Monitor {
             LOGGER.info("Execute trading strategy.");
             //Get current position
             Map<String, Position> positionMap = tradingService.getAllPositions();
-            LOGGER.debug(String.format("Found %d positions.", positionMap.size()));
+            if(positionMap == null) {
+                LOGGER.error("Cannot get position info, skip executing trading strategies");
+                return;
+            }
+            LOGGER.info(String.format("Found %d positions.", positionMap.size()));
             //Get current portfolio
             Account account = tradingService.getAccountInfo();
+            if(account == null) {
+                LOGGER.error("Cannot get account info, skip executing trading strategies");
+                return;
+            }
             if(account.isTradingBlocked()) {
                 LOGGER.error("Your api account is blocked trading, please check the trading platform account.");
                 return;
             }
+            //Get open orders
+            Map<String, com.ultrader.bot.model.Order> openOrders = tradingService.getOpenOrders();
             String buyLimit = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "1%");
             int holdLimit = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "0"));
             holdLimit = holdLimit == 0 ? Integer.MAX_VALUE : holdLimit;
+            int positionNum = positionMap.size();
+            int minLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "50"));
             synchronized (lock) {
+                int vailidCount = 0;
                 TradingUtil.updateStrategies(strategyDao, ruleDao, settingDao);
                 LOGGER.info(String.format("Updated trading strategies for %d stocks", strategies.size()));
                 for(Map.Entry<String, Strategy> entry : strategies.entrySet()) {
                     String stock = entry.getKey();
-                    if(MarketDataMonitor.timeSeriesMap.containsKey(stock) && MarketDataMonitor.isMarketOpen()) {
+                    //Don't trade stock if it has an open order
+                    if(openOrders.containsKey(stock)) {
+                        continue;
+                    }
+                    //Don't trade stock if the time series is missing
+                    if(!MarketDataMonitor.timeSeriesMap.containsKey(stock)) {
+                        continue;
+                    }
+                    //Don't trade if time series is not long enough
+                    if(MarketDataMonitor.timeSeriesMap.get(stock).getBarCount() < minLength) {
+                        continue;
+                    }
+                    //Don't trade if the last update time is too far
+                    if(new Date().getTime() - MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() > getInterval() * 2) {
+                        continue;
+                    }
+                    vailidCount ++;
+
+                    //Check if buy satisfied
+                    if(MarketDataMonitor.isMarketOpen()) {
                         TradingRecord tradingRecord = new BaseTradingRecord();
                         Double currentPrice = MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getClosePrice().doubleValue();
                         if(positionMap.containsKey(stock)) {
@@ -104,24 +131,30 @@ public class TradingStrategyMonitor extends Monitor {
 
                         if(entry.getValue().shouldEnter(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex())
                                 && !positionMap.containsKey(stock)
-                                && positionMap.size() < holdLimit) {
+                                && positionNum < holdLimit) {
                             //buy strategy satisfy & no position & hold stock < limit
                             int buyQuantity = calculateBuyShares(buyLimit, currentPrice, account);
                             if(buyQuantity > 0) {
                                 if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyQuantity, currentPrice, "")) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
+                                    positionNum++;
                                     LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
                                 }
                             }
-                        } else if (entry.getValue().shouldExit(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex(), tradingRecord)
-                                && positionMap.containsKey(stock)) {
+                        } else if (entry.getValue().shouldExit(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex(), tradingRecord) //Check if sell satisfied
+                                && positionMap.containsKey(stock)
+                                && positionMap.get(stock).getQuantity() > 0) {
                             //sell strategy satisfy & has position
-                            tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", positionMap.get(stock).getQuantity(), currentPrice, ""));
-                            LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positionMap.get(stock).getQuantity(), currentPrice));
+                            if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", positionMap.get(stock).getQuantity(), currentPrice, "")) != null) {
+                                account.setBuyingPower(account.getBuyingPower() + currentPrice * positionMap.get(stock).getQuantity());
+                                positionNum--;
+                                LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positionMap.get(stock).getQuantity(), currentPrice));
+                            }
+
                         }
                     }
                 }
-
+                LOGGER.info("Checked trading strategies for {} stocks", vailidCount);
             }
         } catch (Exception e) {
             LOGGER.error("Failed to execute trading strategy.", e);
