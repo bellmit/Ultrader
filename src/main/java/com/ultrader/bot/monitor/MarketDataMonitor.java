@@ -109,10 +109,37 @@ public class MarketDataMonitor extends Monitor {
                 }
             }
             updateSeries = alpacaMarketDataService.updateTimeSeries(updateSeries, getInterval());
+            //For max, If smaller than 0 then no limit
+            double priceMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MAX.getName(), "-1.0"));
+            double priceMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MIN.getName(), "0.0"));
+            double volumeMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MAX.getName(), "-1.0"));
+            double volumeMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MIN.getName(), "1000.0"));
             for (TimeSeries timeSeries : updateSeries) {
+                //Filter by time series length
+                if(timeSeries.getBarCount() <= maxLength / 2) {
+                    continue;
+                }
+
+                //Filter by price max limit
+                if(priceMax > 0 && timeSeries.getLastBar().getClosePrice().doubleValue() > priceMax) {
+                    continue;
+                }
+                //Filter by price min limit
+                if(timeSeries.getLastBar().getClosePrice().doubleValue() < priceMin) {
+                    continue;
+                }
+                //Filter by volume max limit
+                if(volumeMax > 0 && timeSeries.getLastBar().getVolume().doubleValue() > volumeMax) {
+                    continue;
+                }
+                //Filter by volume min limit
+                if(timeSeries.getLastBar().getVolume().doubleValue() < volumeMin) {
+                    continue;
+                }
                 currentTimeSeries.put(timeSeries.getName(), timeSeries);
                 LOGGER.debug(String.format("Stock %s has %d bars", timeSeries.getName(), timeSeries.getBarCount()));
             }
+            LOGGER.info("{} stocks filter by price and volume, {} stocks remains.", updateSeries.size() - currentTimeSeries.size(), currentTimeSeries.size());
             synchronized (TradingStrategyMonitor.lock) {
                 this.timeSeriesMap = currentTimeSeries;
             }

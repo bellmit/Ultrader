@@ -104,18 +104,22 @@ public class TradingStrategyMonitor extends Monitor {
                     String stock = entry.getKey();
                     //Don't trade stock if it has an open order
                     if(openOrders.containsKey(stock)) {
+                        LOGGER.debug("Skip {} trading strategy since there is an open order", stock);
                         continue;
                     }
                     //Don't trade stock if the time series is missing
                     if(!MarketDataMonitor.timeSeriesMap.containsKey(stock)) {
+                        LOGGER.debug("Skip {} trading strategy since no time series", stock);
                         continue;
                     }
                     //Don't trade if time series is not long enough
                     if(MarketDataMonitor.timeSeriesMap.get(stock).getBarCount() < minLength) {
+                        LOGGER.debug("Skip {} trading strategy since time series is not long enough", stock);
                         continue;
                     }
                     //Don't trade if the last update time is too far
-                    if(new Date().getTime() - MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() > getInterval() * 2) {
+                    if(new Date().getTime() / 1000 - MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() > getInterval() * 3) {
+                        LOGGER.debug("Skip {} trading strategy since time series is not update to date {} {}", stock, new Date().getTime(),MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() );
                         continue;
                     }
                     vailidCount ++;

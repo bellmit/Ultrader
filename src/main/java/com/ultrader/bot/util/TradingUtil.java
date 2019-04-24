@@ -234,7 +234,7 @@ public class TradingUtil {
                     Rule buyRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, stock);
                     Rule sellRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, stock);
                     if(buyRules != null && sellRules != null) {
-                        strategyMap.put(stock, new BaseStrategy(buyRules, sellRules));
+                        strategyMap.put(stock, new BaseStrategy(stock, buyRules, sellRules));
                     } else {
                         LOGGER.error("Missing trading rules.");
                     }
