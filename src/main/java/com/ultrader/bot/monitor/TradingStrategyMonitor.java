@@ -71,24 +71,13 @@ public class TradingStrategyMonitor extends Monitor {
                 LOGGER.info("Auto trading disabled");
                 return;
             }
-            LOGGER.info("Execute trading strategy.");
             //Get current position
-            Map<String, Position> positionMap = tradingService.getAllPositions();
-            if(positionMap == null) {
-                LOGGER.error("Cannot get position info, skip executing trading strategies");
-                return;
-            }
-            LOGGER.info(String.format("Found %d positions.", positionMap.size()));
+            Map<String, Position> positionMap = getAllPositions();
+
             //Get current portfolio
-            Account account = tradingService.getAccountInfo();
-            if(account == null) {
-                LOGGER.error("Cannot get account info, skip executing trading strategies");
-                return;
-            }
-            if(account.isTradingBlocked()) {
-                LOGGER.error("Your api account is blocked trading, please check the trading platform account.");
-                return;
-            }
+            Account account = getAccount();
+            LOGGER.info("Execute trading strategy.");
+
             //Get open orders
             Map<String, com.ultrader.bot.model.Order> openOrders = tradingService.getOpenOrders();
             String buyLimit = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "1%");
@@ -96,6 +85,7 @@ public class TradingStrategyMonitor extends Monitor {
             holdLimit = holdLimit == 0 ? Integer.MAX_VALUE : holdLimit;
             int positionNum = positionMap.size();
             int minLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "50"));
+            int buyOpenOrder = (int)openOrders.values().stream().filter(o -> o.getType().equals("buy")).count();
             synchronized (lock) {
                 int vailidCount = 0;
                 TradingUtil.updateStrategies(strategyDao, ruleDao, settingDao);
@@ -135,7 +125,8 @@ public class TradingStrategyMonitor extends Monitor {
 
                         if(entry.getValue().shouldEnter(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex())
                                 && !positionMap.containsKey(stock)
-                                && positionNum < holdLimit) {
+                                && !openOrders.containsKey(stock)
+                                && positionNum + buyOpenOrder < holdLimit) {
                             //buy strategy satisfy & no position & hold stock < limit
                             int buyQuantity = calculateBuyShares(buyLimit, currentPrice, account);
                             if(buyQuantity > 0) {
@@ -165,6 +156,25 @@ public class TradingStrategyMonitor extends Monitor {
         }
     }
 
+    private Map<String, Position> getAllPositions() throws RuntimeException {
+        Map<String, Position> positionMap = tradingService.getAllPositions();
+        if(positionMap == null) {
+            throw new RuntimeException("Cannot get position info, skip executing trading strategies");
+        }
+        LOGGER.info(String.format("Found %d positions.", positionMap.size()));
+        return positionMap;
+    }
+
+    private Account getAccount() throws RuntimeException{
+        Account account = tradingService.getAccountInfo();
+        if(account == null) {
+            throw new RuntimeException("Cannot get account info, skip executing trading strategies");
+        }
+        if(account.isTradingBlocked()) {
+            throw new RuntimeException("Your api account is blocked trading, please check the trading platform account.");
+        }
+        return account;
+    }
     private static int calculateBuyShares(String limit, double price, Account account) {
         double amount;
         if(limit.indexOf("%") < 0) {
@@ -174,7 +184,7 @@ public class TradingStrategyMonitor extends Monitor {
         }
         int quantity = (int)Math.round(Math.floor(amount / price));
         if(account.getBuyingPower() < amount) {
-            quantity = (int)Math.round(Math.floor(account.getBuyingPower() / price));
+            quantity = 0;
         }
         return quantity;
     }
