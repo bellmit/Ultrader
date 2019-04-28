@@ -1,15 +1,25 @@
 package com.ultrader.bot.controller;
 
 import com.ultrader.bot.dao.StrategyDao;
+import com.ultrader.bot.model.BackTestingResult;
 import com.ultrader.bot.model.Strategy;
+import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.monitor.TradingStrategyMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import org.ta4j.core.AnalysisCriterion;
+import org.ta4j.core.TimeSeries;
+import org.ta4j.core.TimeSeriesManager;
+import org.ta4j.core.TradingRecord;
+import org.ta4j.core.analysis.CashFlow;
+import org.ta4j.core.analysis.criteria.AverageProfitableTradesCriterion;
+import org.ta4j.core.analysis.criteria.RewardRiskRatioCriterion;
+import org.ta4j.core.analysis.criteria.TotalProfitCriterion;
+import org.ta4j.core.analysis.criteria.VersusBuyAndHoldCriterion;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Strategy Controller
@@ -36,7 +46,7 @@ public class StrategyController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/getStrategy")
+    @RequestMapping(method = RequestMethod.GET, value = "/getStrategy/{id}")
     @ResponseBody
     public Strategy getStrategy(@PathVariable Long id) {
         try {
@@ -60,7 +70,7 @@ public class StrategyController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/deleteStrategy")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/deleteStrategy/{id}")
     @ResponseBody
     public void deleteStrategies(@PathVariable Long id) {
         try {
@@ -82,5 +92,58 @@ public class StrategyController {
             LOGGER.error("Reload strategy failed.", e);
             return false;
         }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/backtest/{num}")
+    @ResponseBody
+    public Iterable<BackTestingResult> backTest(@PathVariable int num) {
+        List<BackTestingResult> results = new ArrayList<>();
+        synchronized(TradingStrategyMonitor.lock) {
+            List<String> stocks = pickNStocks(num);
+            for(String stock : stocks) {
+                results.add(backTest(stock));
+            }
+        }
+        return results;
+    }
+
+    private BackTestingResult backTest(String stock) {
+        TimeSeries series = MarketDataMonitor.timeSeriesMap.get(stock);
+        TimeSeriesManager manager = new TimeSeriesManager(series);
+        TradingRecord tradingRecord = manager.run(TradingStrategyMonitor.strategies.get(stock));
+        // Getting the cash flow of the resulting trades
+        CashFlow cashFlow = new CashFlow(series, tradingRecord);
+        // Getting the profitable trades ratio
+        AnalysisCriterion profitTradesRatio = new AverageProfitableTradesCriterion();
+
+        // Getting the reward-risk ratio
+        AnalysisCriterion rewardRiskRatio = new RewardRiskRatioCriterion();
+
+        // Total profit of our strategy
+        TotalProfitCriterion totalProfitCriterion = new TotalProfitCriterion();
+        // vs total profit of a buy-and-hold strategy
+        AnalysisCriterion vsBuyAndHold = new VersusBuyAndHoldCriterion(totalProfitCriterion);
+
+        return new BackTestingResult(
+                stock,
+                tradingRecord.getTradeCount(),
+                profitTradesRatio.calculate(series, tradingRecord).doubleValue(),
+                rewardRiskRatio.calculate(series, tradingRecord).doubleValue(),
+                vsBuyAndHold.calculate(series, tradingRecord).doubleValue(),
+                totalProfitCriterion.calculate(series, tradingRecord).doubleValue(),
+                series.getBar(0).getBeginTime().toString(),
+                series.getLastBar().getEndTime().toString());
+    }
+
+    private List<String> pickNStocks(int n) {
+        Random random = new Random(System.currentTimeMillis());
+        n  = n > TradingStrategyMonitor.strategies.size() ? TradingStrategyMonitor.strategies.size() : n;
+        List<String> stocks = new ArrayList<>();
+        List<String> allStock = new ArrayList<>(TradingStrategyMonitor.strategies.keySet());
+        for(int i = 0; i < n; i++) {
+            int index = random.nextInt(TradingStrategyMonitor.strategies.size());
+            stocks.add(allStock.get(index));
+        }
+        return stocks;
     }
 }

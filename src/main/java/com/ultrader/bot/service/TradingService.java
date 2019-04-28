@@ -5,6 +5,7 @@ import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.alpaca.Asset;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,4 +39,10 @@ public interface TradingService {
      * @return
      */
     Order postOrder(Order order);
+
+    /**
+     * Get all open orders
+     * @return
+     */
+    Map<String, Order> getOpenOrders();
 }

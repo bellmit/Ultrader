@@ -169,4 +169,30 @@ public class AlpacaTradingService implements TradingService {
             return null;
         }
     }
+
+    @Override
+    public Map<String, Order> getOpenOrders() {
+        try {
+            HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
+            ResponseEntity<com.ultrader.bot.model.alpaca.Order[]> orders = client.exchange("/orders?limit=500", HttpMethod.GET, entity, com.ultrader.bot.model.alpaca.Order[].class);
+            if (orders.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                return null;
+            }
+            Map<String, Order> orderMap = new HashMap<>();
+            for (com.ultrader.bot.model.alpaca.Order order : orders.getBody()) {
+                orderMap.put(order.getSymbol(),new Order(
+                        order.getId(),
+                        order.getSymbol(),
+                        order.getSide(),
+                        order.getQty(),
+                        order.getLimit_price(),
+                        order.getStatus()));
+            }
+            return orderMap;
+        } catch (Exception e) {
+            LOGGER.error("Failed to get open orders.", e);
+            return null;
+        }
+    }
 }

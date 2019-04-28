@@ -20,8 +20,11 @@ public abstract class Monitor implements Runnable {
     public void run() {
         while(true) {
             try {
+                long start = System.currentTimeMillis();
                 scan();
-                Thread.sleep(interval);
+                long end = System.currentTimeMillis();
+                long sleepTime = interval - (end - start);
+                Thread.sleep(sleepTime > 0 ? sleepTime : 0);
             } catch (InterruptedException e) {
                 LOGGER.error("Monitor interrupted.",e);
                 break;

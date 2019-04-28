@@ -37,7 +37,7 @@ public class RuleController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/getRule")
+    @RequestMapping(method = RequestMethod.GET, value = "/getRule/{id}")
     @ResponseBody
     public Rule getRule(@PathVariable Long id) {
         try {
@@ -61,7 +61,7 @@ public class RuleController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.DELETE, value = "/deleteRule")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/deleteRule/{id}")
     @ResponseBody
     public void deleteRule(@PathVariable Long id) {
         try {

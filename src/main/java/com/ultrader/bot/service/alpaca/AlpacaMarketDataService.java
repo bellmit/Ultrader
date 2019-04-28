@@ -18,11 +18,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import org.ta4j.core.BaseBar;
 import org.ta4j.core.TimeSeries;
+import org.ta4j.core.num.Num;
+import org.ta4j.core.num.PrecisionNum;
 
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,7 @@ import java.util.stream.Collectors;
 @Service
 public class AlpacaMarketDataService implements MarketDataService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaMarketDataService.class);
-    private static final int MAX_STOCK = 200;
+    private static final int MAX_STOCK = 150;
     private static final String TIME_ZONE = "America/New_York";
     private String alpacaKey;
     private String alpacaSecret;
@@ -45,8 +46,8 @@ public class AlpacaMarketDataService implements MarketDataService {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
 
-        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY_NAME.getName(), "");
-        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_SECRET_NAME.getName(), "");
+        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY_NAME.getName(), "");
+        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET_NAME.getName(), "");
         if(alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
@@ -97,14 +98,14 @@ public class AlpacaMarketDataService implements MarketDataService {
                 continue;
             }
             //Do a batch call when reach the max stocks per call limit
-            updateBars(symbols.toString(), interval, (isNewStock ? maxLength : 1), batchTimeSeries);
+            updateBars(symbols.toString(), interval, (isNewStock ? maxLength : 3), batchTimeSeries);
 
             batchTimeSeries.clear();
             symbols = new StringBuilder();
             count = 0;
         }
         if(count != 0) {
-            updateBars(symbols.toString(), interval, (isNewStock ? maxLength : 1), batchTimeSeries);
+            updateBars(symbols.toString(), interval, (isNewStock ? maxLength : 3), batchTimeSeries);
         }
 
     }
@@ -115,7 +116,7 @@ public class AlpacaMarketDataService implements MarketDataService {
 
         parameter.append("symbols=" + symbols);
         parameter.append("&limit=" + limit);
-
+        //parameter.append("&start=" + (new Date().getTime() - interval * (limit + 1)));
         //Get new bars
         ResponseEntity<HashMap<String, ArrayList<Bar>>> responseEntity = client.exchange("/bars/" + convertIntervalToTimeframe(interval) + parameter.toString(), HttpMethod.GET, entity, barResponseType);
         if (responseEntity.getStatusCode().is4xxClientError()) {
@@ -123,15 +124,20 @@ public class AlpacaMarketDataService implements MarketDataService {
             return;
         }
 
-
         //Update time series
         for(String stock : responseEntity.getBody().keySet()) {
-            LOGGER.debug(String.format("Update stocks %s, %d bars", symbols, responseEntity.getBody().get(stock).size()));
+            LOGGER.debug(String.format("Update stocks %s, %d bars", stock, responseEntity.getBody().get(stock).size()));
             for(Bar bar : responseEntity.getBody().get(stock)) {
-                Instant i = Instant.ofEpochSecond(bar.getT() + interval/1000);
-                ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TIME_ZONE));
-                if( batchTimeSeries.get(stock).getBarCount() == 0 || !batchTimeSeries.get(stock).getLastBar().getEndTime().equals(endDate)) {
-                    batchTimeSeries.get(stock).addBar(endDate, bar.getO(), bar.getH(), bar.getL(), bar.getC(), bar.getV());
+                if( batchTimeSeries.get(stock).getBarCount() == 0 || batchTimeSeries.get(stock).getLastBar().getBeginTime().toEpochSecond() < bar.getT()) {
+                    LOGGER.debug("Last bar begin at {}, current bar begin at {}, stock {}, bars {}",
+                            batchTimeSeries.get(stock).getBarCount() == 0 ? "null" : batchTimeSeries.get(stock).getLastBar().getBeginTime().toEpochSecond(),
+                            bar.getT(),
+                            stock,
+                            batchTimeSeries.get(stock).getBarCount());
+                    Instant i = Instant.ofEpochSecond(bar.getT() + interval/1000);
+                    ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TIME_ZONE));
+                    org.ta4j.core.Bar newBar = new BaseBar(Duration.ofMillis(interval),endDate, PrecisionNum.valueOf(bar.getO()), PrecisionNum.valueOf(bar.getH()), PrecisionNum.valueOf(bar.getL()), PrecisionNum.valueOf(bar.getC()), PrecisionNum.valueOf(bar.getV()), PrecisionNum.valueOf(0));
+                    batchTimeSeries.get(stock).addBar(newBar);
                 }
             }
         }

@@ -38,6 +38,7 @@ public class TradingUtil {
     public static final String NUMBER = "Number";
     public static final String BOOLEAN = "Boolean";
     public static final String INTEGER = "Integer";
+    public static final String DOUBLE = "Double";
     public static final String NUM_INDICATOR = "NumIndicator";
     public static final String BOOLEAN_INDICATOR = "BooleanIndicator";
     public static org.ta4j.core.Rule generateTradingStrategy(StrategyDao strategyDao, RuleDao ruleDao, long strategyId, String stock) {
@@ -120,6 +121,8 @@ public class TradingUtil {
                     classes[i] = int.class;
                 } else if (argType.equals(BOOLEAN)) {
                     classes[i] = boolean.class;
+                } else if (argType.equals(DOUBLE)) {
+                    classes[i] = double.class;
                 } else if (argType.equals(CLOSE_PRICE)) {
                     classes[i] = ClosePriceIndicator.class;
                 } else if (argType.equals(ORDER_TYPE)) {
@@ -155,6 +158,8 @@ public class TradingUtil {
                         } else if (argStr[j].equals(CLOSE_PRICE)) {
                             //Indicator value is close price indicator
                             valueClasses[j-1] = Indicator.class;
+                        } else if (argStr[j].indexOf(".") >= 0) {
+                            valueClasses[j-1] = double.class;
                         } else {
                             //Indicator value is an integer
                             valueClasses[j-1] = int.class;
@@ -175,6 +180,8 @@ public class TradingUtil {
                                 LOGGER.error(String.format("Missing stock time series for %s when generating the rule", stock));
                             }
                             argValues[j-1] = new  ClosePriceIndicator(MarketDataMonitor.timeSeriesMap.get(stock));
+                        } else if (argStr[j].indexOf(".") >= 0) {
+                            argValues[j-1] = Double.parseDouble(argStr[j]);
                         } else {
                             //Indicator value is an integer
                             argValues[j-1] = Integer.parseInt(argStr[j]);
@@ -227,7 +234,7 @@ public class TradingUtil {
                     Rule buyRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, stock);
                     Rule sellRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, stock);
                     if(buyRules != null && sellRules != null) {
-                        strategyMap.put(stock, new BaseStrategy(buyRules, sellRules));
+                        strategyMap.put(stock, new BaseStrategy(stock, buyRules, sellRules));
                     } else {
                         LOGGER.error("Missing trading rules.");
                     }
@@ -243,6 +250,11 @@ public class TradingUtil {
 
     }
 
+    /**
+     * Translate args to string
+     * @param args
+     * @return
+     */
     public static String translateToString(String ... args) {
         StringBuilder sb = new StringBuilder();
         for(int i = 0; i < args.length; i++) {
@@ -254,4 +266,5 @@ public class TradingUtil {
         }
         return sb.toString();
     }
+
 }

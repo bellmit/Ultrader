@@ -1,7 +1,6 @@
 package com.ultrader.bot.util;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonValue;
 
 import static com.ultrader.bot.util.TradingUtil.*;
 
@@ -11,64 +10,63 @@ import static com.ultrader.bot.util.TradingUtil.*;
  */
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum RuleType {
-    BooleanIndicatorRule("BooleanIndicatorRule", new String[]{BOOLEAN_INDICATOR}),
+    BooleanIndicatorRule("BooleanIndicatorRule", "Boolean Indicator Rule", new String[]{BOOLEAN_INDICATOR}),
 
-    BooleanRule("BooleanRule", new String[]{BOOLEAN}),
-
-    CrossedDownIndicatorRule("CrossedDownIndicatorRule", new String[]{
+    CrossedDownIndicatorRule("CrossedDownIndicatorRule", "Crossed Down Rule", new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, NUM_INDICATOR),
             TradingUtil.translateToString(NUM_INDICATOR, NUMBER)}),
 
-    CrossedUpIndicatorRule("CrossedUpIndicatorRule", new String[]{
+    CrossedUpIndicatorRule("CrossedUpIndicatorRule", "Crossed Up Rule", new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, NUM_INDICATOR),
             TradingUtil.translateToString(NUM_INDICATOR, NUMBER)}),
 
-    InPipeRule("InPipeRule",  new String[]{
+    InPipeRule("InPipeRule", "In Pipe Rule",  new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, NUM_INDICATOR, NUM_INDICATOR),
             TradingUtil.translateToString(NUM_INDICATOR, NUMBER, NUMBER)}),
 
-    InSlopeRule("InSlopeRule", new String[]{
+    InSlopeRule("InSlopeRule", "In Slope Rule", new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, INTEGER, NUMBER),
             TradingUtil.translateToString(NUM_INDICATOR, INTEGER, NUMBER, NUMBER),
             TradingUtil.translateToString(NUM_INDICATOR, NUMBER),
             TradingUtil.translateToString(NUM_INDICATOR, NUMBER, NUMBER)}),
 
-    IsEqualRule("IsEqualRule", new String[]{
+    IsEqualRule("IsEqualRule", "Is Equal Rule", new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, NUM_INDICATOR),
             TradingUtil.translateToString(NUM_INDICATOR, NUMBER)}),
 
-    IsFallingRule("IsFallingRule", new String[]{
+    IsFallingRule("IsFallingRule", "Is Falling Rule", new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, INTEGER),
             TradingUtil.translateToString(NUM_INDICATOR, INTEGER, NUMBER)}),
 
-    IsRisingRule("IsRisingRule", new String[]{
+    IsRisingRule("IsRisingRule", "Is Rising Rule", new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, INTEGER),
             TradingUtil.translateToString(NUM_INDICATOR, INTEGER, NUMBER)}),
 
-    IsHighestRule("IsHighestRule", new String[]{
+    IsHighestRule("IsHighestRule", "Is Highest Rule", new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, INTEGER)}),
 
-    IsLowestRule("IsLowestRule", new String[]{
+    IsLowestRule("IsLowestRule", "Is Lowest Rule", new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, INTEGER)}),
 
-    OverIndicatorRule("OverIndicatorRule",  new String[]{
+    OverIndicatorRule("OverIndicatorRule", "Over Rule",  new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, NUM_INDICATOR),
             TradingUtil.translateToString(NUM_INDICATOR, NUMBER)}),
 
-    UnderIndicatorRule("OverIndicatorRule",  new String[]{
+    UnderIndicatorRule("UnderIndicatorRule", "Under Rule", new String[]{
             TradingUtil.translateToString(NUM_INDICATOR, NUM_INDICATOR),
             TradingUtil.translateToString(NUM_INDICATOR, NUMBER)}),
 
-    StopGainRule("StopGainRule", new String[]{
+    StopGainRule("StopGainRule", "Stop Gain Rule", new String[]{
             TradingUtil.translateToString(CLOSE_PRICE, NUMBER)}),
 
-    StopLossRule("StopLossRule", new String[]{
+    StopLossRule("StopLossRule", "Stop Loss Rule", new String[]{
             TradingUtil.translateToString(CLOSE_PRICE, NUMBER)});
 
     private final String name;
-
+    private String classz;
     private String[] args;
-    RuleType(String name, String[] args) {
+    RuleType(String classz, String name, String[] args) {
+        this.classz = classz;
         this.name = name;
         this.args = args;
     }
@@ -81,4 +79,7 @@ public enum RuleType {
         return this.args;
     }
 
+    public String getClassz() {
+        return this.classz;
+    }
 }
