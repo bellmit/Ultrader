@@ -2,6 +2,7 @@ package com.ultrader.bot.controller;
 
 import com.ultrader.bot.dao.UserDao;
 import com.ultrader.bot.model.User;
+import com.ultrader.bot.util.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,21 @@ public class UserController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.POST, value = "/addRootUser")
+    @ResponseBody
+    public User addRootUser(@RequestBody User user) {
+        try {
+            if(userDao.count() > 0) {
+                return null;
+            }
+            User savedUser = userDao.save(user);
+            return savedUser;
+        } catch (Exception e) {
+            LOGGER.error("Save user failed.", e);
+            return null;
+        }
+    }
+
     @RequestMapping(method = RequestMethod.GET, value = "/getUsers")
     @ResponseBody
     public Iterable<User> getUsers() {
@@ -44,4 +60,20 @@ public class UserController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/getUser/{id}")
+    @ResponseBody
+    public User getUser(@PathVariable Long id) {
+        try {
+            return userDao.findById(id).get();
+        } catch (Exception e) {
+            LOGGER.error("Get users failed.", e);
+            return null;
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getUserType")
+    @ResponseBody
+    public UserType[] getRuleType() {
+        return UserType.values();
+    }
 }
