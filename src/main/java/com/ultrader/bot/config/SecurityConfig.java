@@ -61,6 +61,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/rule/**").hasAnyRole(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())//1 for Admin, 2 for User
                 .antMatchers("/user/addRootUser").permitAll()
                 .antMatchers("/user/getUserType").permitAll()
+                .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/strategy/**").hasAnyRole(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/setting/**").hasAnyRole(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/user/**").hasRole(UserType.ADMIN.getId().toString())
@@ -73,6 +74,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .httpBasic()
                 .and()
                 .logout();
+        http.headers().frameOptions().sameOrigin();
     }
 
     @Bean
