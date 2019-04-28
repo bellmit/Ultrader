@@ -1,0 +1,1 @@
+export const GET_RULES_SUCCESS = 'GET_RULES_SUCCESS';

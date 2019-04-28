@@ -9,9 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Rule Controller
@@ -88,6 +87,20 @@ public class RuleController {
     @ResponseBody
     public Map<String, String> getIndicatorCategory() {
         return IndicatorType.parentClassMap;
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getCategoryIndicatorMap")
+    @ResponseBody
+    public Map<String, List<String>> getCategoryIndicatorMap() {
+        Map<String, List<String>> result = new HashMap<String, List<String>>();
+        for(Map.Entry<String,String> entry : IndicatorType.parentClassMap.entrySet()){
+            List<String> list = new ArrayList<String>();
+            if(result.containsKey(entry.getValue()))
+                list = result.get(entry.getValue());
+            list.add(entry.getKey());
+            result.put(entry.getValue(), list);
+        }
+        return result;
     }
 
 }
