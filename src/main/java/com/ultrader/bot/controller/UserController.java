@@ -6,6 +6,7 @@ import com.ultrader.bot.util.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -21,10 +22,13 @@ public class UserController {
     @Autowired
     private UserDao userDao;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
     @RequestMapping(method = RequestMethod.POST, value = "/addUser")
     @ResponseBody
     public User save(@RequestBody User user) {
         try {
+            user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             User savedUser = userDao.save(user);
             return savedUser;
         } catch (Exception e) {
@@ -40,6 +44,7 @@ public class UserController {
             if(userDao.count() > 0) {
                 return null;
             }
+            user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             User savedUser = userDao.save(user);
             return savedUser;
         } catch (Exception e) {

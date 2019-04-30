@@ -3,6 +3,8 @@ package com.ultrader.bot.service;
 import com.ultrader.bot.config.BotUser;
 import com.ultrader.bot.dao.UserDao;
 import com.ultrader.bot.model.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -19,6 +21,7 @@ import javax.annotation.PostConstruct;
 
 @Service
 public class UserService implements UserDetailsService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
     @Autowired
     private WebApplicationContext applicationContext;
     private UserDao userDao;
@@ -35,6 +38,7 @@ public class UserService implements UserDetailsService {
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         final User user = userDao.findByUsername(username);
+        LOGGER.debug("find user: " + user.toString());
         if (user == null) {
             throw new UsernameNotFoundException(username);
         }
