@@ -149,10 +149,12 @@ public class AlpacaPaperTradingService implements TradingService {
             DecimalFormat df = new DecimalFormat("#.00");
             request.put("symbol", order.getSymbol());
             request.put("qty", String.valueOf(order.getQuantity()));
-            request.put("type", "limit");
-            request.put("side", order.getType());
+            request.put("type", order.getType());
+            request.put("side", order.getSide());
             request.put("time_in_force", "gtc");
-            request.put("limit_price", df.format(order.getAveragePrice()));
+            if(order.getType().equals("limit")) {
+                request.put("limit_price", df.format(order.getAveragePrice()));
+            }
             HttpEntity<Map<String,String>> entity = new HttpEntity<>(request, generateHeader());
             ResponseEntity<com.ultrader.bot.model.alpaca.Order> orderResponseEntity = client.exchange("/orders", HttpMethod.POST, entity, com.ultrader.bot.model.alpaca.Order.class);
             if (orderResponseEntity.getStatusCode().is4xxClientError()) {
@@ -163,6 +165,7 @@ public class AlpacaPaperTradingService implements TradingService {
                     orderResponseEntity.getBody().getId(),
                     orderResponseEntity.getBody().getSymbol(),
                     orderResponseEntity.getBody().getSide(),
+                    orderResponseEntity.getBody().getType(),
                     orderResponseEntity.getBody().getQty(),
                     order.getAveragePrice(),
                     orderResponseEntity.getBody().getStatus());
@@ -189,6 +192,7 @@ public class AlpacaPaperTradingService implements TradingService {
                         order.getId(),
                         order.getSymbol(),
                         order.getSide(),
+                        order.getType(),
                         order.getQty(),
                         order.getLimit_price(),
                         order.getStatus()));

@@ -21,6 +21,8 @@ public class Order {
     private String id;
     @Column(name="symbol", updatable = false, nullable=false)
     private String symbol;
+    @Column(name="side", updatable = false, nullable=false)
+    private String side;
     @Column(name="type", updatable = false, nullable=false)
     private String type;
     @Column(name="quantity", updatable = false, nullable=false)

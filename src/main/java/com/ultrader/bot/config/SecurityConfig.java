@@ -43,12 +43,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(final AuthenticationManagerBuilder auth) throws Exception {
-        auth.userDetailsService(userService)
-                .passwordEncoder(encoder())
-                .and()
-                .authenticationProvider(authenticationProvider())
-                .jdbcAuthentication()
-                .dataSource(dataSource);;
+        auth.authenticationProvider(authenticationProvider());
     }
 
     @Bean
@@ -71,13 +66,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .antMatchers("/api/login").permitAll()
-                .antMatchers("/rule/**").hasAnyRole(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())//1 for Admin, 2 for User
+                .antMatchers("/rule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())//1 for Admin, 2 for User
                 .antMatchers("/user/addRootUser").permitAll()
                 .antMatchers("/user/getUserType").permitAll()
                 .antMatchers("/h2-console/**").permitAll()
-                .antMatchers("/strategy/**").hasAnyRole(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                .antMatchers("/setting/**").hasAnyRole(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                .antMatchers("/user/**").hasRole(UserType.ADMIN.getId().toString())
+                .antMatchers("/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                .antMatchers("/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                .antMatchers("/user/**").hasAuthority(UserType.ADMIN.getId().toString())
                 .and()
                 .formLogin()
                 .loginProcessingUrl("/api/login")

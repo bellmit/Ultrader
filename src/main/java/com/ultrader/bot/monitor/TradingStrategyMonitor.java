@@ -85,7 +85,10 @@ public class TradingStrategyMonitor extends Monitor {
             holdLimit = holdLimit == 0 ? Integer.MAX_VALUE : holdLimit;
             int positionNum = positionMap.size();
             int minLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "50"));
-            int buyOpenOrder = (int)openOrders.values().stream().filter(o -> o.getType().equals("buy")).count();
+            int buyOpenOrder = (int)openOrders.values().stream().filter(o -> o.getSide().equals("buy")).count();
+            String buyOrderType = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_ORDER_TYPE.getName(), "market");
+            String sellOrderType = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_SELL_ORDER_TYPE.getName(), "market");
+            LOGGER.info("Buy order type {}, Sell order type {}", buyOrderType, sellOrderType);
             synchronized (lock) {
                 int vailidCount = 0;
                 TradingUtil.updateStrategies(strategyDao, ruleDao, settingDao);
@@ -130,7 +133,7 @@ public class TradingStrategyMonitor extends Monitor {
                             //buy strategy satisfy & no position & hold stock < limit
                             int buyQuantity = calculateBuyShares(buyLimit, currentPrice, account);
                             if(buyQuantity > 0) {
-                                if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyQuantity, currentPrice, "")) != null) {
+                                if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "")) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
                                     positionNum++;
                                     LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
@@ -140,7 +143,7 @@ public class TradingStrategyMonitor extends Monitor {
                                 && positionMap.containsKey(stock)
                                 && positionMap.get(stock).getQuantity() > 0) {
                             //sell strategy satisfy & has position
-                            if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", positionMap.get(stock).getQuantity(), currentPrice, "")) != null) {
+                            if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positionMap.get(stock).getQuantity(), currentPrice, "")) != null) {
                                 account.setBuyingPower(account.getBuyingPower() + currentPrice * positionMap.get(stock).getQuantity());
                                 positionNum--;
                                 LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positionMap.get(stock).getQuantity(), currentPrice));
