@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
  * @author ytx1991
  */
 
-@RequestMapping("/user")
+@RequestMapping("/api/user")
 @RestController
 public class UserController {
     private static Logger LOGGER = LoggerFactory.getLogger(UserController.class);

@@ -29,7 +29,7 @@ import java.util.*;
  * @author ytx1991
  */
 
-@RequestMapping("/strategy")
+@RequestMapping("/api/strategy")
 @RestController
 public class StrategyController {
     private static Logger LOGGER = LoggerFactory.getLogger(StrategyController.class);

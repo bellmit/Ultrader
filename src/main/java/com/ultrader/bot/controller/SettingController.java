@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
  * @author ytx1991
  */
 
-@RequestMapping("/setting")
+@RequestMapping("/api/setting")
 @RestController
 public class SettingController {
     private static Logger LOGGER = LoggerFactory.getLogger(SettingController.class);

@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
  * @author ytx1991
  */
 
-@RequestMapping("/rule")
+@RequestMapping("/api/rule")
 @RestController
 public class RuleController {
     private static Logger LOGGER = LoggerFactory.getLogger(RuleController.class);
