@@ -1,8 +1,11 @@
 package com.ultrader.bot.controller;
 
+import com.google.common.collect.Lists;
+import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.BackTestingResult;
 import com.ultrader.bot.model.Strategy;
+import com.ultrader.bot.model.StrategyBundle;
 import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.monitor.TradingStrategyMonitor;
 import org.slf4j.Logger;
@@ -33,6 +36,9 @@ public class StrategyController {
 
     @Autowired
     private StrategyDao strategyDao;
+
+    @Autowired
+    private RuleDao ruleDao;
 
     @RequestMapping(method = RequestMethod.POST, value = "/addStrategy")
     @ResponseBody
@@ -69,6 +75,32 @@ public class StrategyController {
             return null;
         }
     }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/export")
+    @ResponseBody
+    public StrategyBundle exportStrategies() {
+        try {
+            StrategyBundle strategyBundle = new StrategyBundle(Lists.newArrayList(strategyDao.findAll()),Lists.newArrayList(ruleDao.findAll()));
+            return strategyBundle;
+        } catch (Exception e) {
+            LOGGER.error("Export strategies failed.", e);
+            return null;
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/import")
+    @ResponseBody
+    public boolean importStrategies(@RequestBody StrategyBundle bundle) {
+        try {
+            ruleDao.saveAll(bundle.getRules());
+            strategyDao.saveAll(bundle.getStrategies());
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Export strategies failed.", e);
+            return false;
+        }
+    }
+
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/deleteStrategy/{id}")
     @ResponseBody

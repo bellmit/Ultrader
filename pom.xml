@@ -99,6 +99,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 			</plugin>
+
 			<plugin>
 				<groupId>com.github.eirslett</groupId>
 				<artifactId>frontend-maven-plugin</artifactId>
@@ -106,7 +107,7 @@
 				<configuration>
 					<nodeVersion>v10.15.3</nodeVersion>
 					<npmVersion>6.4.1</npmVersion>
-					<workingDirectory>src/main/resources/webapp/WEB-INF/view/ultrader</workingDirectory>
+					<workingDirectory>ultrader</workingDirectory>
 				</configuration>
 				<executions>
 					<execution>
@@ -129,6 +130,24 @@
 						<configuration>
 							<arguments>run build</arguments>
 						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<artifactId>maven-antrun-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>generate-resources</phase>
+						<configuration>
+							<target>
+								<copy todir="${project.build.directory}/classes/public">
+									<fileset dir="${project.basedir}/ultrader/build"/>
+								</copy>
+							</target>
+						</configuration>
+						<goals>
+							<goal>run</goal>
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
