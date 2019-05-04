@@ -71,36 +71,5 @@ public class RuleController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/getRuleType")
-    @ResponseBody
-    public RuleType[] getRuleType() {
-       return RuleType.values();
-    }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/getIndicatorType")
-    @ResponseBody
-    public IndicatorType[] getIndicatorType() {
-        return IndicatorType.values();
-    }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/getIndicatorCategory")
-    @ResponseBody
-    public Map<String, String> getIndicatorCategory() {
-        return IndicatorType.parentClassMap;
-    }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/getCategoryIndicatorMap")
-    @ResponseBody
-    public Map<String, List<String>> getCategoryIndicatorMap() {
-        Map<String, List<String>> result = new HashMap<String, List<String>>();
-        for(Map.Entry<String,String> entry : IndicatorType.parentClassMap.entrySet()){
-            List<String> list = new ArrayList<String>();
-            if(result.containsKey(entry.getValue()))
-                list = result.get(entry.getValue());
-            list.add(entry.getKey());
-            result.put(entry.getValue(), list);
-        }
-        return result;
-    }
 
 }

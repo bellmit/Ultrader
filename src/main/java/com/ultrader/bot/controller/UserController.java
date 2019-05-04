@@ -76,9 +76,4 @@ public class UserController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/getUserType")
-    @ResponseBody
-    public UserType[] getRuleType() {
-        return UserType.values();
-    }
 }
