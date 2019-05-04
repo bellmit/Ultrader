@@ -65,13 +65,15 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .requestMatchers(CorsUtils:: isPreFlightRequest).permitAll()
                 .antMatchers("/api/auth").permitAll()
-                .antMatchers("/rule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())//1 for Admin, 2 for User
-                .antMatchers("/user/addRootUser").permitAll()
-                .antMatchers("/user/getUserType").permitAll()
+                .antMatchers("/api/rule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                .antMatchers("/api/order/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                .antMatchers("/api/position/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())//1 for Admin, 2 for User
+                .antMatchers("/api/user/addRootUser").permitAll()
+                .antMatchers("/api/user/getUserType").permitAll()
                 .antMatchers("/h2-console/**").permitAll()
-                .antMatchers("/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                .antMatchers("/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                .antMatchers("/user/**").hasAuthority(UserType.ADMIN.getId().toString());
+                .antMatchers("/api/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                .antMatchers("/api/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString());
 
 
         http.headers().frameOptions().sameOrigin();

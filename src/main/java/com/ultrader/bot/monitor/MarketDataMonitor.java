@@ -1,15 +1,13 @@
 package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.service.MarketDataService;
 import com.ultrader.bot.service.TradingService;
-import com.ultrader.bot.service.alpaca.AlpacaMarketDataService;
-import com.ultrader.bot.service.alpaca.AlpacaTradingService;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.ta4j.core.Bar;
 import org.ta4j.core.BaseTimeSeries;
 import org.ta4j.core.TimeSeries;
 
@@ -27,7 +25,7 @@ public class MarketDataMonitor extends Monitor {
     private static boolean marketOpen = false;
 
     private final TradingService tradingService;
-    private final AlpacaMarketDataService alpacaMarketDataService;
+    private final MarketDataService marketDataService;
     private final SettingDao settingDao;
 
 
@@ -35,14 +33,14 @@ public class MarketDataMonitor extends Monitor {
     private Date lastUpdateDate;
     private Map<String, Set<String>> availableStocks = null;
     public static Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
-    private MarketDataMonitor(final long interval, final TradingService tradingService, final AlpacaMarketDataService alpacaMarketDataService, final SettingDao settingDao) {
+    private MarketDataMonitor(final long interval, final TradingService tradingService, final MarketDataService marketDataService, final SettingDao settingDao) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
-        Validate.notNull(alpacaMarketDataService, "alpacaMarketDataService is required");
+        Validate.notNull(marketDataService, "marketDataService is required");
         Validate.notNull(settingDao, "settingDao is required");
 
         this.settingDao = settingDao;
-        this.alpacaMarketDataService = alpacaMarketDataService;
+        this.marketDataService = marketDataService;
         this.tradingService = tradingService;
     }
 
@@ -108,7 +106,7 @@ public class MarketDataMonitor extends Monitor {
                     updateSeries.add(timeSeries);
                 }
             }
-            updateSeries = alpacaMarketDataService.updateTimeSeries(updateSeries, getInterval());
+            updateSeries = marketDataService.updateTimeSeries(updateSeries, getInterval());
             //For max, If smaller than 0 then no limit
             double priceMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MAX.getName(), "-1.0"));
             double priceMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MIN.getName(), "0.0"));
@@ -140,7 +138,7 @@ public class MarketDataMonitor extends Monitor {
                 LOGGER.debug(String.format("Stock %s has %d bars", timeSeries.getName(), timeSeries.getBarCount()));
             }
             LOGGER.info("{} stocks filter by price and volume, {} stocks remains.", updateSeries.size() - currentTimeSeries.size(), currentTimeSeries.size());
-            synchronized (TradingStrategyMonitor.lock) {
+            synchronized (TradingStrategyMonitor.getLock()) {
                 this.timeSeriesMap = currentTimeSeries;
             }
             lastUpdateDate = new Date();
@@ -154,8 +152,8 @@ public class MarketDataMonitor extends Monitor {
         return marketOpen;
     }
 
-    public static void init(long interval, TradingService tradingService, AlpacaMarketDataService alpacaMarketDataService, SettingDao settingDao) {
-        singleton_instance = new MarketDataMonitor(interval, tradingService, alpacaMarketDataService, settingDao);
+    public static void init(long interval, TradingService tradingService, MarketDataService marketDataService, SettingDao settingDao) {
+        singleton_instance = new MarketDataMonitor(interval, tradingService, marketDataService, settingDao);
     }
 
     public static MarketDataMonitor getInstance() throws IllegalAccessException {

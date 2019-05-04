@@ -229,7 +229,7 @@ public class TradingUtil {
             Long sellStrategyId = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_SELL_STRATEGY.getName(), "-1"));
             Map<String, Strategy> strategyMap = new HashMap<>();
             for(String stock : MarketDataMonitor.timeSeriesMap.keySet()) {
-                if(!TradingStrategyMonitor.strategies.containsKey(stock)) {
+                if(!TradingStrategyMonitor.getStrategies().containsKey(stock)) {
                     //Add strategy for new stock
                     Rule buyRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, stock);
                     Rule sellRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, stock);
@@ -240,10 +240,10 @@ public class TradingUtil {
                     }
                 } else {
                     //Use the exist strategy
-                    strategyMap.put(stock, TradingStrategyMonitor.strategies.get(stock));
+                    strategyMap.put(stock, TradingStrategyMonitor.getStrategies().get(stock));
                 }
             }
-            TradingStrategyMonitor.strategies = strategyMap;
+            TradingStrategyMonitor.setStrategies(strategyMap);
         } catch (Exception e) {
             LOGGER.error("Update trading strategies failed.", e);
         }

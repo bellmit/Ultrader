@@ -116,8 +116,8 @@ public class StrategyController {
     @ResponseBody
     public boolean reload() {
         try {
-            synchronized (TradingStrategyMonitor.lock) {
-                TradingStrategyMonitor.strategies.clear();
+            synchronized (TradingStrategyMonitor.getLock()) {
+                TradingStrategyMonitor.getStrategies().clear();
             }
             return true;
         } catch (Exception e) {
@@ -130,7 +130,7 @@ public class StrategyController {
     @ResponseBody
     public Iterable<BackTestingResult> backTest(@PathVariable int num) {
         List<BackTestingResult> results = new ArrayList<>();
-        synchronized(TradingStrategyMonitor.lock) {
+        synchronized(TradingStrategyMonitor.getLock()) {
             List<String> stocks = pickNStocks(num);
             for(String stock : stocks) {
                 results.add(backTest(stock));
@@ -142,7 +142,7 @@ public class StrategyController {
     private BackTestingResult backTest(String stock) {
         TimeSeries series = MarketDataMonitor.timeSeriesMap.get(stock);
         TimeSeriesManager manager = new TimeSeriesManager(series);
-        TradingRecord tradingRecord = manager.run(TradingStrategyMonitor.strategies.get(stock));
+        TradingRecord tradingRecord = manager.run(TradingStrategyMonitor.getStrategies().get(stock));
         // Getting the cash flow of the resulting trades
         CashFlow cashFlow = new CashFlow(series, tradingRecord);
         // Getting the profitable trades ratio
@@ -169,11 +169,11 @@ public class StrategyController {
 
     private List<String> pickNStocks(int n) {
         Random random = new Random(System.currentTimeMillis());
-        n  = n > TradingStrategyMonitor.strategies.size() ? TradingStrategyMonitor.strategies.size() : n;
+        n  = n > TradingStrategyMonitor.getStrategies().size() ? TradingStrategyMonitor.getStrategies().size() : n;
         List<String> stocks = new ArrayList<>();
-        List<String> allStock = new ArrayList<>(TradingStrategyMonitor.strategies.keySet());
+        List<String> allStock = new ArrayList<>(TradingStrategyMonitor.getStrategies().keySet());
         for(int i = 0; i < n; i++) {
-            int index = random.nextInt(TradingStrategyMonitor.strategies.size());
+            int index = random.nextInt(TradingStrategyMonitor.getStrategies().size());
             stocks.add(allStock.get(index));
         }
         return stocks;

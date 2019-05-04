@@ -27,8 +27,11 @@ import java.util.Map;
 public class TradingStrategyMonitor extends Monitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(TradingStrategyMonitor.class);
     private static TradingStrategyMonitor singleton_instance = null;
-    public static Map<String, Strategy> strategies = new HashMap<>();
-    public static Object lock = new Object();
+    private static Map<String, Strategy> strategies = new HashMap<>();
+    private static Map<String, Position> positions = new HashMap<>();
+    private static Map<String, com.ultrader.bot.model.Order> openOrders = new HashMap<>();
+    private static Account account = new Account();
+    private static Object lock = new Object();
     private final SettingDao settingDao;
     private final StrategyDao strategyDao;
     private final RuleDao ruleDao;
@@ -72,18 +75,18 @@ public class TradingStrategyMonitor extends Monitor {
                 return;
             }
             //Get current position
-            Map<String, Position> positionMap = getAllPositions();
+            positions = getAllPositions();
 
             //Get current portfolio
-            Account account = getAccount();
+            account = syncAccount();
             LOGGER.info("Execute trading strategy.");
 
             //Get open orders
-            Map<String, com.ultrader.bot.model.Order> openOrders = tradingService.getOpenOrders();
+            openOrders = tradingService.getOpenOrders();
             String buyLimit = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "1%");
             int holdLimit = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "0"));
             holdLimit = holdLimit == 0 ? Integer.MAX_VALUE : holdLimit;
-            int positionNum = positionMap.size();
+            int positionNum = positions.size();
             int minLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "50"));
             int buyOpenOrder = (int)openOrders.values().stream().filter(o -> o.getSide().equals("buy")).count();
             String buyOrderType = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_ORDER_TYPE.getName(), "market");
@@ -121,13 +124,13 @@ public class TradingStrategyMonitor extends Monitor {
                     if(MarketDataMonitor.isMarketOpen()) {
                         TradingRecord tradingRecord = new BaseTradingRecord();
                         Double currentPrice = MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getClosePrice().doubleValue();
-                        if(positionMap.containsKey(stock)) {
+                        if(positions.containsKey(stock)) {
                             //The buy timing is incorrect, don't use for anything
-                            tradingRecord.enter(1, PrecisionNum.valueOf(positionMap.get(stock).getAverageCost()), PrecisionNum.valueOf(positionMap.get(stock).getQuantity()));
+                            tradingRecord.enter(1, PrecisionNum.valueOf(positions.get(stock).getAverageCost()), PrecisionNum.valueOf(positions.get(stock).getQuantity()));
                         }
 
                         if(entry.getValue().shouldEnter(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex())
-                                && !positionMap.containsKey(stock)
+                                && !positions.containsKey(stock)
                                 && !openOrders.containsKey(stock)
                                 && positionNum + buyOpenOrder < holdLimit) {
                             //buy strategy satisfy & no position & hold stock < limit
@@ -140,13 +143,13 @@ public class TradingStrategyMonitor extends Monitor {
                                 }
                             }
                         } else if (entry.getValue().shouldExit(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex(), tradingRecord) //Check if sell satisfied
-                                && positionMap.containsKey(stock)
-                                && positionMap.get(stock).getQuantity() > 0) {
+                                && positions.containsKey(stock)
+                                && positions.get(stock).getQuantity() > 0) {
                             //sell strategy satisfy & has position
-                            if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positionMap.get(stock).getQuantity(), currentPrice, "")) != null) {
-                                account.setBuyingPower(account.getBuyingPower() + currentPrice * positionMap.get(stock).getQuantity());
+                            if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "")) != null) {
+                                account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
                                 positionNum--;
-                                LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positionMap.get(stock).getQuantity(), currentPrice));
+                                LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
                             }
 
                         }
@@ -168,7 +171,7 @@ public class TradingStrategyMonitor extends Monitor {
         return positionMap;
     }
 
-    private Account getAccount() throws RuntimeException{
+    private Account syncAccount() throws RuntimeException{
         Account account = tradingService.getAccountInfo();
         if(account == null) {
             throw new RuntimeException("Cannot get account info, skip executing trading strategies");
@@ -178,6 +181,31 @@ public class TradingStrategyMonitor extends Monitor {
         }
         return account;
     }
+
+    public static Map<String, Position> getPositions() {
+        return positions;
+    }
+
+    public static Map<String, Strategy> getStrategies() {
+        return strategies;
+    }
+
+    public static void setStrategies(Map<String, Strategy> strategies) {
+        TradingStrategyMonitor.strategies = strategies;
+    }
+
+    public static Map<String, com.ultrader.bot.model.Order> getOpenOrders() {
+        return openOrders;
+    }
+
+    public static Object getLock() {
+        return lock;
+    }
+
+    public static Account getAccount() {
+        return account;
+    }
+
     private static int calculateBuyShares(String limit, double price, Account account) {
         double amount;
         if(limit.indexOf("%") < 0) {
