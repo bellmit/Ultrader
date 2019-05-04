@@ -28,6 +28,9 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
 
     @Override
     public void onAuthenticationSuccess(final HttpServletRequest request, final HttpServletResponse response, final Authentication authentication) throws ServletException, IOException {
+
+        String jwt = getJwtFromRequest(request);
+        response.setHeader("token", jwt);
         LOGGER.info("Login succeed.");
         final SavedRequest savedRequest = requestCache.getRequest(request, response);
         if (savedRequest == null) {
@@ -46,5 +49,13 @@ public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccess
 
     public void setRequestCache(final RequestCache requestCache) {
         this.requestCache = requestCache;
+    }
+
+    private String getJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7, bearerToken.length());
+        }
+        return null;
     }
 }

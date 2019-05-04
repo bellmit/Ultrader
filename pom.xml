@@ -11,11 +11,16 @@
 	<groupId>com.ultrader</groupId>
 	<artifactId>bot</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+	<packaging>jar</packaging>
 	<name>bot</name>
 	<description>Bot of Ultrader</description>
 
 	<properties>
 		<java.version>1.8</java.version>
+		<frontendSrcDir>ultrader</frontendSrcDir>
+		<node.version>v10.15.3</node.version>
+		<npm.version>6.4.1</npm.version>
+		<frontend-maven-plugin.version>1.7.5</frontend-maven-plugin.version>
 	</properties>
 
 	<dependencies>
@@ -91,6 +96,13 @@
 			<version>2.3.3</version>
 		</dependency>
 
+		<!-- For Working with Json Web Tokens (JWT) -->
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>0.9.0</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>
@@ -105,9 +117,9 @@
 				<artifactId>frontend-maven-plugin</artifactId>
 				<version>1.7.5</version>
 				<configuration>
-					<nodeVersion>v10.15.3</nodeVersion>
-					<npmVersion>6.4.1</npmVersion>
-					<workingDirectory>ultrader</workingDirectory>
+					<nodeVersion>${node.version}</nodeVersion>
+					<npmVersion>${npm.version}</npmVersion>
+					<workingDirectory>${frontendSrcDir}</workingDirectory>
 				</configuration>
 				<executions>
 					<execution>
@@ -141,7 +153,7 @@
 						<configuration>
 							<target>
 								<copy todir="${project.build.directory}/classes/public">
-									<fileset dir="${project.basedir}/ultrader/build"/>
+									<fileset dir="${frontendSrcDir}/build"/>
 								</copy>
 							</target>
 						</configuration>
