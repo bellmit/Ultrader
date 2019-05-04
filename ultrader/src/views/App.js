@@ -32,7 +32,7 @@ class AppComp extends Component {
       stompClient.subscribe("/topic/greetings", this.processGreeting);
     });
 */
-    axiosGetWithAuth("/api/rule/getRuleType")
+    axiosGetWithAuth("/api/metadata/getRuleType")
       .then(handleResponse)
       .then(res => {
         console.log(res);
@@ -40,22 +40,15 @@ class AppComp extends Component {
       })
       .catch(error => {});
 
-    axiosGetWithAuth("/api/rule/getIndicatorType")
+    axiosGetWithAuth("/api/metadata/getIndicatorType")
       .then(handleResponse)
       .then(res => {
         console.log(res);
         this.props.onRetrievedIndicatorTypes(res);
       })
       .catch(error => {});
-    axiosGetWithAuth("/api/rule/getIndicatorCategory")
-      .then(handleResponse)
-      .then(res => {
-        console.log(res);
-        this.props.onRetrievedIndicatorCategories(res);
-      })
-      .catch(error => {});
 
-    axiosGetWithAuth("/api/rule/getCategoryIndicatorMap")
+    axiosGetWithAuth("/api/metadata/getCategoryIndicator")
       .then(handleResponse)
       .then(res => {
         console.log(res);

@@ -13,6 +13,7 @@ class AddRule extends Component {
         ruleTypes={this.props.ruleTypes}
         ruleTypeSelectOptions={this.props.ruleTypeSelectOptions}
         indicatorTypes={this.props.indicatorTypes}
+        indicatorTypesSelectOptions={this.props.indicatorTypesSelectOptions}
         indicatorCategories={this.props.indicatorCategories}
         categoryIndicatorMap={this.props.categoryIndicatorMap}
         indicatorSelectOptions={this.props.indicatorSelectOptions}
@@ -26,6 +27,7 @@ const mapStateToProps = state => {
     ruleTypes: state.global.ruleTypes,
     ruleTypeSelectOptions: state.global.ruleTypeSelectOptions,
     indicatorTypes: state.global.indicatorTypes,
+    indicatorTypesSelectOptions: state.global.indicatorTypesSelectOptions,
     indicatorCategories: state.global.indicatorCategories,
     categoryIndicatorMap: state.global.categoryIndicatorMap,
     indicatorSelectOptions: state.global.indicatorSelectOptions,

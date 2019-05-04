@@ -9,6 +9,7 @@ const initialState = {
   ruleTypes: [],
   ruleTypeSelectOptions: [],
   indicatorTypes: [],
+  indicatorTypesSelectOptions: [],
   indicatorCategories: {},
   categoryIndicatorMap: {}
 };
@@ -38,9 +39,11 @@ const global = (state = initialState, action) => {
       };
     case ACTION_TYPES.RETRIEVED_INDICATOR_TYPES:
       let indicatorTypes = action.response.data;
+      let indicatorTypesSelectOptions = [];
       return {
         ...state,
-        indicatorTypes: indicatorTypes
+        indicatorTypes: indicatorTypes,
+        indicatorTypesSelectOptions: indicatorTypesSelectOptions
       };
     case ACTION_TYPES.RETRIEVED_INDICATOR_CATEGORIES:
       let indicatorCategories = action.response.data;

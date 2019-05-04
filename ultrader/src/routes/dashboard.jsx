@@ -6,6 +6,8 @@ import AddRule from "containers/Rules/AddRule.jsx";
 import Rules from "containers/Rules/Rules.jsx";
 import AddStrategy from "containers/Strategies/AddStrategy.jsx";
 import Strategies from "containers/Strategies/Strategies.jsx";
+import Positions from "containers/Positions/Positions.jsx";
+import PendingOrders from "containers/Orders/PendingOrders.jsx";
 
 var dashboardRoutes = [
   {
@@ -83,6 +85,36 @@ var dashboardRoutes = [
         name: "Strategies",
         mini: "S",
         component: Strategies
+      }
+    ]
+  },
+  {
+    collapse: true,
+    path: "/positions",
+    name: "Positions",
+    state: "openPositions",
+    icon: "pe-7s-note2",
+    views: [
+      {
+        path: "/positions/positions",
+        name: "Positions",
+        mini: "P",
+        component: Positions
+      }
+    ]
+  },
+  {
+    collapse: true,
+    path: "/orders",
+    name: "Orders",
+    state: "openOrders",
+    icon: "pe-7s-note2",
+    views: [
+      {
+        path: "/orders/pendingOrders",
+        name: "Pending Orders",
+        mini: "PO",
+        component: PendingOrders
       }
     ]
   },
