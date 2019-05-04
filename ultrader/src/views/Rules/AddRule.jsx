@@ -17,6 +17,12 @@ import "react-select/dist/react-select.css";
 import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
+import {
+  axiosGetWithAuth,
+  axiosPostWithAuth,
+  handleResponse
+} from "helpers/UrlHelper";
+
 var booleanOptions = [
   { value: "true", label: "true" },
   { value: "false", label: "false" }
@@ -79,8 +85,8 @@ export default class AddRuleComp extends React.Component {
         formula: formula
       };
       console.log(rule);
-      axios
-        .post("http://localhost:9191/rule/addRule", rule)
+      axiosPostWithAuth("/api/rule/addRule", rule)
+        .then(handleResponse)
         .then(res => {
           alert("Saved rule " + res);
         })

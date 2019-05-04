@@ -10,6 +10,10 @@ import {
   InputGroup
 } from "react-bootstrap";
 
+import {
+  logout
+} from "helpers/AuthHelper";
+
 class HeaderLinks extends Component {
   render() {
     return (
@@ -64,7 +68,7 @@ class HeaderLinks extends Component {
             <MenuItem eventKey={4.4}>
               <i className="pe-7s-lock" /> Lock Screen
             </MenuItem>
-            <MenuItem eventKey={4.5}>
+            <MenuItem eventKey={4.5} onClick={logout}>
               <div className="text-danger">
                 <i className="pe-7s-close-circle" /> Log out
               </div>

@@ -17,6 +17,12 @@ import "react-select/dist/react-select.css";
 import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
+import {
+  axiosGetWithAuth,
+  axiosPostWithAuth,
+  handleResponse
+} from "helpers/UrlHelper";
+
 var strategyTypeOptions = [
   { label: "buy", value: "buy" },
   { label: "sell", value: "sell" }
@@ -43,8 +49,8 @@ export default class AddStrategyComp extends React.Component {
       ruleOptions: []
     };
 
-    axios
-      .get("http://localhost:9191/rule/getRules")
+    axiosGetWithAuth("/api/rule/getRules")
+      .then(handleResponse)
       .then(res => {
         this.props.onGetRulesSuccess(res);
       })

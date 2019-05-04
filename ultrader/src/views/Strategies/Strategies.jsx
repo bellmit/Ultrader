@@ -7,14 +7,20 @@ import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 import axios from "axios";
 
+import {
+  axiosGetWithAuth,
+  axiosPostWithAuth,
+  handleResponse
+} from "helpers/UrlHelper";
+
 var operatorMap = { "&": " and ", "|": " or ", "^": " xor " };
 var operators = ["&", "|", "^"];
 
 class StrategiesComp extends Component {
   constructor(props) {
     super(props);
-    axios
-      .get("http://localhost:9191/strategy/getStrategies")
+    axiosGetWithAuth("/api/strategy/getStrategies")
+      .then(handleResponse)
       .then(res => {
         console.log(res);
         this.props.onGetStrategiesSuccess(res);
@@ -24,8 +30,8 @@ class StrategiesComp extends Component {
         alert(error);
       });
 
-    axios
-      .get("http://localhost:9191/rule/getRules")
+    axiosGetWithAuth("/api/rule/getRules")
+      .then(handleResponse)
       .then(res => {
         console.log(res);
         this.props.onGetRulesSuccess(res);
