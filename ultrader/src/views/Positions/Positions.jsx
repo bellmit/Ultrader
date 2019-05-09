@@ -19,7 +19,6 @@ class PositionsComp extends Component {
     axiosGetWithAuth("/api/position/getPositions")
       .then(handleResponse)
       .then(res => {
-        console.log(res);
         this.props.onGetPositionsSuccess(res);
       })
       .catch(error => {

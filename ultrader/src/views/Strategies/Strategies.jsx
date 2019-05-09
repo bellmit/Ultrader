@@ -22,7 +22,6 @@ class StrategiesComp extends Component {
     axiosGetWithAuth("/api/strategy/getStrategies")
       .then(handleResponse)
       .then(res => {
-        console.log(res);
         this.props.onGetStrategiesSuccess(res);
       })
       .catch(error => {
@@ -33,7 +32,6 @@ class StrategiesComp extends Component {
     axiosGetWithAuth("/api/rule/getRules")
       .then(handleResponse)
       .then(res => {
-        console.log(res);
         this.props.onGetRulesSuccess(res);
       })
       .catch(error => {

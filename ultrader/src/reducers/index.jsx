@@ -1,7 +1,6 @@
 import { combineReducers } from 'redux';
 import authentication from './Authentication/Authentication';
-import settings from './settings';
-import global from './global';
+import global from './layouts/Dashboard';
 import greetingMonitor from './Monitors/GreetingMonitor';
 import addRule from './Rules/AddRule';
 import rules from './Rules/Rules';

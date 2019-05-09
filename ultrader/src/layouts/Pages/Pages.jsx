@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { Switch, Route } from "react-router-dom";
 
-import Footer from "components/Footer/Footer.jsx";
 import PagesHeader from "components/Header/PagesHeader.jsx";
 
 // dinamically create pages routes
@@ -56,7 +55,6 @@ class Pages extends Component {
                 })}
               </Switch>
             </div>
-            <Footer transparent />
             <div
               className="full-page-background"
               style={{ backgroundImage: "url(" + bgImage + ")" }}

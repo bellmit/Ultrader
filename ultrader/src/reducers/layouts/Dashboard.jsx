@@ -1,6 +1,6 @@
 import _ from "lodash";
 
-import * as ACTION_TYPES from "actions/AppActions";
+import * as ACTION_TYPES from "actions/layouts/DashboardActions";
 
 const initialState = {
   stompClient: null,

@@ -19,7 +19,6 @@ class PendingOrdersComp extends Component {
     axiosGetWithAuth("/api/order/getOpenOrders")
       .then(handleResponse)
       .then(res => {
-        console.log(res);
         this.props.onGetPendingOrdersSuccess(res);
       })
       .catch(error => {

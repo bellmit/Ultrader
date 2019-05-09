@@ -64,16 +64,23 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .and()
                 .authorizeRequests()
                 .requestMatchers(CorsUtils:: isPreFlightRequest).permitAll()
+                // websockets
+                .antMatchers(
+                        "/ws/**/**",
+                        "/ws/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                // api's
                 .antMatchers("/api/auth").permitAll()
                 .antMatchers("/api/rule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/api/order/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/api/position/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())//1 for Admin, 2 for User
                 .antMatchers("/api/user/addRootUser").permitAll()
                 .antMatchers("/api/user/getUserType").permitAll()
-                .antMatchers("/h2-console/**").permitAll()
                 .antMatchers("/api/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/api/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString());
+                .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString())
+                // database console
+                .antMatchers("/h2-console/**").permitAll()
+        ;
 
 
         http.headers().frameOptions().sameOrigin();

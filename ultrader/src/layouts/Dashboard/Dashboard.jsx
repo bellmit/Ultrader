@@ -8,7 +8,6 @@ import NotificationSystem from "react-notification-system";
 
 import Sidebar from "components/Sidebar/Sidebar.jsx";
 import Header from "components/Header/Header.jsx";
-import Footer from "components/Footer/Footer.jsx";
 
 // dinamically create dashboard routes
 import dashboardRoutes from "routes/dashboard.jsx";
@@ -16,21 +15,90 @@ import dashboardRoutes from "routes/dashboard.jsx";
 // style for notifications
 import { style } from "variables/Variables.jsx";
 
+import { withRouter } from 'react-router';
+
+import SockJS from "sockjs-client";
+import Stomp from "stompjs";
+import axios from "axios";
+
+import {
+  axiosGetWithAuth,
+  axiosPostWithAuth,
+  handleResponse,
+  getAuthHeader
+} from "helpers/UrlHelper";
+
 var ps;
 
-class Dashboard extends Component {
+class DashboardComp extends Component {
   constructor(props) {
     super(props);
     this.handleNotificationClick = this.handleNotificationClick.bind(this);
+    this.processGreeting = this.processGreeting.bind(this);
+    this.connectToSockets = this.connectToSockets.bind(this);
+    this.initMetadata = this.initMetadata.bind(this);
     this.state = {
       _notificationSystem: null
     };
   }
+
+  connectToSockets(){
+    let socket = new SockJS("/ws");
+    let stompClient = Stomp.over(socket);
+
+    let authHeader = getAuthHeader();
+
+    stompClient.connect(authHeader, frame => {
+      this.props.onConnectedToMonitor(socket, stompClient);
+      console.log(`connected, ${frame}!`);
+      stompClient.subscribe("/topic/greetings", this.processGreeting);
+    });
+
+  }
+
+  initMetadata() {
+
+
+    axiosGetWithAuth("/api/metadata/getStrategyMetadata")
+      .then(handleResponse)
+      .then(res => {
+        console.log(res);
+        this.props.onRetrievedStrategyMetadata(res);
+      })
+      .catch(error => {});
+
+    axiosGetWithAuth("/api/strategy/getStrategies")
+      .then(handleResponse)
+      .then(res => {
+        console.log(res);
+        this.props.onGetStrategiesSuccess(res);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+
+    axiosGetWithAuth("/api/rule/getRules")
+      .then(handleResponse)
+      .then(res => {
+        console.log(res);
+        this.props.onGetRulesSuccess(res);
+      })
+      .catch(error => {
+        console.log(error);
+      });
+  }
+
+  processGreeting(greeting) {
+    this.props.onReceivedMonitorMessage(JSON.parse(greeting.body).content);
+  }
+
   componentDidMount() {
     this.setState({ _notificationSystem: this.refs.notificationSystem });
     if (navigator.platform.indexOf("Win") > -1) {
       ps = new PerfectScrollbar(this.refs.mainPanel);
     }
+    this.connectToSockets();
+    this.initMetadata();
   }
   componentWillUnmount() {
     if (navigator.platform.indexOf("Win") > -1) {
@@ -152,11 +220,10 @@ class Dashboard extends Component {
               }
             })}
           </Switch>
-          <Footer fluid />
         </div>
       </div>
     );
   }
 }
 
-export default Dashboard;
+export default withRouter(DashboardComp);

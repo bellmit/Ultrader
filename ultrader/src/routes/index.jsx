@@ -1,5 +1,5 @@
 import Pages from "layouts/Pages/Pages.jsx";
-import Dashboard from "layouts/Dashboard/Dashboard.jsx";
+import Dashboard from "containers/layouts/Dashboard.jsx";
 
 var indexRoutes = [
   { path: "/pages", name: "Pages", component: Pages, private: false},
