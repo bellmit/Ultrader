@@ -35,7 +35,7 @@ class PagesHeader extends Component {
           <Navbar.Brand>
             <NavLink to={"/dashboard"} className="nav-link">
               {this.state.width > 429
-                ? "Light Bootstrap Dashboard Pro React"
+                ? "Ultrader"
                 : "LBD PRO React"}
             </NavLink>
           </Navbar.Brand>
@@ -59,12 +59,6 @@ class PagesHeader extends Component {
               <NavLink to={"/pages/register-page"} className="nav-link">
                 <i className="fa fa-user-circle-o" />
                 <p>Register</p>
-              </NavLink>
-            </li>
-            <li className={this.activeRoute("lock-screen-page")}>
-              <NavLink to={"/pages/lock-screen-page"} className="nav-link">
-                <i className="fa fa-lock" />
-                <p>Lock Screen</p>
               </NavLink>
             </li>
           </ul>

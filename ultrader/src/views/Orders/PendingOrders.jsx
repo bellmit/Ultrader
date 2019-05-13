@@ -7,17 +7,12 @@ import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 import axios from "axios";
 
-import {
-  axiosGetWithAuth,
-  axiosPostWithAuth,
-  handleResponse
-} from "helpers/UrlHelper";
+import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 
 class PendingOrdersComp extends Component {
   constructor(props) {
     super(props);
     axiosGetWithAuth("/api/order/getOpenOrders")
-      .then(handleResponse)
       .then(res => {
         this.props.onGetPendingOrdersSuccess(res);
       })

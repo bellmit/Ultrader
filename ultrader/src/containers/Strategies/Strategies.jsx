@@ -13,9 +13,9 @@ class Strategies extends Component {
       <StrategiesComp
         strategies={this.props.strategies}
         rules={this.props.rules}
-
         onGetStrategiesSuccess={this.props.onGetStrategiesSuccess}
         onGetRulesSuccess={this.props.onGetRulesSuccess}
+        onDeleteStrategySuccess={this.props.onDeleteStrategySuccess}
       />
     );
   }
@@ -30,16 +30,22 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-      onGetStrategiesSuccess: (response) =>
-        dispatch({
-          type: ACTION_TYPES.GET_STRATEGIES_SUCCESS,
-          response: response
-        }),
-                        onGetRulesSuccess: (response) =>
-                          dispatch({
-                            type: RULES_ACTION_TYPES.GET_RULES_SUCCESS,
-                            response: response
-                          })
+    onGetStrategiesSuccess: response =>
+      dispatch({
+        type: ACTION_TYPES.GET_STRATEGIES_SUCCESS,
+        response: response
+      }),
+    onGetRulesSuccess: response =>
+      dispatch({
+        type: RULES_ACTION_TYPES.GET_RULES_SUCCESS,
+        response: response
+      }),
+
+    onDeleteStrategySuccess: index =>
+      dispatch({
+        type: ACTION_TYPES.DELETE_STRATEGY_SUCCESS,
+        index: index
+      })
   };
 };
 

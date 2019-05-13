@@ -90,3 +90,7 @@ fieldset{
 .closebtn{
    float:right;
  }
+
+.modal-90w{
+   width:90%;
+}

@@ -12,11 +12,7 @@ import Card from "components/Card/Card.jsx";
 
 import Button from "components/CustomButton/CustomButton.jsx";
 import Checkbox from "components/CustomCheckbox/CustomCheckbox.jsx";
-import {
-  axiosGetWithAuth,
-  axiosPostWithAuth,
-  handleResponse
-} from "helpers/UrlHelper";
+import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import axios from "axios";
 
 class LoginPageComp extends Component {
@@ -46,10 +42,13 @@ class LoginPageComp extends Component {
       username: username,
       password: password
     })
-      .then(handleResponse)
       .then(user => {
-        localStorage.setItem("user", JSON.stringify(user));
+        let userObj = {
+          token: user.token
+        };
+        localStorage.setItem("user", JSON.stringify(userObj));
         console.log(user);
+        window.location = "/";
         return user;
       })
       .catch(error => {

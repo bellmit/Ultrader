@@ -47,76 +47,28 @@ var dashboardRoutes = [
     ]
   },
   {
-    collapse: true,
     path: "/rules",
     name: "Rules",
-    state: "openRules",
     icon: "pe-7s-note2",
-    views: [
-      {
-        path: "/rules/addRule",
-        name: "Add Rule",
-        mini: "AR",
-        component: AddRule
-      },
-      {
-        path: "/rules/rules",
-        name: "Rules",
-        mini: "R",
-        component: Rules
-      }
-    ]
+    component: Rules
   },
   {
-    collapse: true,
     path: "/strategies",
     name: "Strategies",
-    state: "openStrategies",
     icon: "pe-7s-note2",
-    views: [
-      {
-        path: "/strategies/addStrategy",
-        name: "Add Strategy",
-        mini: "AS",
-        component: AddStrategy
-      },
-      {
-        path: "/strategies/strategies",
-        name: "Strategies",
-        mini: "S",
-        component: Strategies
-      }
-    ]
+    component: Strategies
   },
   {
-    collapse: true,
     path: "/positions",
     name: "Positions",
-    state: "openPositions",
     icon: "pe-7s-note2",
-    views: [
-      {
-        path: "/positions/positions",
-        name: "Positions",
-        mini: "P",
-        component: Positions
-      }
-    ]
+    component: Positions
   },
   {
-    collapse: true,
     path: "/orders",
     name: "Orders",
-    state: "openOrders",
     icon: "pe-7s-note2",
-    views: [
-      {
-        path: "/orders/pendingOrders",
-        name: "Pending Orders",
-        mini: "PO",
-        component: PendingOrders
-      }
-    ]
+    component: PendingOrders
   },
   { redirect: true, path: "/", pathTo: "/dashboard", name: "Dashboard" }
 ];

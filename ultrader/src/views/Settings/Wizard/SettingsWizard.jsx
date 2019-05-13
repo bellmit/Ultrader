@@ -12,11 +12,7 @@ import Card from "components/Card/Card.jsx";
 import Step1 from "./Step1.jsx";
 import FinalStep from "./FinalStep.jsx";
 
-import {
-  axiosGetWithAuth,
-  axiosPostWithAuth,
-  handleResponse
-} from "helpers/UrlHelper";
+import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 
 class SettingsWizardComp extends Component {
   constructor(props) {
@@ -53,7 +49,6 @@ class SettingsWizardComp extends Component {
     }
     console.log(settings);
     axiosPostWithAuth("/setting/addSettings", settings)
-      .then(handleResponse)
       .then(res => {
         alert("Saved " + res.data.length + " settings");
       })

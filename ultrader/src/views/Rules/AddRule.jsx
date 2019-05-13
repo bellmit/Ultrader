@@ -17,11 +17,7 @@ import "react-select/dist/react-select.css";
 import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
-import {
-  axiosGetWithAuth,
-  axiosPostWithAuth,
-  handleResponse
-} from "helpers/UrlHelper";
+import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 
 var booleanOptions = [
   { value: "true", label: "true" },
@@ -66,7 +62,6 @@ export default class AddRuleComp extends React.Component {
 
   getStringForRuleFieldValue(ruleFieldValue) {
     let res = ruleFieldValue.label;
-    console.log(res);
     switch (ruleFieldValue.ruleFieldName) {
       case "NumIndicator":
         if (ruleFieldValue.value && ruleFieldValue.value.indicatorArgs) {
@@ -93,7 +88,6 @@ export default class AddRuleComp extends React.Component {
 
   saveRule() {
     if (this.validate()) {
-      console.log(this.state);
       let formulaParts = this.state.ruleFieldValues.map((value, i) => {
         return this.getStringForRuleFieldValue(value);
       });
@@ -105,15 +99,14 @@ export default class AddRuleComp extends React.Component {
         type: this.state.selectedRuleTypeOption.label,
         formula: formula
       };
-      console.log(rule);
-      /*axiosPostWithAuth("/api/rule/addRule", rule)
-        .then(handleResponse)
+      axiosPostWithAuth("/api/rule/addRule", rule)
         .then(res => {
-          alert("Saved rule " + res);
+          alert("Saved rule successfully.");
+          this.props.onAddRuleSuccess(res);
         })
         .catch(error => {
           alert(error);
-        });*/
+        });
     } else {
       alert("All fields need to be filled");
     }
@@ -148,7 +141,6 @@ export default class AddRuleComp extends React.Component {
       case "NumIndicator":
         if (ruleFieldValue && ruleFieldValue.args) {
           let indicatorName = ruleFieldValue.label;
-          console.log(ruleFieldValue);
           let indicatorArgs = ruleFieldValue.args.split("|");
           let indicatorArgInputs = indicatorArgs.map(indicatorArg => {
             switch (indicatorArg) {
@@ -218,7 +210,6 @@ export default class AddRuleComp extends React.Component {
   }
 
   setRuleFieldIndicatorFieldValue(i, j, value) {
-    console.log("setRuleFieldIndicatorFieldValue");
     let ruleFieldValues = this.state.ruleFieldValues;
 
     ruleFieldValues[i].value.indicatorArgs[j].value = value;

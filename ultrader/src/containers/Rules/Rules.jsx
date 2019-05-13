@@ -11,8 +11,8 @@ class Rules extends Component {
     return (
       <RulesComp
         rules={this.props.rules}
-
         onGetRulesSuccess={this.props.onGetRulesSuccess}
+        onDeleteRuleSuccess={this.props.onDeleteRuleSuccess}
       />
     );
   }
@@ -26,11 +26,17 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-      onGetRulesSuccess: (response) =>
-        dispatch({
-          type: ACTION_TYPES.GET_RULES_SUCCESS,
-          response: response
-        })
+    onGetRulesSuccess: response =>
+      dispatch({
+        type: ACTION_TYPES.GET_RULES_SUCCESS,
+        response: response
+      }),
+
+    onDeleteRuleSuccess: index =>
+      dispatch({
+        type: ACTION_TYPES.DELETE_RULE_SUCCESS,
+        index: index
+      })
   };
 };
 

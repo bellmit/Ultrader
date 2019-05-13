@@ -2,7 +2,7 @@ import React, { Component } from "react";
 
 import { connect } from "react-redux";
 
-import * as ACTION_TYPES from "actions/Rules/AddRuleActions";
+import * as ACTION_TYPES from "actions/Rules/RulesActions";
 
 import AddRuleComp from "views/Rules/AddRule";
 
@@ -17,6 +17,7 @@ class AddRule extends Component {
         indicatorCategories={this.props.indicatorCategories}
         categoryIndicatorMap={this.props.categoryIndicatorMap}
         indicatorSelectOptions={this.props.indicatorSelectOptions}
+        onAddRuleSuccess={this.props.onAddRuleSuccess}
       />
     );
   }
@@ -30,12 +31,17 @@ const mapStateToProps = state => {
     indicatorTypesSelectOptions: state.global.indicatorTypesSelectOptions,
     indicatorCategories: state.global.indicatorCategories,
     categoryIndicatorMap: state.global.categoryIndicatorMap,
-    indicatorSelectOptions: state.global.indicatorSelectOptions,
+    indicatorSelectOptions: state.global.indicatorSelectOptions
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
+    onAddRuleSuccess: response =>
+      dispatch({
+        type: ACTION_TYPES.ADD_RULE_SUCCESS,
+        response: response
+      })
   };
 };
 

@@ -17,11 +17,7 @@ import "react-select/dist/react-select.css";
 import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
-import {
-  axiosGetWithAuth,
-  axiosPostWithAuth,
-  handleResponse
-} from "helpers/UrlHelper";
+import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 
 var strategyTypeOptions = [
   { label: "buy", value: "buy" },
@@ -50,7 +46,6 @@ export default class AddStrategyComp extends React.Component {
     };
 
     axiosGetWithAuth("/api/rule/getRules")
-      .then(handleResponse)
       .then(res => {
         this.props.onGetRulesSuccess(res);
       })
@@ -98,11 +93,10 @@ export default class AddStrategyComp extends React.Component {
         type: this.state.selectedStrategyType,
         formula: formula
       };
-      console.log(strategy);
-      axios
-        .post("http://localhost:9191/strategy/addStrategy", strategy)
+      axiosPostWithAuth("/api/strategy/addStrategy", strategy)
         .then(res => {
-          alert("Saved strategy " + res);
+          alert("Saved strategy successfully.");
+          this.props.onAddStrategySuccess(res);
         })
         .catch(error => {
           alert(error);
