@@ -2,9 +2,11 @@ package com.ultrader.bot.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 
 import javax.persistence.*;
+import java.util.Date;
 
 /**
  * Order record model
@@ -14,6 +16,7 @@ import javax.persistence.*;
 @Entity
 @Table(name = "tradings")
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
 public class Order {
     @Id
@@ -27,9 +30,10 @@ public class Order {
     private String type;
     @Column(name="quantity", updatable = false, nullable=false)
     private int quantity;
-    @Column(name="average_price", nullable=false)
-    private double averagePrice;
+    @Column(name="average_price")
+    private Double averagePrice;
     @Column(name="status", nullable=false)
     private String status;
-
+    @Column(name="close_date")
+    private Date closeDate;
 }

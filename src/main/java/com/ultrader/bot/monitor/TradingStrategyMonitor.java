@@ -16,6 +16,8 @@ import org.slf4j.LoggerFactory;
 import org.ta4j.core.*;
 import org.ta4j.core.num.PrecisionNum;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -28,9 +30,7 @@ public class TradingStrategyMonitor extends Monitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(TradingStrategyMonitor.class);
     private static TradingStrategyMonitor singleton_instance = null;
     private static Map<String, Strategy> strategies = new HashMap<>();
-    private static Map<String, Position> positions = new HashMap<>();
     private static Map<String, com.ultrader.bot.model.Order> openOrders = new HashMap<>();
-    private static Account account = new Account();
     private static Object lock = new Object();
     private final SettingDao settingDao;
     private final StrategyDao strategyDao;
@@ -74,11 +74,9 @@ public class TradingStrategyMonitor extends Monitor {
                 LOGGER.info("Auto trading disabled");
                 return;
             }
-            //Get current position
-            positions = getAllPositions();
 
-            //Get current portfolio
-            account = syncAccount();
+            Account account = TradingAccountMonitor.getAccount();
+            Map<String, Position> positions = TradingAccountMonitor.getPositions();
             LOGGER.info("Execute trading strategy.");
 
             //Get open orders
@@ -91,6 +89,7 @@ public class TradingStrategyMonitor extends Monitor {
             int buyOpenOrder = (int)openOrders.values().stream().filter(o -> o.getSide().equals("buy")).count();
             String buyOrderType = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_ORDER_TYPE.getName(), "market");
             String sellOrderType = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_SELL_ORDER_TYPE.getName(), "market");
+            int tradeInterval = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"));
             LOGGER.info("Buy order type {}, Sell order type {}", buyOrderType, sellOrderType);
             synchronized (lock) {
                 int vailidCount = 0;
@@ -114,8 +113,8 @@ public class TradingStrategyMonitor extends Monitor {
                         continue;
                     }
                     //Don't trade if the last update time is too far
-                    if(new Date().getTime() / 1000 - MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() > getInterval() * 3) {
-                        LOGGER.debug("Skip {} trading strategy since time series is not update to date {} {}", stock, new Date().getTime(),MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() );
+                    if(ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).toEpochSecond() - MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() > tradeInterval * 3) {
+                        LOGGER.info("Skip {} trading strategy since time series is not update to date {} {}", stock, new Date().getTime(),MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() );
                         continue;
                     }
                     vailidCount ++;
@@ -136,7 +135,7 @@ public class TradingStrategyMonitor extends Monitor {
                             //buy strategy satisfy & no position & hold stock < limit
                             int buyQuantity = calculateBuyShares(buyLimit, currentPrice, account);
                             if(buyQuantity > 0) {
-                                if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "")) != null) {
+                                if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null)) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
                                     positionNum++;
                                     LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
@@ -146,7 +145,7 @@ public class TradingStrategyMonitor extends Monitor {
                                 && positions.containsKey(stock)
                                 && positions.get(stock).getQuantity() > 0) {
                             //sell strategy satisfy & has position
-                            if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "")) != null) {
+                            if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null)) != null) {
                                 account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
                                 positionNum--;
                                 LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
@@ -162,29 +161,6 @@ public class TradingStrategyMonitor extends Monitor {
         }
     }
 
-    private Map<String, Position> getAllPositions() throws RuntimeException {
-        Map<String, Position> positionMap = tradingService.getAllPositions();
-        if(positionMap == null) {
-            throw new RuntimeException("Cannot get position info, skip executing trading strategies");
-        }
-        LOGGER.info(String.format("Found %d positions.", positionMap.size()));
-        return positionMap;
-    }
-
-    private Account syncAccount() throws RuntimeException{
-        Account account = tradingService.getAccountInfo();
-        if(account == null) {
-            throw new RuntimeException("Cannot get account info, skip executing trading strategies");
-        }
-        if(account.isTradingBlocked()) {
-            throw new RuntimeException("Your api account is blocked trading, please check the trading platform account.");
-        }
-        return account;
-    }
-
-    public static Map<String, Position> getPositions() {
-        return positions;
-    }
 
     public static Map<String, Strategy> getStrategies() {
         return strategies;
@@ -202,9 +178,7 @@ public class TradingStrategyMonitor extends Monitor {
         return lock;
     }
 
-    public static Account getAccount() {
-        return account;
-    }
+
 
     private static int calculateBuyShares(String limit, double price, Account account) {
         double amount;

@@ -4,6 +4,7 @@ import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.service.alpaca.AlpacaMarketDataService;
 import com.ultrader.bot.service.alpaca.AlpacaPaperTradingService;
 import com.ultrader.bot.service.alpaca.AlpacaTradingService;
+import com.ultrader.bot.service.polygon.PolygonMarketDataService;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingPlatformConstant;
@@ -28,20 +29,25 @@ public class TradingPlatform {
     public TradingPlatform(SettingDao settingDao,
                            AlpacaTradingService alpacaTradingService,
                            AlpacaPaperTradingService alpacaPaperTradingService,
-                           AlpacaMarketDataService alpacaMarketDataService) {
+                           AlpacaMarketDataService alpacaMarketDataService,
+                           PolygonMarketDataService polygonMarketDataService) {
         Validate.notNull(settingDao, "SettingDao is required");
         this.settingDao = settingDao;
-        String tradingPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADING_PLATFORM_NAME.getName(), "AlpacaPaper");
-
+        String tradingPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADING_PLATFORM.getName(), "AlpacaPaper");
+        String marketDataPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX");
         if(tradingPlatform.equals(TradingPlatformConstant.ALPACA)) {
             tradingService = alpacaTradingService;
-            marketDataService = alpacaMarketDataService;
         } else if(tradingPlatform.equals(TradingPlatformConstant.ALPACA_PAPER)) {
             tradingService = alpacaPaperTradingService;
-            marketDataService = alpacaMarketDataService;
         } else {
             LOGGER.error("Unknown trading platform, please check your config.");
-            return;
+        }
+        if(marketDataPlatform.equals("IEX")) {
+            marketDataService = alpacaMarketDataService;
+        } else if (marketDataPlatform.equals("POLYGON")) {
+            marketDataService = polygonMarketDataService;
+        } else {
+            LOGGER.error("Unknown market data platform, please check your config.");
         }
     }
 

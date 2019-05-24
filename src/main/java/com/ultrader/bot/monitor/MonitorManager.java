@@ -41,26 +41,27 @@ public class MonitorManager implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        threadPoolTaskExecutor.setCorePoolSize(3);
-        threadPoolTaskExecutor.setMaxPoolSize(3);
+        threadPoolTaskExecutor.setCorePoolSize(5);
+        threadPoolTaskExecutor.setMaxPoolSize(5);
         threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
         threadPoolTaskExecutor.initialize();
         //Start License Monitor
         LicenseMonitor.init(24 * 3600L * 1000, licenseService, settingDao);
         threadPoolTaskExecutor.execute(LicenseMonitor.getInstance());
 
-
+        //Trading account monitor
+        TradingAccountMonitor.init(20000, tradingPlatform.getTradingService(), settingDao);
+        threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
         //Start MarketDate Monitor
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")) * 1000;
         MarketDataMonitor.init(interval, tradingPlatform.getTradingService(), tradingPlatform.getMarketDataService(), settingDao);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
+
+
         //Start Trading strategy monitor
         Thread.sleep(10000);
-        TradingStrategyMonitor.init(interval, tradingPlatform.getTradingService(), settingDao, strategyDao, ruleDao);
+        TradingStrategyMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, strategyDao, ruleDao);
         threadPoolTaskExecutor.execute(TradingStrategyMonitor.getInstance());
-
-        FakeMonitor.init(10000, feedbackNotifier);
-        threadPoolTaskExecutor.execute(FakeMonitor.getInstance());
     }
 
 

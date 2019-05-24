@@ -19,6 +19,7 @@ import java.util.Date;
 @Table(name = "positions")
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class Position {
     @Id
     @Column(name="symbol", unique=true, updatable=false, nullable=false)
@@ -29,4 +30,12 @@ public class Position {
     private double averageCost;
     @Column(name="buy_date", nullable=false)
     private Date buyDate;
+    @Column(name="current_price", nullable=false)
+    private double currentPrice;
+    @Column(name="exchange")
+    private String exchange;
+    @Column(name="market_value")
+    private double marketValue;
+    @Column(name="change_today")
+    private double changeToday;
 }

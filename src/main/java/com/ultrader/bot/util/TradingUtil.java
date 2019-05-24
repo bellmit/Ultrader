@@ -31,6 +31,7 @@ import java.util.Map;
  */
 public class TradingUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(TradingUtil.class);
+    public static final String TIME_ZONE = "America/New_York";
     public static final String INDICATOR_DELIMITER = ":";
     public static final String TIME_SERIES = "TimeSeries";
     public static final String CLOSE_PRICE = "ClosePrice";

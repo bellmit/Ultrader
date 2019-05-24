@@ -1,5 +1,6 @@
 package com.ultrader.bot.service.alpaca;
 
+import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Order;
@@ -20,6 +21,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.socket.client.WebSocketConnectionManager;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 import java.text.DecimalFormat;
 import java.util.*;
@@ -34,19 +37,22 @@ public class AlpacaPaperTradingService implements TradingService {
     private String alpacaKey;
     private String alpacaSecret;
     private RestTemplate client;
-
+    private WebSocketConnectionManager connectionManager;
     @Autowired
-    public AlpacaPaperTradingService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
+    public AlpacaPaperTradingService(final SettingDao settingDao, final RestTemplateBuilder restTemplateBuilder, final OrderDao orderDao) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
-
-        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY_NAME.getName(), "");
-        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET_NAME.getName(), "");
+        Validate.notNull(orderDao, "orderDao is required");
+        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
+        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
         if(alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
         }
         client = restTemplateBuilder.rootUri("https://paper-api.alpaca.markets/v1/").build();
+        //Init Websocket
+        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao), "wss://paper-api.alpaca.markets/stream");
+        connectionManager.start();
     }
 
     private HttpHeaders generateHeader() {
@@ -54,6 +60,12 @@ public class AlpacaPaperTradingService implements TradingService {
         httpHeaders.set("APCA-API-KEY-ID", alpacaKey);
         httpHeaders.set("APCA-API-SECRET-KEY", alpacaSecret);
         return httpHeaders;
+    }
+    @Override
+    public void checkWebSocket() {
+        if(connectionManager != null && !connectionManager.isRunning()) {
+            connectionManager.start();
+        }
     }
 
     public boolean isMarketOpen() {
@@ -107,7 +119,7 @@ public class AlpacaPaperTradingService implements TradingService {
             }
             Map<String, Position> positionMap = new HashMap<>();
             for (com.ultrader.bot.model.alpaca.Position position : positions.getBody()) {
-                positionMap.put(position.getSymbol(), new Position(position.getSymbol(), position.getQty(), position.getAvg_entry_price(), new Date()));
+                positionMap.put(position.getSymbol(), new Position(position.getSymbol(), position.getQty(), position.getAvg_entry_price(), new Date(), position.getCurrent_price(), position.getExchange(), position.getMarket_value(), position.getChange_today()));
             }
             return positionMap;
         } catch (Exception e) {
@@ -168,7 +180,8 @@ public class AlpacaPaperTradingService implements TradingService {
                     orderResponseEntity.getBody().getType(),
                     orderResponseEntity.getBody().getQty(),
                     order.getAveragePrice(),
-                    orderResponseEntity.getBody().getStatus());
+                    orderResponseEntity.getBody().getStatus(),
+                    null);
             return responseOrder;
         } catch (Exception e) {
             LOGGER.error("Failed to call /orders api.", e);
@@ -195,7 +208,8 @@ public class AlpacaPaperTradingService implements TradingService {
                         order.getType(),
                         order.getQty(),
                         order.getLimit_price(),
-                        order.getStatus()));
+                        order.getStatus(),
+                        null));
             }
             return orderMap;
         } catch (Exception e) {
@@ -203,4 +217,36 @@ public class AlpacaPaperTradingService implements TradingService {
             return null;
         }
     }
+
+    @Override
+    public List<Order> getHistoryOrders(Date startDate, Date endDate) {
+        try {
+            HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
+            ResponseEntity<com.ultrader.bot.model.alpaca.Order[]> orders = client.exchange("/orders?limit=500&status=closed", HttpMethod.GET, entity, com.ultrader.bot.model.alpaca.Order[].class);
+            if (orders.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                return null;
+            }
+            List<Order> orderList = new ArrayList<>();
+            for (com.ultrader.bot.model.alpaca.Order order : orders.getBody()) {
+                LOGGER.debug("Found open order {}", order.toString());
+                if(order.getStatus().equals("filled")) {
+                    orderList.add(new Order(
+                            order.getId(),
+                            order.getSymbol(),
+                            order.getSide(),
+                            order.getType(),
+                            order.getQty(),
+                            order.getFilled_avg_price(),
+                            order.getStatus(),
+                            order.getFilled_at()));
+                }
+            }
+            return orderList;
+        } catch (Exception e) {
+            LOGGER.error("Failed to get open orders.", e);
+            return null;
+        }
+    }
+
 }

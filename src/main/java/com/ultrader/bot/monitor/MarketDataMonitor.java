@@ -33,6 +33,7 @@ public class MarketDataMonitor extends Monitor {
     private Date lastUpdateDate;
     private Map<String, Set<String>> availableStocks = null;
     public static Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
+    public static Object lock = new Object();
     private MarketDataMonitor(final long interval, final TradingService tradingService, final MarketDataService marketDataService, final SettingDao settingDao) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
@@ -47,7 +48,7 @@ public class MarketDataMonitor extends Monitor {
     @Override
     void scan() {
         try {
-            String platform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM_NAME.getName(), "IEX");
+            String platform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX");
             LOGGER.info(String.format("Update market data, platform: %s", platform));
             boolean marketStatusChanged = false;
             //Check if the market is open
@@ -71,7 +72,7 @@ public class MarketDataMonitor extends Monitor {
             //Get the list of stocks need to update
             Set<String> stockInExchange = new HashSet<>();
             //Filter by exchange
-            String[] setExchanges = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_EXCHANGE_NAME.getName(), "NASDAQ,NYSE").split(DELIMITER);
+            String[] setExchanges = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_EXCHANGE.getName(), "NASDAQ,NYSE").split(DELIMITER);
             for(String exchange : setExchanges) {
                 if(availableStocks.containsKey(exchange)) {
                     stockInExchange.addAll(availableStocks.get(exchange));
@@ -79,8 +80,8 @@ public class MarketDataMonitor extends Monitor {
             }
             LOGGER.debug(String.format("Found %d stocks in the exchanges.", stockInExchange.size()));
             //Filter by list
-            boolean isWhiteList = Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.WHITE_LIST_ENABLE_NAME.getName(), "true"));
-            Set<String> customizedStockList = new HashSet<>(Arrays.asList(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_STOCK_LIST_NAME.getName(), "AMZN,AAPL,NVDA,GOOGL").split(DELIMITER)));
+            boolean isWhiteList = Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.WHITE_LIST_ENABLE.getName(), "true"));
+            Set<String> customizedStockList = new HashSet<>(Arrays.asList(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_STOCK_LIST.getName(), "AMZN,AAPL,NVDA,GOOGL").split(DELIMITER)));
             Set<String> watchList = new HashSet<>();
             for(String stock : stockInExchange) {
                 if(isWhiteList && customizedStockList.contains(stock)) {
@@ -90,55 +91,62 @@ public class MarketDataMonitor extends Monitor {
                 }
             }
             LOGGER.info(String.format("Found %d stocks need to update.", watchList.size()));
-            //Update
-            //TODO Currently we force all the indicator have to use same period, we should support different period for different indicators
-            Map<String, TimeSeries> currentTimeSeries = new HashMap<>();
-            int maxLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "100")) * 2;
-            maxLength = maxLength > 1000 ? 1000 : maxLength;
-            List<TimeSeries> updateSeries = new ArrayList<>();
-            for(String stock : watchList) {
-                if(timeSeriesMap.containsKey(stock)) {
-                    updateSeries.add(timeSeriesMap.get(stock));
-                    timeSeriesMap.get(stock).setMaximumBarCount(maxLength);
-                } else {
-                    TimeSeries timeSeries = new BaseTimeSeries(stock);
-                    timeSeries.setMaximumBarCount(maxLength);
-                    updateSeries.add(timeSeries);
+            synchronized (lock) {
+                //Update
+                //TODO Currently we force all the indicator have to use same period, we should support different period for different indicators
+                Map<String, TimeSeries> currentTimeSeries = new HashMap<>();
+                int maxLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "100")) * 2;
+                maxLength = maxLength > 1000 ? 1000 : maxLength;
+                List<TimeSeries> updateSeries = new ArrayList<>();
+                for (String stock : watchList) {
+                    if (timeSeriesMap.containsKey(stock)) {
+                        updateSeries.add(timeSeriesMap.get(stock));
+                        timeSeriesMap.get(stock).setMaximumBarCount(maxLength);
+                    } else {
+                        TimeSeries timeSeries = new BaseTimeSeries(stock);
+                        timeSeries.setMaximumBarCount(maxLength);
+                        updateSeries.add(timeSeries);
+                    }
                 }
-            }
-            updateSeries = marketDataService.updateTimeSeries(updateSeries, getInterval());
-            //For max, If smaller than 0 then no limit
-            double priceMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MAX.getName(), "-1.0"));
-            double priceMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MIN.getName(), "0.0"));
-            double volumeMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MAX.getName(), "-1.0"));
-            double volumeMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MIN.getName(), "1000.0"));
-            for (TimeSeries timeSeries : updateSeries) {
-                //Filter by time series length
-                if(timeSeries.getBarCount() <= maxLength / 2) {
-                    continue;
-                }
+                updateSeries = marketDataService.updateTimeSeries(updateSeries, getInterval());
+                //For max, If smaller than 0 then no limit
+                double priceMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MAX.getName(), "-1.0"));
+                double priceMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MIN.getName(), "0.0"));
+                double volumeMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MAX.getName(), "-1.0"));
+                double volumeMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MIN.getName(), "1000.0"));
+                for (TimeSeries timeSeries : updateSeries) {
 
-                //Filter by price max limit
-                if(priceMax > 0 && timeSeries.getLastBar().getClosePrice().doubleValue() > priceMax) {
-                    continue;
+                    //Filter by time series length
+                    if (timeSeries.getBarCount() <= maxLength / 2) {
+                        LOGGER.debug("Filter out {} because of missing data. Bar length {}", timeSeries.getName(), timeSeries.getBarCount());
+                        continue;
+                    }
+
+                    //Filter by price max limit
+                    if (priceMax > 0 && timeSeries.getLastBar().getClosePrice().doubleValue() > priceMax) {
+                        LOGGER.debug("Filter out {} because of max price limit. Close price {}", timeSeries.getName(), timeSeries.getLastBar().getClosePrice());
+                        continue;
+                    }
+                    //Filter by price min limit
+                    if (timeSeries.getLastBar().getClosePrice().doubleValue() < priceMin) {
+                        LOGGER.debug("Filter out {} because of min price limit. Close price {}", timeSeries.getName(), timeSeries.getLastBar().getClosePrice());
+                        continue;
+                    }
+                    //Filter by volume max limit
+                    if (volumeMax > 0 && timeSeries.getLastBar().getVolume().doubleValue() > volumeMax) {
+                        LOGGER.debug("Filter out {} because of max volume limit. Volume {}", timeSeries.getName(), timeSeries.getLastBar().getVolume());
+                        continue;
+                    }
+                    //Filter by volume min limit
+                    if (timeSeries.getLastBar().getVolume().doubleValue() < volumeMin) {
+                        LOGGER.debug("Filter out {} because of max price limit. Volume {}", timeSeries.getName(), timeSeries.getLastBar().getVolume());
+                        continue;
+                    }
+                    currentTimeSeries.put(timeSeries.getName(), timeSeries);
+                    LOGGER.debug(String.format("Stock %s has %d bars", timeSeries.getName(), timeSeries.getBarCount()));
                 }
-                //Filter by price min limit
-                if(timeSeries.getLastBar().getClosePrice().doubleValue() < priceMin) {
-                    continue;
-                }
-                //Filter by volume max limit
-                if(volumeMax > 0 && timeSeries.getLastBar().getVolume().doubleValue() > volumeMax) {
-                    continue;
-                }
-                //Filter by volume min limit
-                if(timeSeries.getLastBar().getVolume().doubleValue() < volumeMin) {
-                    continue;
-                }
-                currentTimeSeries.put(timeSeries.getName(), timeSeries);
-                LOGGER.debug(String.format("Stock %s has %d bars", timeSeries.getName(), timeSeries.getBarCount()));
-            }
-            LOGGER.info("{} stocks filter by price and volume, {} stocks remains.", updateSeries.size() - currentTimeSeries.size(), currentTimeSeries.size());
-            synchronized (TradingStrategyMonitor.getLock()) {
+                LOGGER.info("{} stocks filtered out, {} stocks remains.", updateSeries.size() - currentTimeSeries.size(), currentTimeSeries.size());
+
                 this.timeSeriesMap = currentTimeSeries;
             }
             lastUpdateDate = new Date();

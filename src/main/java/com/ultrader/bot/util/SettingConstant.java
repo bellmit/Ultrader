@@ -6,27 +6,27 @@ package com.ultrader.bot.util;
  */
 public enum SettingConstant {
     //Alpaca Live trading key
-    ALPACA_KEY_NAME("KEY_ALPACA_KEY"),
+    ALPACA_KEY("KEY_ALPACA_KEY"),
     //Alpaca Live trading secret
-    ALPACA_SECRET_NAME("KEY_ALPACA_SECRET"),
+    ALPACA_SECRET("KEY_ALPACA_SECRET"),
     //Alpaca paper trading key
-    ALPACA_PAPER_KEY_NAME("KEY_ALPACA_PAPER_KEY"),
+    ALPACA_PAPER_KEY("KEY_ALPACA_PAPER_KEY"),
     //Alpaca paper trading secret
-    ALPACA_PAPER_SECRET_NAME("KEY_ALPACA_PAPER_SECRET"),
+    ALPACA_PAPER_SECRET("KEY_ALPACA_PAPER_SECRET"),
     //Ultrader key
-    BOT_KEY_NAME("KEY_ULTRADER_KEY"),
+    BOT_KEY("KEY_ULTRADER_KEY"),
     //Ultrader secret
-    BOT_SECRET_NAME("KEY_ULTRADER_SECRET"),
+    BOT_SECRET("KEY_ULTRADER_SECRET"),
     //Trading platform name
-    TRADING_PLATFORM_NAME("GLOBAL_TRADING_PLATFORM"),
+    TRADING_PLATFORM("GLOBAL_TRADING_PLATFORM"),
     //Regards the customized stock list as white list
-    WHITE_LIST_ENABLE_NAME("TRADE_WHITE_LIST_ENABLE"),
+    WHITE_LIST_ENABLE("TRADE_WHITE_LIST_ENABLE"),
     //User customized stock list
-    TRADE_STOCK_LIST_NAME("TRADE_STOCK_LIST"),
+    TRADE_STOCK_LIST("TRADE_STOCK_LIST"),
     //Stock exchanges that need to be considered
-    TRADE_EXCHANGE_NAME("TRADE_EXCHANGE_LIST"),
+    TRADE_EXCHANGE("TRADE_EXCHANGE_LIST"),
     //Market data platform name
-    MARKET_DATA_PLATFORM_NAME("GLOBAL_MARKETDATA_PLATFORM"),
+    MARKET_DATA_PLATFORM("GLOBAL_MARKETDATA_PLATFORM"),
     //The max bars that indicator can use to calculate
     INDICATOR_MAX_LENGTH("INDICATOR_MAX_LENGTH"),
     //Trading period, 1min, 5min, etc
