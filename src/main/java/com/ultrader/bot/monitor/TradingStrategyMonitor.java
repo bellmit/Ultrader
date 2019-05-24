@@ -93,6 +93,9 @@ public class TradingStrategyMonitor extends Monitor {
             LOGGER.info("Buy order type {}, Sell order type {}", buyOrderType, sellOrderType);
             synchronized (lock) {
                 int vailidCount = 0;
+                int noTimeSeries = 0;
+                int notLongEnough = 0;
+                int notNewEnough = 0;
                 TradingUtil.updateStrategies(strategyDao, ruleDao, settingDao);
                 LOGGER.info(String.format("Updated trading strategies for %d stocks", strategies.size()));
                 for(Map.Entry<String, Strategy> entry : strategies.entrySet()) {
@@ -105,16 +108,19 @@ public class TradingStrategyMonitor extends Monitor {
                     //Don't trade stock if the time series is missing
                     if(!MarketDataMonitor.timeSeriesMap.containsKey(stock)) {
                         LOGGER.debug("Skip {} trading strategy since no time series", stock);
+                        noTimeSeries++;
                         continue;
                     }
                     //Don't trade if time series is not long enough
                     if(MarketDataMonitor.timeSeriesMap.get(stock).getBarCount() < minLength) {
                         LOGGER.debug("Skip {} trading strategy since time series is not long enough", stock);
+                        notLongEnough++;
                         continue;
                     }
                     //Don't trade if the last update time is too far
                     if(ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).toEpochSecond() - MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() > tradeInterval * 3) {
-                        LOGGER.info("Skip {} trading strategy since time series is not update to date {} {}", stock, new Date().getTime(),MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() );
+                        LOGGER.debug("Skip {} trading strategy since time series is not update to date {} {}", stock, new Date().getTime(),MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() );
+                        notNewEnough++;
                         continue;
                     }
                     vailidCount ++;
@@ -154,7 +160,8 @@ public class TradingStrategyMonitor extends Monitor {
                         }
                     }
                 }
-                LOGGER.info("Checked trading strategies for {} stocks", vailidCount);
+                LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
+                        vailidCount, noTimeSeries, notLongEnough, notNewEnough);
             }
         } catch (Exception e) {
             LOGGER.error("Failed to execute trading strategy.", e);

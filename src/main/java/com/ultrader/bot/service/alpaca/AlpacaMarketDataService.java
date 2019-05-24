@@ -82,6 +82,16 @@ public class AlpacaMarketDataService implements MarketDataService {
         return result;
     }
 
+    @Override
+    public void subscribe(String symbol) {
+        //NOOP
+    }
+
+    @Override
+    public void unsubscribe(String symbol) {
+        //NoOp
+    }
+
     private List<TimeSeries> updateStockTimeSeries(List<TimeSeries> stocks, Long interval, boolean isNewStock, int maxLength) {
         Map<String, TimeSeries> result = new HashMap<>();
         stocks.stream().forEach(s -> result.put(s.getName(), s));

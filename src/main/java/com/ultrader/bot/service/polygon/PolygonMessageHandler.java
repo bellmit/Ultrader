@@ -27,11 +27,13 @@ import java.time.ZonedDateTime;
 public class PolygonMessageHandler implements MessageHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(PolygonMessageHandler.class);
     private ObjectMapper objectMapper;
+    private long interval;
     private final PolygonMarketDataService service;
 
-    public PolygonMessageHandler(PolygonMarketDataService service) {
+    public PolygonMessageHandler(PolygonMarketDataService service, long interval) {
         Validate.notNull(service, "service is required");
         this.objectMapper = new ObjectMapper();
+        this.interval = interval;
         this.service = service;
     }
 
@@ -42,10 +44,9 @@ public class PolygonMessageHandler implements MessageHandler {
             Aggregation aggregation = objectMapper.readValue(response, Aggregation.class);
             if(MarketDataMonitor.timeSeriesMap.containsKey(aggregation.getSym())) {
                 //Check if need to add a new bar;
-                Instant i = Instant.ofEpochSecond(aggregation.getE() / 1000);
+                Instant i = null;
                 TimeSeries timeSeries = MarketDataMonitor.timeSeriesMap.get(aggregation.getSym());
-                if(timeSeries.getLastBar().getEndTime().isBefore(ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE)))) {
-                    long interval = timeSeries.getLastBar().getEndTime().toEpochSecond() - timeSeries.getLastBar().getBeginTime().toEpochSecond();
+                if(timeSeries.getLastBar().getEndTime().toEpochSecond() < aggregation.getE() / 1000) {
                     i = Instant.ofEpochSecond(timeSeries.getLastBar().getEndTime().toEpochSecond() + interval);
                     Bar bar = new BaseBar(Duration.ofMillis(interval),
                             ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE)),
@@ -56,6 +57,7 @@ public class PolygonMessageHandler implements MessageHandler {
                             PrecisionNum.valueOf(aggregation.getV()),
                             PrecisionNum.valueOf(aggregation.getV() * aggregation.getA()));
                     timeSeries.addBar(bar);
+                    LOGGER.debug("Add new bar {} in {} time series, interval {}", bar, aggregation.getSym(), interval);
                 } else {
                     Bar bar = timeSeries.getLastBar();
                     bar.addPrice(PrecisionNum.valueOf(aggregation.getO()));
@@ -66,8 +68,7 @@ public class PolygonMessageHandler implements MessageHandler {
                 }
 
             } else {
-                //Unsubscribe stock
-                service.getDispatcher().unsubscribe(service.getFrequency() + aggregation.getSym());
+                LOGGER.error("Cannot find time series for {} when updating", aggregation.getSym());
             }
 
         } catch (Exception e) {

@@ -13,5 +13,15 @@ import java.util.Set;
  * @author ytx1991
  */
 public interface MarketDataService {
+    /**
+     * Update a list of time series
+     * @param stocks
+     * @param interval
+     * @return
+     * @throws InterruptedException
+     */
     List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) throws InterruptedException;
+
+    void subscribe(String symbol);
+    void unsubscribe(String symbol);
 }

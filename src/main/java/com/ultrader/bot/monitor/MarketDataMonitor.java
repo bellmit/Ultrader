@@ -146,8 +146,16 @@ public class MarketDataMonitor extends Monitor {
                     LOGGER.debug(String.format("Stock %s has %d bars", timeSeries.getName(), timeSeries.getBarCount()));
                 }
                 LOGGER.info("{} stocks filtered out, {} stocks remains.", updateSeries.size() - currentTimeSeries.size(), currentTimeSeries.size());
-
                 this.timeSeriesMap = currentTimeSeries;
+                //Update subscribe
+                for (TimeSeries timeSeries : updateSeries) {
+                    if(timeSeriesMap.containsKey(timeSeries.getName())) {
+                        marketDataService.subscribe(timeSeries.getName());
+                    } else {
+                        marketDataService.unsubscribe(timeSeries.getName());
+                    }
+
+                }
             }
             lastUpdateDate = new Date();
         } catch (Exception e) {

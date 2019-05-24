@@ -31,6 +31,7 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Polygon Market Data Service
@@ -57,9 +58,9 @@ public class PolygonMarketDataService implements MarketDataService {
             LOGGER.error("Cannot find Alpaca key, please set up and reboot.");
         }
         client = restTemplateBuilder.rootUri("https://api.polygon.io").build();
-        threadPoolTaskExecutor =new ThreadPoolTaskExecutor();
-        threadPoolTaskExecutor.setCorePoolSize(200);
-        threadPoolTaskExecutor.setMaxPoolSize(500);
+        threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
+        threadPoolTaskExecutor.setCorePoolSize(400);
+        threadPoolTaskExecutor.setMaxPoolSize(1000);
         threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
         threadPoolTaskExecutor.setQueueCapacity(5000);
         threadPoolTaskExecutor.initialize();
@@ -74,7 +75,7 @@ public class PolygonMarketDataService implements MarketDataService {
                     .maxReconnects(-1).build();
             Connection connection = Nats.connect(options);
             LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
-            dispatcher = connection.createDispatcher(new PolygonMessageHandler(this));
+            dispatcher = connection.createDispatcher(new PolygonMessageHandler(this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"))));
         } catch (Exception e) {
             LOGGER.error("Failed to connect to Polygon.", e);
         }
@@ -82,10 +83,7 @@ public class PolygonMarketDataService implements MarketDataService {
     }
     @Override
     public List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) throws InterruptedException {
-        if(interval < 60000) {
-            //Trading period is smaller than 1 min.Don't call aggregate API
-            return stocks;
-        }
+
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String endDate = ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).plusDays(1).format(formatter);
         String startDate = getStartDate(stocks.get(0), endDate, interval, formatter);
@@ -96,20 +94,31 @@ public class PolygonMarketDataService implements MarketDataService {
         int newStockCount = 0;
         LOGGER.debug("Start date {}, End Date {}", startDate, endDate);
         for(TimeSeries timeSeries : stocks) {
-            if(timeSeries.getBarCount() == 0) {
+            if(timeSeries.getBarCount() == 0 && interval >= 60000) {
                 GetStockBarsTask task = new GetStockBarsTask(timeSeries, client, startDate, endDate, getPeriodUnit(interval), getPeriodLength(interval), interval, polygonKey);
                 threadPoolTaskExecutor.execute(task);
                 newStockCount++;
 
             }
-            //subscribe
-            dispatcher.subscribe("AM." + timeSeries.getName());
         }
         LOGGER.info("Submitted {} update tasks", newStockCount);
-        Thread.sleep(10000);
+        while(threadPoolTaskExecutor.getActiveCount() != 0) {
+            LOGGER.debug("Remain {} stocks to update", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
+            Thread.sleep(1000);
+        }
+        LOGGER.info("Completed {} update tasks", newStockCount);
         return stocks;
     }
 
+    @Override
+    public void subscribe(String symbol) {
+        dispatcher.subscribe(getFrequency() + symbol);
+    }
+
+    @Override
+    public void unsubscribe(String symbol) {
+        dispatcher.unsubscribe(getFrequency() + symbol);
+    }
 
 
     private String getStartDate(TimeSeries timeSeries, String endDate, long interval, DateTimeFormatter formatter){
@@ -168,7 +177,7 @@ public class PolygonMarketDataService implements MarketDataService {
         }
     }
 
-    private static final class GetStockBarsTask implements Runnable {
+    private final class GetStockBarsTask implements Runnable {
         private TimeSeries timeSeries;
         private RestTemplate client;
         private final String startDate;
@@ -214,6 +223,7 @@ public class PolygonMarketDataService implements MarketDataService {
                     }
                 }
                 LOGGER.debug("Loaded stock {}, {} bars", timeSeries.getName(), response.getResults().size());
+
             } catch (Exception e) {
                 LOGGER.error("Initial stock {} time series failed", timeSeries.getName());
             }
