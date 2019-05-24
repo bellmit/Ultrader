@@ -44,7 +44,7 @@ class HeaderLinks extends Component {
             eventKey={4}
             title={
               <div>
-                <i className="fa fa-list" />
+                <i className="fa fa-cog" />
                 <p className="hidden-md hidden-lg">
                   More
                   <b className="caret" />
