@@ -6,7 +6,7 @@ import PagesHeader from "components/Header/PagesHeader.jsx";
 // dinamically create pages routes
 import pagesRoutes from "routes/pages.jsx";
 
-import bgImage from "assets/img/full-screen-image-3.jpg";
+import bgImage from "assets/img/Bulle_und_Bär_Frankfurt.jpg";
 
 class Pages extends Component {
   getPageClass() {
