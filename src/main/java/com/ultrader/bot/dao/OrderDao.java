@@ -7,6 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 
@@ -19,5 +20,8 @@ import java.util.List;
 public interface OrderDao extends CrudRepository<Order, String> {
     @Query(value = "SELECT * FROM TRADINGS WHERE close_date > ?1 and close_date < ?2 order by close_date desc",
             nativeQuery = true)
-    public List<Order> findAllOrdersByDate(Date startDate, Date endDate);
+    public List<Order> findAllOrdersByDate(LocalDateTime startDate, LocalDateTime endDate);
+    @Query(value = "SELECT * FROM TRADINGS WHERE symbol = ?1 order by close_date desc limit 2",
+            nativeQuery = true)
+    public List<Order> findLastTradeBySymbol(String symbol);
 }

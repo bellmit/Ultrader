@@ -5,6 +5,7 @@ import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.alpaca.websocket.TradeUpdateResponse;
 import com.ultrader.bot.model.alpaca.websocket.TradeUpdate;
+import com.ultrader.bot.util.TradingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.socket.BinaryMessage;
@@ -14,6 +15,11 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.util.Date;
 
 public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
     private static final Logger LOG = LoggerFactory.getLogger(AlpacaWebSocketHandler.class);
@@ -86,6 +92,10 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
                     tradeUpdate.getOrder().getStatus(),
                     tradeUpdate.getOrder().getFilled_at());
             orderDao.save(order);
+            LocalTime midnight = LocalTime.MIDNIGHT;
+            LocalDate today = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE));
+            LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
+            orderDao.findAllOrdersByDate(todayMidnight, LocalDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)));
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.ultrader.bot.monitor;
 
+import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.StrategyDao;
@@ -27,17 +28,19 @@ public class MonitorManager implements CommandLineRunner {
 
     private ThreadPoolTaskExecutor threadPoolTaskExecutor =new ThreadPoolTaskExecutor();
     @Autowired
-    LicenseService licenseService;
+    private LicenseService licenseService;
     @Autowired
-    TradingPlatform tradingPlatform;
+    private TradingPlatform tradingPlatform;
     @Autowired
-    SettingDao  settingDao;
+    private SettingDao  settingDao;
     @Autowired
-    StrategyDao strategyDao;
+    private StrategyDao strategyDao;
     @Autowired
-    RuleDao ruleDao;
+    private RuleDao ruleDao;
     @Autowired
     private SimpMessagingTemplate feedbackNotifier;
+    @Autowired
+    private OrderDao orderDao;
 
     @Override
     public void run(String... args) throws Exception {
@@ -50,7 +53,7 @@ public class MonitorManager implements CommandLineRunner {
         threadPoolTaskExecutor.execute(LicenseMonitor.getInstance());
 
         //Trading account monitor
-        TradingAccountMonitor.init(20000, tradingPlatform.getTradingService(), settingDao);
+        TradingAccountMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, feedbackNotifier, orderDao);
         threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
         //Start MarketDate Monitor
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")) * 1000;

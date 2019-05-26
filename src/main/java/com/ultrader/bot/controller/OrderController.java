@@ -5,12 +5,15 @@ import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.Trade;
 import com.ultrader.bot.monitor.TradingStrategyMonitor;
 import com.ultrader.bot.service.TradingPlatform;
+import com.ultrader.bot.util.TradingUtil;
 import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 
 /**
@@ -54,7 +57,7 @@ public class OrderController {
     @ResponseBody
     public Iterable<Trade> getClosedOrders(@PathVariable int days) {
         try {
-           List<Order> orders = orderDao.findAllOrdersByDate(DateUtils.addDays(new Date(), - days), new Date());
+           List<Order> orders = orderDao.findAllOrdersByDate(LocalDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).minusDays(days), LocalDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)));
            List<Trade> trades = new ArrayList<>();
            Map<String, Order> stack = new HashMap<>();
            for(Order order : orders) {
