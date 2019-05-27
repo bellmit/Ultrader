@@ -9,6 +9,8 @@ import Card from "components/Card/Card.jsx";
 import StatsCard from "components/Card/StatsCard.jsx";
 import Tasks from "components/Tasks/Tasks.jsx";
 
+import { parseMoney, parsePercentage } from "helpers/ParseHelper";
+
 import {
   dataPie,
   dataSales,
@@ -34,7 +36,7 @@ var mapData = {
   US: 2920
 };
 
-class Dashboard extends Component {
+class DashboardComp extends Component {
   createTableData() {
     var tableRows = [];
     for (var i = 0; i < table_data.length; i++) {
@@ -60,111 +62,109 @@ class Dashboard extends Component {
           <Row>
             <Col lg={3} sm={6}>
               <StatsCard
-                bigIcon={<i className="pe-7s-server text-warning" />}
-                statsText="Capacity"
-                statsValue="105GB"
-                statsIcon={<i className="fa fa-refresh" />}
-                statsIconText="Updated now"
+                bigIcon={<i className="pe-7s-note2 text-primary" />}
+                statsText="Portfolio"
+                statsValue={parseMoney(this.props.portfolio.value)}
+                statsIconText={
+                  <div>
+                    <p>
+                      Buying Power :{" "}
+                      {parseMoney(this.props.portfolio.buyingPower)}
+                    </p>
+                    <p>
+                      Withdrawable Cash :{" "}
+                      {parseMoney(this.props.portfolio.withdrawableCash)}
+                    </p>{" "}
+                  </div>
+                }
               />
             </Col>
             <Col lg={3} sm={6}>
               <StatsCard
                 bigIcon={<i className="pe-7s-wallet text-success" />}
-                statsText="Revenue"
-                statsValue="$1,345"
-                statsIcon={<i className="fa fa-calendar-o" />}
-                statsIconText="Last day"
+                statsText="Buy/Sell Count"
+                statsValue={
+                  this.props.trades.buyCount + "/" + this.props.trades.sellCount
+                }
+                statsIconText={
+                  <div>
+                    <p>
+                      Buy Amount : {parseMoney(this.props.trades.buyAmount)}
+                    </p>
+                    <p>
+                      Sell Amount : {parseMoney(this.props.trades.sellAmount)}
+                    </p>{" "}
+                  </div>
+                }
               />
             </Col>
             <Col lg={3} sm={6}>
               <StatsCard
-                bigIcon={<i className="pe-7s-graph1 text-danger" />}
-                statsText="Errors"
-                statsValue="23"
-                statsIcon={<i className="fa fa-clock-o" />}
-                statsIconText="In the last hour"
+                bigIcon={<i className="pe-7s-graph1 text-info" />}
+                statsText="Daily Profit"
+                statsValue={parseMoney(this.props.daily.netIncome)}
+                statsIconText={
+                  <div>
+                    <p>
+                      Average Profit :{" "}
+                      {parseMoney(this.props.daily.averageProfit)}
+                    </p>
+                    <p>
+                      Average Profit % :{" "}
+                      {parsePercentage(this.props.daily.averageProfitRate)}
+                    </p>{" "}
+                  </div>
+                }
               />
             </Col>
             <Col lg={3} sm={6}>
               <StatsCard
-                bigIcon={<i className="fa fa-twitter text-info" />}
-                statsText="Followers"
-                statsValue="+45"
-                statsIcon={<i className="fa fa-refresh" />}
-                statsIconText="Updated now"
-              />
-            </Col>
-          </Row>
-          <Row>
-            <Col md={12}>
-              <Card
-                title="Global Sales by Top Locations"
-                category="All products that were shipped"
-                content={
-                  <Row>
-                    <Col md={5}>
-                      <div className="table-responsive">
-                        <table className="table">
-                          <tbody>{this.createTableData()}</tbody>
-                        </table>
-                      </div>
-                    </Col>
-                    <Col md={6} mdOffset={1}>
-                      <VectorMap
-                        map={"world_mill"}
-                        backgroundColor="transparent"
-                        zoomOnScroll={false}
-                        containerStyle={{
-                          width: "100%",
-                          height: "280px"
-                        }}
-                        containerClassName="map"
-                        regionStyle={{
-                          initial: {
-                            fill: "#e4e4e4",
-                            "fill-opacity": 0.9,
-                            stroke: "none",
-                            "stroke-width": 0,
-                            "stroke-opacity": 0
-                          }
-                        }}
-                        series={{
-                          regions: [
-                            {
-                              values: mapData,
-                              scale: ["#AAAAAA", "#444444"],
-                              normalizeFunction: "polynomial"
-                            }
-                          ]
-                        }}
-                      />
-                    </Col>
-                  </Row>
+                bigIcon={<i className="pe-7s-graph3 text-danger" />}
+                statsText="Performance"
+                statsValue={parsePercentage(this.props.performance.portfolio)}
+                statsIconText={
+                  <div>
+                    <p>
+                      Market : {parsePercentage(this.props.performance.market)}
+                    </p>
+                    <p>
+                      Comparison :{" "}
+                      {parsePercentage(this.props.performance.comparison)}
+                    </p>{" "}
+                  </div>
                 }
               />
             </Col>
           </Row>
           <Row>
-            <Col md={4}>
+            <Col md={6}>
               <Card
-                title="Email Statistics"
-                category="Last Campaign Performance"
-                content={<ChartistGraph data={dataPie} type="Pie" />}
+                title="Users Behavior"
+                category="24 Hours performance"
+                content={
+                  <ChartistGraph
+                    data={dataSales}
+                    type="Line"
+                    options={optionsSales}
+                    responsiveOptions={responsiveSales}
+                  />
+                }
                 legend={
                   <div>
                     <i className="fa fa-circle text-info" /> Open
-                    <i className="fa fa-circle text-danger" /> Bounce
-                    <i className="fa fa-circle text-warning" /> Unsubscribe
+                    <i className="fa fa-circle text-danger" /> Click
+                    <i className="fa fa-circle text-warning" /> Click Second
+                    Time
                   </div>
                 }
                 stats={
                   <div>
-                    <i className="fa fa-clock-o" /> Campaign sent 2 days ago
+                    <i className="fa fa-history" /> Updated 3 minutes ago
                   </div>
                 }
               />
             </Col>
-            <Col md={8}>
+            <Col md={6}>
               <Card
                 title="Users Behavior"
                 category="24 Hours performance"
@@ -192,53 +192,10 @@ class Dashboard extends Component {
               />
             </Col>
           </Row>
-          <Row>
-            <Col md={6}>
-              <Card
-                title="2014 Sales"
-                category="All products including Taxes"
-                content={
-                  <ChartistGraph
-                    data={dataBar}
-                    type="Bar"
-                    options={optionsBar}
-                    responsiveOptions={responsiveBar}
-                  />
-                }
-                legend={
-                  <div>
-                    <i className="fa fa-circle text-info" /> Tesla Model S
-                    <i className="fa fa-circle text-danger" /> BMW 5 Series
-                  </div>
-                }
-                stats={
-                  <div>
-                    <i className="fa fa-check" /> Data information certified
-                  </div>
-                }
-              />
-            </Col>
-            <Col md={6}>
-              <Card
-                title="Tasks"
-                category="Backend development"
-                content={
-                  <table className="table">
-                    <Tasks />
-                  </table>
-                }
-                stats={
-                  <div>
-                    <i className="fa fa-history" /> Updated 3 minutes ago
-                  </div>
-                }
-              />
-            </Col>
-          </Row>
         </Grid>
       </div>
     );
   }
 }
 
-export default Dashboard;
+export default DashboardComp;

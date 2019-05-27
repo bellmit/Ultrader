@@ -11,7 +11,28 @@ const initialState = {
   indicatorTypes: [],
   indicatorTypesSelectOptions: [],
   indicatorCategories: {},
-  categoryIndicatorMap: {}
+  categoryIndicatorMap: {},
+  portfolio: {
+    value: 0,
+    buyingPower: 0,
+    withdrawableCash: 0
+  },
+  trades: {
+    buyAmount: 0,
+    sellAmount: 0,
+    buyCount: 0,
+    sellCount: 0
+  },
+  daily: {
+    netIncome: 0,
+    averageProfit: 0,
+    averageProfitRate: 0
+  },
+  performance: {
+    market: 0,
+    portfolio: 0,
+    comparison: 0
+  }
 };
 
 const global = (state = initialState, action) => {
@@ -22,10 +43,36 @@ const global = (state = initialState, action) => {
         stompClient: action.stompClient,
         socket: action.socket
       };
-    case ACTION_TYPES.RECEIVED_MONITOR_MESSAGE:
+    case ACTION_TYPES.RECEIVED_PORTFOLIO_MONITOR_MESSAGE:
+      var messageBody = JSON.parse(action.response.body).data;
       return {
         ...state,
-        monitorMessages: [...state.monitorMessages, action.monitorMessage]
+        portfolio: {
+          value: messageBody.Portfolio,
+          buyingPower: messageBody.BuyingPower,
+          withdrawableCash: messageBody.Cash
+        }
+      };
+    case ACTION_TYPES.RECEIVED_TRADES_MONITOR_MESSAGE:
+      var messageBody = JSON.parse(action.response.body).data;
+      return {
+        ...state,
+        trades: {
+          buyAmount: messageBody.BuyAmount,
+          sellAmount: messageBody.SellAmount,
+          buyCount: messageBody.BuyCount,
+          sellCount: messageBody.SellCount
+        }
+      };
+    case ACTION_TYPES.RECEIVED_PROFIT_MONITOR_MESSAGE:
+      var messageBody = JSON.parse(action.response.body).data;
+      return {
+        ...state,
+        daily: {
+          netIncome: messageBody.TotalProfit,
+          averageProfit: messageBody.AverageProfit,
+          averageProfitRate: messageBody.AverageProfitRatio
+        }
       };
     case ACTION_TYPES.RETRIEVED_STRATEGY_METADATA:
       let strategyMetadata = action.response.data;

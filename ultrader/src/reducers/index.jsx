@@ -7,6 +7,7 @@ import settingsWizard from './Settings/SettingsWizard';
 import strategies from './Strategies/Strategies';
 import positions from './Positions/Positions';
 import orders from './Orders/Orders';
+import dashboard from './Dashboard/Dashboard';
 
 
 export default combineReducers({
@@ -17,5 +18,6 @@ export default combineReducers({
   positions,
   orders,
   greetingMonitor,
-  settingsWizard
+  settingsWizard,
+  dashboard
 })

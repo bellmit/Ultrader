@@ -34,7 +34,9 @@ class DashboardComp extends Component {
   constructor(props) {
     super(props);
     this.handleNotificationClick = this.handleNotificationClick.bind(this);
-    this.processGreeting = this.processGreeting.bind(this);
+    this.processPortfolioMessage = this.processPortfolioMessage.bind(this);
+    this.processTradesMessage = this.processTradesMessage.bind(this);
+    this.processProfitMessage = this.processProfitMessage.bind(this);
     this.connectToSockets = this.connectToSockets.bind(this);
     this.initMetadata = this.initMetadata.bind(this);
     this.state = {
@@ -42,16 +44,31 @@ class DashboardComp extends Component {
     };
   }
 
+  processPortfolioMessage(message) {
+    this.props.onReceivedPortfolioMonitorMessage(message);
+  }
+
+  processTradesMessage(message) {
+    this.props.onReceivedTradesMonitorMessage(message);
+  }
+
+  processProfitMessage(message) {
+    this.props.onReceivedProfitMonitorMessage(message);
+  }
+
   connectToSockets(){
     let socket = new SockJS("/ws");
     let stompClient = Stomp.over(socket);
+    stompClient.debug = () => {};
 
     let authHeader = getAuthHeader();
 
     stompClient.connect(authHeader, frame => {
       this.props.onConnectedToMonitor(socket, stompClient);
-      console.log(`connected, ${frame}!`);
-      stompClient.subscribe("/topic/greetings", this.processGreeting);
+      stompClient.subscribe("/topic/dashboard/account", this.processPortfolioMessage);
+      stompClient.subscribe("/topic/dashboard/trades", this.processTradesMessage);
+      stompClient.subscribe("/topic/dashboard/profit", this.processProfitMessage);
+
     });
 
   }
@@ -62,7 +79,6 @@ class DashboardComp extends Component {
     axiosGetWithAuth("/api/metadata/getStrategyMetadata")
       .then(handleResponse)
       .then(res => {
-        console.log(res);
         this.props.onRetrievedStrategyMetadata(res);
       })
       .catch(error => {});
@@ -70,7 +86,6 @@ class DashboardComp extends Component {
     axiosGetWithAuth("/api/strategy/getStrategies")
       .then(handleResponse)
       .then(res => {
-        console.log(res);
         this.props.onGetStrategiesSuccess(res);
       })
       .catch(error => {
@@ -80,16 +95,11 @@ class DashboardComp extends Component {
     axiosGetWithAuth("/api/rule/getRules")
       .then(handleResponse)
       .then(res => {
-        console.log(res);
         this.props.onGetRulesSuccess(res);
       })
       .catch(error => {
         console.log(error);
       });
-  }
-
-  processGreeting(greeting) {
-    this.props.onReceivedMonitorMessage(JSON.parse(greeting.body).content);
   }
 
   componentDidMount() {

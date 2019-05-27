@@ -1,4 +1,4 @@
-import Dashboard from "views/Dashboard/Dashboard.jsx";
+import Dashboard from "containers/Dashboard/Dashboard.jsx";
 import SettingsWizard from "containers/Settings/SettingsWizard.jsx";
 
 import GreetingMonitor from "containers/Monitors/GreetingMonitor.jsx";
@@ -8,6 +8,7 @@ import AddStrategy from "containers/Strategies/AddStrategy.jsx";
 import Strategies from "containers/Strategies/Strategies.jsx";
 import Positions from "containers/Positions/Positions.jsx";
 import PendingOrders from "containers/Orders/PendingOrders.jsx";
+import HistoryOrders from "containers/Orders/HistoryOrders.jsx";
 
 var dashboardRoutes = [
   {
@@ -32,21 +33,6 @@ var dashboardRoutes = [
     ]
   },
   {
-    collapse: true,
-    path: "/monitors",
-    name: "Monitors",
-    state: "openMonitors",
-    icon: "pe-7s-note2",
-    views: [
-      {
-        path: "/monitors/greeting",
-        name: "Greeting Monitor",
-        mini: "GM",
-        component: GreetingMonitor
-      }
-    ]
-  },
-  {
     path: "/rules",
     name: "Rules",
     icon: "pe-7s-note2",
@@ -65,10 +51,25 @@ var dashboardRoutes = [
     component: Positions
   },
   {
+    collapse: true,
     path: "/orders",
     name: "Orders",
+    state: "openOrders",
     icon: "pe-7s-note2",
-    component: PendingOrders
+    views: [
+      {
+        path: "/orders/pendingOrders",
+        name: "Pending Orders",
+        mini: "PO",
+        component: PendingOrders
+      },
+      {
+        path: "/orders/historyOrders",
+        name: "History Orders",
+        mini: "HO",
+        component: HistoryOrders
+      }
+    ]
   },
   { redirect: true, path: "/", pathTo: "/dashboard", name: "Dashboard" }
 ];

@@ -4,14 +4,14 @@ import { connect } from "react-redux";
 
 import * as ACTION_TYPES from "actions/Orders/OrdersActions";
 
-import PendingOrdersComp from "views/Orders/PendingOrders";
+import HistoryOrdersComp from "views/Orders/HistoryOrders";
 
-class PendingOrders extends Component {
+class HistoryOrders extends Component {
   render() {
     return (
-      <PendingOrdersComp
-        pendingOrders={this.props.pendingOrders}
-        onGetPendingOrdersSuccess={this.props.onGetPendingOrdersSuccess}
+      <HistoryOrdersComp
+        historyOrders={this.props.historyOrders}
+        onGetHistoryOrdersSuccess={this.props.onGetHistoryOrdersSuccess}
       />
     );
   }
@@ -19,15 +19,15 @@ class PendingOrders extends Component {
 
 const mapStateToProps = state => {
   return {
-    pendingOrders: state.orders.pendingOrders
+    historyOrders: state.orders.historyOrders
   };
 };
 
 const mapDispatchToProps = dispatch => {
   return {
-    onGetPendingOrdersSuccess: response =>
+    onGetHistoryOrdersSuccess: response =>
       dispatch({
-        type: ACTION_TYPES.GET_PENDING_ORDERS_SUCCESS,
+        type: ACTION_TYPES.GET_HISTORY_ORDERS_SUCCESS,
         response: response
       })
   };
@@ -36,4 +36,4 @@ const mapDispatchToProps = dispatch => {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(PendingOrders);
+)(HistoryOrders);

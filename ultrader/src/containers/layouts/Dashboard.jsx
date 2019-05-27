@@ -13,7 +13,15 @@ class Dashboard extends Component {
     return (
       <DashboardComp
         onConnectedToMonitor={this.props.onConnectedToMonitor}
-        onReceivedMonitorMessage={this.props.onReceivedMonitorMessage}
+        onReceivedPortfolioMonitorMessage={
+          this.props.onReceivedPortfolioMonitorMessage
+        }
+        onReceivedTradesMonitorMessage={
+          this.props.onReceivedTradesMonitorMessage
+        }
+        onReceivedProfitMonitorMessage={
+          this.props.onReceivedProfitMonitorMessage
+        }
         onRetrievedRuleTypes={this.props.onRetrievedRuleTypes}
         onRetrievedIndicatorTypes={this.props.onRetrievedIndicatorTypes}
         onRetrievedIndicatorCategories={
@@ -60,11 +68,25 @@ const mapDispatchToProps = dispatch => {
         socket: socket,
         stompClient: stompClient
       }),
-    onReceivedMonitorMessage: monitorMessage =>
+
+    // ---------------------- monitors ----------------------
+    onReceivedPortfolioMonitorMessage: response =>
       dispatch({
-        type: ACTION_TYPES.RECEIVED_MONITOR_MESSAGE,
-        monitorMessage: monitorMessage
+        type: ACTION_TYPES.RECEIVED_PORTFOLIO_MONITOR_MESSAGE,
+        response: response
       }),
+    onReceivedTradesMonitorMessage: response =>
+      dispatch({
+        type: ACTION_TYPES.RECEIVED_TRADES_MONITOR_MESSAGE,
+        response: response
+      }),
+    onReceivedProfitMonitorMessage: response =>
+      dispatch({
+        type: ACTION_TYPES.RECEIVED_PROFIT_MONITOR_MESSAGE,
+        response: response
+      }),
+
+    // ---------------------- metadata ----------------------
     onRetrievedStrategyMetadata: response =>
       dispatch({
         type: ACTION_TYPES.RETRIEVED_STRATEGY_METADATA,

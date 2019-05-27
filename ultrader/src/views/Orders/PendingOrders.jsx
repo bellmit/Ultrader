@@ -32,7 +32,7 @@ class PendingOrdersComp extends Component {
                 title="Orders"
                 content={
                   <ReactTable
-                    data={this.props.orders}
+                    data={this.props.pendingOrders}
                     filterable
                     columns={[
                       {
