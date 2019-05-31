@@ -1,6 +1,7 @@
 package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.MarketDataService;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.RepositoryUtil;
@@ -8,6 +9,7 @@ import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.ta4j.core.BaseTimeSeries;
 import org.ta4j.core.TimeSeries;
 
@@ -27,22 +29,23 @@ public class MarketDataMonitor extends Monitor {
     private final TradingService tradingService;
     private final MarketDataService marketDataService;
     private final SettingDao settingDao;
-
+    private final SimpMessagingTemplate notifier;
 
     private boolean firstRun = true;
     private Date lastUpdateDate;
     private Map<String, Set<String>> availableStocks = null;
     public static Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
     public static Object lock = new Object();
-    private MarketDataMonitor(final long interval, final TradingService tradingService, final MarketDataService marketDataService, final SettingDao settingDao) {
+    private MarketDataMonitor(final long interval, final TradingService tradingService, final MarketDataService marketDataService, final SettingDao settingDao, final SimpMessagingTemplate notifier) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(marketDataService, "marketDataService is required");
         Validate.notNull(settingDao, "settingDao is required");
-
+        Validate.notNull(notifier, "notifier is required");
         this.settingDao = settingDao;
         this.marketDataService = marketDataService;
         this.tradingService = tradingService;
+        this.notifier = notifier;
     }
 
     @Override
@@ -57,12 +60,14 @@ public class MarketDataMonitor extends Monitor {
                     marketStatusChanged = true;
                 }
                 marketOpen = true;
+                notifier.convertAndSend("/topic/status/market", new StatusMessage("opened", "Market is open"));
                 LOGGER.info("Market is opened now.");
             } else {
                 if(marketOpen) {
                     marketStatusChanged = true;
                 }
                 marketOpen = false;
+                notifier.convertAndSend("/topic/status/market", new StatusMessage("closed", "Market is closed"));
                 LOGGER.info("Market is closed now.");
             }
             //Get all stocks info, only do this once in a same trading day or on the first run
@@ -93,6 +98,10 @@ public class MarketDataMonitor extends Monitor {
             LOGGER.info(String.format("Found %d stocks need to update.", watchList.size()));
             synchronized (lock) {
                 //Update
+                if(marketStatusChanged) {
+                    //Reload market data
+                    timeSeriesMap.clear();
+                }
                 //TODO Currently we force all the indicator have to use same period, we should support different period for different indicators
                 Map<String, TimeSeries> currentTimeSeries = new HashMap<>();
                 int maxLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "100")) * 2;
@@ -168,8 +177,8 @@ public class MarketDataMonitor extends Monitor {
         return marketOpen;
     }
 
-    public static void init(long interval, TradingService tradingService, MarketDataService marketDataService, SettingDao settingDao) {
-        singleton_instance = new MarketDataMonitor(interval, tradingService, marketDataService, settingDao);
+    public static void init(long interval, TradingService tradingService, MarketDataService marketDataService, SettingDao settingDao, SimpMessagingTemplate notifier) {
+        singleton_instance = new MarketDataMonitor(interval, tradingService, marketDataService, settingDao, notifier);
     }
 
     public static MarketDataMonitor getInstance() throws IllegalAccessException {

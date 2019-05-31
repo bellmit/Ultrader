@@ -19,6 +19,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.client.WebSocketConnectionManager;
@@ -36,14 +37,16 @@ public class AlpacaTradingService implements TradingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaTradingService.class);
     private String alpacaKey;
     private String alpacaSecret;
-    private RestTemplate client;
-    private WebSocketConnectionManager connectionManager;
+    private final RestTemplate client;
+    private final WebSocketConnectionManager connectionManager;
+    private final SimpMessagingTemplate notifier;
 
     @Autowired
-    public AlpacaTradingService(final SettingDao settingDao, final RestTemplateBuilder restTemplateBuilder, final OrderDao orderDao) {
+    public AlpacaTradingService(final SettingDao settingDao, final RestTemplateBuilder restTemplateBuilder, final OrderDao orderDao, final SimpMessagingTemplate notifier) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(orderDao, "orderDao is required");
+        Validate.notNull(notifier, "notifier is required");
 
         this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(), "");
         this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_SECRET.getName(), "");
@@ -52,8 +55,9 @@ public class AlpacaTradingService implements TradingService {
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
         }
         client = restTemplateBuilder.rootUri("https://api.alpaca.markets/v1/").build();
+        this.notifier = notifier;
         //Init Websocket
-        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao), "wss://api.alpaca.markets/stream");
+        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notifier), "wss://api.alpaca.markets/stream");
         connectionManager.start();
     }
 

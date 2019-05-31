@@ -4,15 +4,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.Map;
-
 /**
- * General Message for Dashboard data
+ * Notification of each component status
  * @author ytx1991
  */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class DashboardDataMessage {
-    private Map<String, String> data;
+public class StatusMessage {
+    private String status;
+    private String message;
 }

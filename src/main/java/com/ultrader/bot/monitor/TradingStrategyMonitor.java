@@ -6,6 +6,7 @@ import com.ultrader.bot.dao.StrategyDao;
 
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Position;
+import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
@@ -13,6 +14,7 @@ import com.ultrader.bot.util.TradingUtil;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.ta4j.core.*;
 import org.ta4j.core.num.PrecisionNum;
 
@@ -36,22 +38,25 @@ public class TradingStrategyMonitor extends Monitor {
     private final StrategyDao strategyDao;
     private final RuleDao ruleDao;
     private final TradingService tradingService;
+    private final SimpMessagingTemplate notifier;
 
-    private TradingStrategyMonitor(long interval, final TradingService tradingService, final SettingDao settingDao, final StrategyDao strategyDao, final RuleDao ruleDao) {
+    private TradingStrategyMonitor(long interval, final TradingService tradingService, final SettingDao settingDao, final StrategyDao strategyDao, final RuleDao ruleDao, final SimpMessagingTemplate notifier) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(strategyDao, "strategyDao is required");
         Validate.notNull(ruleDao, "ruleDao is required");
+        Validate.notNull(notifier, "notifier is required");
 
         this.settingDao = settingDao;
         this.strategyDao = strategyDao;
         this.ruleDao = ruleDao;
         this.tradingService = tradingService;
+        this.notifier = notifier;
     }
 
-    public static void init(long interval, final TradingService tradingService, SettingDao settingDao, StrategyDao strategyDao, RuleDao ruleDao) {
-        singleton_instance = new TradingStrategyMonitor(interval, tradingService, settingDao, strategyDao, ruleDao);
+    public static void init(long interval, final TradingService tradingService, SettingDao settingDao, StrategyDao strategyDao, RuleDao ruleDao, SimpMessagingTemplate notifier) {
+        singleton_instance = new TradingStrategyMonitor(interval, tradingService, settingDao, strategyDao, ruleDao, notifier);
     }
 
     public static TradingStrategyMonitor getInstance() throws IllegalAccessException {
@@ -162,6 +167,14 @@ public class TradingStrategyMonitor extends Monitor {
                 }
                 LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
                         vailidCount, noTimeSeries, notLongEnough, notNewEnough);
+                if(strategies.size() * 0.1 > vailidCount) {
+                    notifier.convertAndSend("/topic/status/data", new StatusMessage("error", "Most stocks don't have latest data"));
+                } else if (strategies.size() * 0.5 > vailidCount) {
+                    notifier.convertAndSend("/topic/status/data", new StatusMessage("warning", "Some stocks don't have latest data"));
+                } else {
+                    notifier.convertAndSend("/topic/status/data", new StatusMessage("normal", "Most stocks have latest data"));
+                }
+
             }
         } catch (Exception e) {
             LOGGER.error("Failed to execute trading strategy.", e);

@@ -8,6 +8,7 @@ import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.websocket.DashboardDataMessage;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.service.alpaca.AlpacaWebSocketHandler;
+import com.ultrader.bot.util.NotificationUtil;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingUtil;
@@ -112,11 +113,11 @@ public class TradingAccountMonitor extends Monitor {
             }
 
             //Get current portfolio
-            account = syncAccount();
+            syncAccount();
             //Populate Dashboard Message
-            notifier.convertAndSend("/topic/dashboard/account", generateAccountNotification(account));
-            notifier.convertAndSend("/topic/dashboard/trades", generateTradesNotification());
-            notifier.convertAndSend("/topic/dashboard/profit", generateProfitNotification());
+            notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(account));
+            notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
+            notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
 
 
         } catch (Exception e) {
@@ -145,93 +146,13 @@ public class TradingAccountMonitor extends Monitor {
      * @return
      * @throws RuntimeException
      */
-    private Account syncAccount() throws RuntimeException {
-        Account account = tradingService.getAccountInfo();
+    public void syncAccount() throws RuntimeException {
+        account = tradingService.getAccountInfo();
         if (account == null) {
             throw new RuntimeException("Cannot get account info, skip executing trading strategies");
         }
         if (account.isTradingBlocked()) {
             throw new RuntimeException("Your api account is blocked trading, please check the trading platform account.");
         }
-        return account;
-    }
-
-    /**
-     * Generate Dashboard account notification
-     * @param account
-     * @return
-     */
-    private DashboardDataMessage generateAccountNotification(Account account) {
-        DecimalFormat df = new DecimalFormat("#.##");
-        Map<String, String> map = new HashMap<>();
-        map.put("Portfolio", df.format(account.getPortfolioValue()));
-        map.put("BuyingPower", df.format(account.getBuyingPower()));
-        map.put("Cash", df.format(account.getCashWithdrawable()));
-        LOGGER.info("Notify account update {}", map);
-        return new DashboardDataMessage(map);
-    }
-
-    /**
-     * Generate Dashboard account notification
-     * @return
-     */
-    private DashboardDataMessage generateTradesNotification() {
-        DecimalFormat df = new DecimalFormat("#.##");
-        Map<String, String> map = new HashMap<>();
-        LocalTime midnight = LocalTime.MIDNIGHT;
-        LocalDate today = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE));
-        LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
-        LOGGER.info("Aggregate trades from {}", todayMidnight);
-        List<Order> orders = orderDao.findAllOrdersByDate(todayMidnight, LocalDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)));
-        double sell = 0, buy = 0;
-        int sellCount = 0, buyCount = 0;
-        for (Order order : orders) {
-            if(order.getSide().equals("sell")) {
-                sell += order.getAveragePrice() * order.getQuantity();
-                sellCount++;
-            } else {
-                buy += order.getAveragePrice() * order.getQuantity();
-                buyCount++;
-            }
-        }
-        map.put("SellAmount", df.format(sell));
-        map.put("BuyAmount", df.format(buy));
-        map.put("SellCount", df.format(sellCount));
-        map.put("BuyCount", df.format(buyCount));
-        LOGGER.info("Notify trades update {}", map);
-        return new DashboardDataMessage(map);
-    }
-
-    /**
-     * Generate Dashboard profit notification
-     * @return
-     */
-    private DashboardDataMessage generateProfitNotification() {
-        DecimalFormat df = new DecimalFormat("#.##");
-        Map<String, String> map = new HashMap<>();
-        LocalTime midnight = LocalTime.MIDNIGHT;
-        LocalDate today = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE));
-        LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
-        LOGGER.info("Aggregate trades from {}", todayMidnight);
-        List<Order> orders = orderDao.findAllOrdersByDate(todayMidnight, LocalDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)));
-        double totalProfit = 0, totalRatio = 0;
-        int sellCount = 0;
-        for (Order order : orders) {
-            if(order.getSide().equals("sell")) {
-                List<Order> trades = orderDao.findLastTradeBySymbol(order.getSymbol());
-                if(trades.size() == 2 && trades.get(0).getQuantity() == trades.get(1).getQuantity()) {
-                    //There is a buy/sell pair and has same quantity
-                    totalProfit += (trades.get(0).getAveragePrice() - trades.get(1).getAveragePrice()) * trades.get(0).getQuantity();
-                    sellCount++;
-                    totalRatio += trades.get(0).getAveragePrice() / trades.get(1).getAveragePrice() - 1;
-                }
-
-            }
-        }
-        map.put("TotalProfit", df.format(totalProfit));
-        map.put("AverageProfit", df.format( sellCount == 0 ? 0 : totalProfit / sellCount));
-        map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : totalRatio / sellCount * 100));
-        LOGGER.info("Notify profit update {}", map);
-        return new DashboardDataMessage(map);
     }
 }

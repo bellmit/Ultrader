@@ -47,7 +47,11 @@ public class PolygonMessageHandler implements MessageHandler {
                 Instant i = null;
                 TimeSeries timeSeries = MarketDataMonitor.timeSeriesMap.get(aggregation.getSym());
                 if(timeSeries.getLastBar().getEndTime().toEpochSecond() < aggregation.getE() / 1000) {
-                    i = Instant.ofEpochSecond(timeSeries.getLastBar().getEndTime().toEpochSecond() + interval);
+                    long startEpoch = timeSeries.getLastBar().getEndTime().toEpochSecond();
+                    while (startEpoch + interval < aggregation.getE() / 1000) {
+                        startEpoch += interval;
+                    }
+                    i = Instant.ofEpochSecond( startEpoch + interval);
                     Bar bar = new BaseBar(Duration.ofMillis(interval),
                             ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE)),
                             PrecisionNum.valueOf(aggregation.getO()),

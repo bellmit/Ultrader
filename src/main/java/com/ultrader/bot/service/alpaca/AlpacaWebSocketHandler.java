@@ -2,12 +2,16 @@ package com.ultrader.bot.service.alpaca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ultrader.bot.dao.OrderDao;
+import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.alpaca.websocket.TradeUpdateResponse;
 import com.ultrader.bot.model.alpaca.websocket.TradeUpdate;
+import com.ultrader.bot.monitor.TradingAccountMonitor;
+import com.ultrader.bot.util.NotificationUtil;
 import com.ultrader.bot.util.TradingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -15,11 +19,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
 import java.nio.charset.StandardCharsets;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.util.Date;
+
 
 public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
     private static final Logger LOG = LoggerFactory.getLogger(AlpacaWebSocketHandler.class);
@@ -27,12 +27,14 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
     private final String secret;
     private final OrderDao orderDao;
     private ObjectMapper objectMapper;
+    private SimpMessagingTemplate notifier;
 
-    public AlpacaWebSocketHandler(final String key, final String secret, final OrderDao orderDao) {
+    public AlpacaWebSocketHandler(final String key, final String secret, final OrderDao orderDao, final SimpMessagingTemplate notifier) {
         this.key = key;
         this.secret = secret;
         this.objectMapper = new ObjectMapper();
         this.orderDao = orderDao;
+        this.notifier = notifier;
     }
 
     @Override
@@ -92,10 +94,17 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
                     tradeUpdate.getOrder().getStatus(),
                     tradeUpdate.getOrder().getFilled_at());
             orderDao.save(order);
-            LocalTime midnight = LocalTime.MIDNIGHT;
-            LocalDate today = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE));
-            LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
-            orderDao.findAllOrdersByDate(todayMidnight, LocalDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)));
+            //Populate Dashboard Message
+            try {
+                TradingAccountMonitor.getInstance().syncAccount();
+                notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount()));
+                notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
+                notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
+                notifier.convertAndSend("/topic/order", order);
+            } catch (Exception e) {
+                LOG.error("Sending notification failed", e);
+            }
+
         }
     }
 }
