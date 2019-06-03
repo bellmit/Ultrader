@@ -7,18 +7,105 @@ import {
   MenuItem,
   FormGroup,
   FormControl,
-  InputGroup
+  InputGroup,
+  OverlayTrigger,
+  Tooltip
 } from "react-bootstrap";
 
-import {
-  logout
-} from "helpers/AuthHelper";
+import { logout } from "helpers/AuthHelper";
 
 class HeaderLinks extends Component {
+  constructor(props) {
+    super(props);
+    this.iconColor = this.iconColor.bind(this);
+  }
+
+  iconColor(status) {
+    switch (status) {
+      case "error":
+        return "text-danger";
+      case "warning":
+        return "text-warning";
+      case "success":
+        return "text-success";
+      default:
+        return;
+    }
+  }
+
   render() {
+    console.log(this.props);
     return (
       <div>
         <Nav pullRight>
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="circle-tooltip">
+                {this.props.systemStatus.data.detail}
+              </Tooltip>
+            }
+          >
+            <NavItem>
+              <i
+                className={
+                  "fa fa-database " +
+                  this.iconColor(this.props.systemStatus.data.status)
+                }
+              />
+            </NavItem>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="rocket-tooltip">
+                {this.props.systemStatus.market.detail}
+              </Tooltip>
+            }
+          >
+            <NavItem>
+              <i
+                className={
+                  "fa fa-rocket " +
+                  this.iconColor(this.props.systemStatus.market.status)
+                }
+              />
+            </NavItem>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="globe-tooltip">
+                {this.props.systemStatus.data.detail}
+              </Tooltip>
+            }
+          >
+            <NavItem>
+              <i
+                className={
+                  "fa fa-globe " +
+                  this.iconColor(this.props.systemStatus.data.status)
+                }
+              />
+            </NavItem>
+          </OverlayTrigger>
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="university-tooltip">
+                {this.props.systemStatus.data.detail}
+              </Tooltip>
+            }
+          >
+            <NavItem>
+              <i
+                className={
+                  "fa fa-university " +
+                  this.iconColor(this.props.systemStatus.data.status)
+                }
+              />
+            </NavItem>
+          </OverlayTrigger>
           <NavDropdown
             eventKey={3}
             title={

@@ -49,6 +49,7 @@ class Header extends Component {
     document.documentElement.classList.toggle("nav-open");
   }
   render() {
+    console.log(this.props);
     return (
       <Navbar fluid>
         <div className="navbar-minimize">
@@ -72,7 +73,7 @@ class Header extends Component {
         {/* Here we import the links that appear in navbar */}
         {window.innerWidth > 992 ? (
           <Navbar.Collapse>
-            <HeaderLinks />
+            <HeaderLinks {...this.props}/>
           </Navbar.Collapse>
         ) : null}
       </Navbar>

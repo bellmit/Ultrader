@@ -12,7 +12,18 @@ class Dashboard extends Component {
   render() {
     return (
       <DashboardComp
+        systemStatus={this.props.systemStatus}
+        monitorMessages={this.props.monitorMessages}
+        ruleTypes={this.props.ruleTypes}
+        ruleTypeSelectOptions={this.props.ruleTypeSelectOptions}
+        indicatorTypes={this.props.indicatorTypes}
+        indicatorCategories={this.props.indicatorCategories}
+        categoryIndicatorMap={this.props.categoryIndicatorMap}
+        socket={this.props.socket}
+        stompClient={this.props.stompClient}
         onConnectedToMonitor={this.props.onConnectedToMonitor}
+        onReceivedDataStatusMessage={this.props.onReceivedDataStatusMessage}
+        onReceivedMarketStatusMessage={this.props.onReceivedMarketStatusMessage}
         onReceivedPortfolioMonitorMessage={
           this.props.onReceivedPortfolioMonitorMessage
         }
@@ -31,14 +42,6 @@ class Dashboard extends Component {
           this.props.onRetrievedCategoryIndicatorMap
         }
         onRetrievedStrategyMetadata={this.props.onRetrievedStrategyMetadata}
-        monitorMessages={this.props.monitorMessages}
-        ruleTypes={this.props.ruleTypes}
-        ruleTypeSelectOptions={this.props.ruleTypeSelectOptions}
-        indicatorTypes={this.props.indicatorTypes}
-        indicatorCategories={this.props.indicatorCategories}
-        categoryIndicatorMap={this.props.categoryIndicatorMap}
-        socket={this.props.socket}
-        stompClient={this.props.stompClient}
         onGetStrategiesSuccess={this.props.onGetStrategiesSuccess}
         onGetRulesSuccess={this.props.onGetRulesSuccess}
       />
@@ -48,6 +51,7 @@ class Dashboard extends Component {
 
 const mapStateToProps = state => {
   return {
+    systemStatus: state.global.systemStatus,
     monitorMessages: state.global.monitorMessages,
     ruleTypes: state.global.ruleTypes,
     ruleTypeSelectOptions: state.global.ruleTypeSelectOptions,
@@ -70,6 +74,16 @@ const mapDispatchToProps = dispatch => {
       }),
 
     // ---------------------- monitors ----------------------
+    onReceivedDataStatusMessage: response =>
+      dispatch({
+        type: ACTION_TYPES.RECEIVED_DATA_STATUS_MESSAGE,
+        response: response
+      }),
+    onReceivedMarketStatusMessage: response =>
+      dispatch({
+        type: ACTION_TYPES.RECEIVED_MARKET_STATUS_MESSAGE,
+        response: response
+      }),
     onReceivedPortfolioMonitorMessage: response =>
       dispatch({
         type: ACTION_TYPES.RECEIVED_PORTFOLIO_MONITOR_MESSAGE,

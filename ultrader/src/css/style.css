@@ -5,3 +5,13 @@
 .add_button{
    float:right;
 }
+
+.tooltip .tooltip-inner {
+    background-color:#fff;
+}
+.tooltip.bottom .tooltip-inner:after {
+    border-bottom-color:#fff;
+}
+.tooltip .tooltip-arrow {
+    border-bottom-color:#fff;
+}

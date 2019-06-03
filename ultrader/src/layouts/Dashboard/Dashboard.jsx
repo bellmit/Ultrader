@@ -15,7 +15,7 @@ import dashboardRoutes from "routes/dashboard.jsx";
 // style for notifications
 import { style } from "variables/Variables.jsx";
 
-import { withRouter } from 'react-router';
+import { withRouter } from "react-router";
 
 import SockJS from "sockjs-client";
 import Stomp from "stompjs";
@@ -34,6 +34,10 @@ class DashboardComp extends Component {
   constructor(props) {
     super(props);
     this.handleNotificationClick = this.handleNotificationClick.bind(this);
+    this.processMarketStatusMessage = this.processMarketStatusMessage.bind(
+      this
+    );
+    this.processDataStatusMessage = this.processDataStatusMessage.bind(this);
     this.processPortfolioMessage = this.processPortfolioMessage.bind(this);
     this.processTradesMessage = this.processTradesMessage.bind(this);
     this.processProfitMessage = this.processProfitMessage.bind(this);
@@ -42,6 +46,16 @@ class DashboardComp extends Component {
     this.state = {
       _notificationSystem: null
     };
+  }
+
+  processMarketStatusMessage(message) {
+    console.log(message);
+    this.props.onReceivedMarketStatusMessage(message);
+  }
+
+  processDataStatusMessage(message) {
+    console.log(message);
+    this.props.onReceivedDataStatusMessage(message);
   }
 
   processPortfolioMessage(message) {
@@ -56,7 +70,7 @@ class DashboardComp extends Component {
     this.props.onReceivedProfitMonitorMessage(message);
   }
 
-  connectToSockets(){
+  connectToSockets() {
     let socket = new SockJS("/ws");
     let stompClient = Stomp.over(socket);
     stompClient.debug = () => {};
@@ -65,17 +79,30 @@ class DashboardComp extends Component {
 
     stompClient.connect(authHeader, frame => {
       this.props.onConnectedToMonitor(socket, stompClient);
-      stompClient.subscribe("/topic/dashboard/account", this.processPortfolioMessage);
-      stompClient.subscribe("/topic/dashboard/trades", this.processTradesMessage);
-      stompClient.subscribe("/topic/dashboard/profit", this.processProfitMessage);
-
+      stompClient.subscribe(
+        "/topic/status/data",
+        this.processDataStatusMessage
+      );
+      stompClient.subscribe(
+        "/topic/status/market",
+        this.processMarketStatusMessage
+      );
+      stompClient.subscribe(
+        "/topic/dashboard/account",
+        this.processPortfolioMessage
+      );
+      stompClient.subscribe(
+        "/topic/dashboard/trades",
+        this.processTradesMessage
+      );
+      stompClient.subscribe(
+        "/topic/dashboard/profit",
+        this.processProfitMessage
+      );
     });
-
   }
 
   initMetadata() {
-
-
     axiosGetWithAuth("/api/metadata/getStrategyMetadata")
       .then(handleResponse)
       .then(res => {

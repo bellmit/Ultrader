@@ -32,6 +32,16 @@ const initialState = {
     market: 0,
     portfolio: 0,
     comparison: 0
+  },
+  systemStatus: {
+    data: {
+      status: "loading",
+      detail: "Data Update Status Detail: Status is not updated yet."
+    },
+    market: {
+      status: "loading",
+      detail: "Market Status Detail: Status is not updated yet."
+    }
   }
 };
 
@@ -42,6 +52,30 @@ const global = (state = initialState, action) => {
         ...state,
         stompClient: action.stompClient,
         socket: action.socket
+      };
+    case ACTION_TYPES.RECEIVED_DATA_STATUS_MESSAGE:
+      var messageBody = JSON.parse(action.response.body);
+      return {
+        ...state,
+        systemStatus: {
+          ...state.systemStatus,
+          data: {
+            status: messageBody.status,
+            detail: "Data Update Status Detail: " + messageBody.message
+          }
+        }
+      };
+    case ACTION_TYPES.RECEIVED_MARKET_STATUS_MESSAGE:
+      var messageBody = JSON.parse(action.response.body);
+      return {
+        ...state,
+        systemStatus: {
+          ...state.systemStatus,
+          market: {
+            status: messageBody.status,
+            detail: "Market Status Detail: " + messageBody.message
+          }
+        }
       };
     case ACTION_TYPES.RECEIVED_PORTFOLIO_MONITOR_MESSAGE:
       var messageBody = JSON.parse(action.response.body).data;
@@ -105,13 +139,6 @@ const global = (state = initialState, action) => {
             );
           }
           indicatorSelectOptions[property] = indicatorSelectOptionsForProp;
-          /*indicatorSelectOptions[property] = _.map(
-            categoryIndicatorMap[property],
-            option => {
-              let value =
-              return { value: option, label: option };
-            }
-          );*/
         }
       }
       return {

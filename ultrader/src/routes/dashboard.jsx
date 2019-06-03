@@ -22,7 +22,7 @@ var dashboardRoutes = [
     path: "/settings",
     name: "Settings",
     state: "openSettings",
-    icon: "pe-7s-note2",
+    icon: "pe-7s-config",
     views: [
       {
         path: "/settings/wizard",
@@ -35,19 +35,19 @@ var dashboardRoutes = [
   {
     path: "/rules",
     name: "Rules",
-    icon: "pe-7s-note2",
+    icon: "pe-7s-config",
     component: Rules
   },
   {
     path: "/strategies",
     name: "Strategies",
-    icon: "pe-7s-note2",
+    icon: "pe-7s-config",
     component: Strategies
   },
   {
     path: "/positions",
     name: "Positions",
-    icon: "pe-7s-note2",
+    icon: "pe-7s-graph1",
     component: Positions
   },
   {

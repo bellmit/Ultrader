@@ -90,7 +90,7 @@ class Sidebar extends Component {
           <ul className="nav">
             {/* If we are on responsive, we want both links from navbar and sidebar
                             to appear in sidebar, so we render here HeaderLinks */}
-            {this.state.width <= 992 ? <HeaderLinks /> : null}
+            {this.state.width <= 992 ? <HeaderLinks {...this.props}/> : null}
             {/*
                             here we render the links in the sidebar
                             if the link is simple, we make a simple link, if not,

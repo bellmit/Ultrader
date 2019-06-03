@@ -60,80 +60,160 @@ class DashboardComp extends Component {
       <div className="main-content">
         <Grid fluid>
           <Row>
-            <Col lg={3} sm={6}>
-              <StatsCard
-                bigIcon={<i className="pe-7s-note2 text-primary" />}
-                statsText="Portfolio"
-                statsValue={parseMoney(this.props.portfolio.value)}
-                statsIconText={
-                  <div>
-                    <p>
-                      Buying Power :{" "}
-                      {parseMoney(this.props.portfolio.buyingPower)}
-                    </p>
-                    <p>
-                      Withdrawable Cash :{" "}
-                      {parseMoney(this.props.portfolio.withdrawableCash)}
-                    </p>{" "}
+            <Col xl={3} lg={6} sm={6}>
+              <div className="card card-stats">
+                <div className="content">
+                  <div
+                    className="row"
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center"
+                    }}
+                  >
+                    <div className="col-xs-2">
+                      <div className="icon-big text-center icon-warning">
+                        <i className="pe-7s-note2 text-primary" />
+                      </div>
+                    </div>
+                    <div className="col-xs-10">
+                      <div className="numbers">
+                        <div>
+                          <p>
+                            Portfolio : {parseMoney(this.props.portfolio.value)}
+                          </p>
+                          <p>
+                            Buying Power :{" "}
+                            {parseMoney(this.props.portfolio.buyingPower)}
+                          </p>
+                          <p>
+                            Withdrawable :{" "}
+                            {parseMoney(this.props.portfolio.withdrawableCash)}
+                          </p>{" "}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                }
-              />
+                </div>
+              </div>
             </Col>
-            <Col lg={3} sm={6}>
-              <StatsCard
-                bigIcon={<i className="pe-7s-wallet text-success" />}
-                statsText="Buy/Sell Count"
-                statsValue={
-                  this.props.trades.buyCount + "/" + this.props.trades.sellCount
-                }
-                statsIconText={
-                  <div>
-                    <p>
-                      Buy Amount : {parseMoney(this.props.trades.buyAmount)}
-                    </p>
-                    <p>
-                      Sell Amount : {parseMoney(this.props.trades.sellAmount)}
-                    </p>{" "}
+            <Col xl={3} lg={6} sm={6}>
+              <div className="card card-stats">
+                <div className="content">
+                  <div
+                    className="row"
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center"
+                    }}
+                  >
+                    <div className="col-xs-2">
+                      <div className="icon-big text-center icon-warning">
+                        <i className="pe-7s-wallet text-success" />
+                      </div>
+                    </div>
+                    <div className="col-xs-10">
+                      <div className="numbers">
+                        <div>
+                          <p>
+                            Buy/Sell Count :{" "}
+                            {this.props.trades.buyCount +
+                              "/" +
+                              this.props.trades.sellCount}
+                          </p>
+                          <p>
+                            Buy Amount :{" "}
+                            {parseMoney(this.props.trades.buyAmount)}
+                          </p>
+                          <p>
+                            Sell Amount :{" "}
+                            {parseMoney(this.props.trades.sellAmount)}
+                          </p>{" "}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                }
-              />
+                </div>
+              </div>
             </Col>
-            <Col lg={3} sm={6}>
-              <StatsCard
-                bigIcon={<i className="pe-7s-graph1 text-info" />}
-                statsText="Daily Profit"
-                statsValue={parseMoney(this.props.daily.netIncome)}
-                statsIconText={
-                  <div>
-                    <p>
-                      Average Profit :{" "}
-                      {parseMoney(this.props.daily.averageProfit)}
-                    </p>
-                    <p>
-                      Average Profit % :{" "}
-                      {parsePercentage(this.props.daily.averageProfitRate)}
-                    </p>{" "}
+            <Col xl={3} lg={6} sm={6}>
+              <div className="card card-stats">
+                <div className="content">
+                  <div
+                    className="row"
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center"
+                    }}
+                  >
+                    <div className="col-xs-2">
+                      <div className="icon-big text-center icon-warning">
+                        <i className="pe-7s-graph1 text-info" />
+                      </div>
+                    </div>
+                    <div className="col-xs-10">
+                      <div className="numbers">
+                        <div>
+                          <p>
+                            Daily Profit :{" "}
+                            {parseMoney(this.props.daily.netIncome)}
+                          </p>
+                          <p>
+                            Average Profit :{" "}
+                            {parseMoney(this.props.daily.averageProfit)}
+                          </p>
+                          <p>
+                            Average Profit % :{" "}
+                            {parsePercentage(
+                              this.props.daily.averageProfitRate
+                            )}
+                          </p>{" "}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                }
-              />
+                </div>
+              </div>
             </Col>
-            <Col lg={3} sm={6}>
-              <StatsCard
-                bigIcon={<i className="pe-7s-graph3 text-danger" />}
-                statsText="Performance"
-                statsValue={parsePercentage(this.props.performance.portfolio)}
-                statsIconText={
-                  <div>
-                    <p>
-                      Market : {parsePercentage(this.props.performance.market)}
-                    </p>
-                    <p>
-                      Comparison :{" "}
-                      {parsePercentage(this.props.performance.comparison)}
-                    </p>{" "}
+            <Col xl={3} lg={6} sm={6}>
+              <div className="card card-stats">
+                <div className="content">
+                  <div
+                    className="row"
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center"
+                    }}
+                  >
+                    <div className="col-xs-2">
+                      <div className="icon-big text-center icon-warning">
+                        <i className="pe-7s-graph3 text-danger" />
+                      </div>
+                    </div>
+                    <div className="col-xs-10">
+                      <div className="numbers">
+                        <div>
+                          <p>
+                            Performance :{" "}
+                            {parsePercentage(this.props.performance.portfolio)}
+                          </p>
+                          <p>
+                            Market :{" "}
+                            {parsePercentage(this.props.performance.market)}
+                          </p>
+                          <p>
+                            Comparison :{" "}
+                            {parsePercentage(this.props.performance.comparison)}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                }
-              />
+                </div>
+              </div>
             </Col>
           </Row>
           <Row>
