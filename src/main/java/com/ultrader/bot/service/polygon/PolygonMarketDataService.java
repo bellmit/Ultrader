@@ -225,7 +225,7 @@ public class PolygonMarketDataService implements MarketDataService {
                 LOGGER.debug("Loaded stock {}, {} bars", timeSeries.getName(), response.getResults().size());
 
             } catch (Exception e) {
-                LOGGER.error("Initial stock {} time series failed", timeSeries.getName());
+                LOGGER.error("Initial stock {} time series failed, url {}", timeSeries.getName(), url, e);
             }
 
         }

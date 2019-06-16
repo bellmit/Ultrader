@@ -33,6 +33,8 @@ public class NotificationUtil {
         map.put("Portfolio", df.format(account.getPortfolioValue()));
         map.put("BuyingPower", df.format(account.getBuyingPower()));
         map.put("Cash", df.format(account.getCashWithdrawable()));
+        map.put("status", account.getStatus());
+        map.put("IsTradingBlock", String.valueOf(account.isTradingBlocked()));
         LOGGER.info("Notify account update {}", map);
         return new DashboardDataMessage(map);
     }

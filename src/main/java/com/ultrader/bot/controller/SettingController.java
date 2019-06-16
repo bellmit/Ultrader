@@ -1,7 +1,10 @@
 package com.ultrader.bot.controller;
 
+import com.ultrader.bot.BotApplication;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Setting;
+import com.ultrader.bot.util.RepositoryUtil;
+import com.ultrader.bot.util.SettingConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,4 +47,24 @@ public class SettingController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/check")
+    @ResponseBody
+    public boolean check() {
+        try {
+            if (RepositoryUtil.getSetting(settingDao, SettingConstant.BOT_KEY.getName(), "").isEmpty()
+            || RepositoryUtil.getSetting(settingDao, SettingConstant.BOT_SECRET.getName(), "").isEmpty()) {
+                return false;
+            }
+            return true;
+        } catch (Exception e) {
+            LOGGER.error("Check settings failed.", e);
+            return true;
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/restart")
+    @ResponseBody
+    public void restart() {
+        BotApplication.restart();
+    }
 }
