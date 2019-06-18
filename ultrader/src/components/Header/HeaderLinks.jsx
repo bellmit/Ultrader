@@ -25,8 +25,10 @@ class HeaderLinks extends Component {
       case "error":
         return "text-danger";
       case "warning":
+      case "closed":
         return "text-warning";
       case "success":
+      case "normal":
         return "text-success";
       default:
         return;
@@ -34,10 +36,26 @@ class HeaderLinks extends Component {
   }
 
   render() {
-    console.log(this.props);
     return (
       <div>
         <Nav pullRight>
+          <OverlayTrigger
+            placement="bottom"
+            overlay={
+              <Tooltip id="rocket-tooltip">
+                {this.props.systemStatus.bot.detail}
+              </Tooltip>
+            }
+          >
+            <NavItem>
+              <i
+                className={
+                  "fa fa-rocket " +
+                  this.iconColor(this.props.systemStatus.bot.status)
+                }
+              />
+            </NavItem>
+          </OverlayTrigger>
           <OverlayTrigger
             placement="bottom"
             overlay={
@@ -58,33 +76,16 @@ class HeaderLinks extends Component {
           <OverlayTrigger
             placement="bottom"
             overlay={
-              <Tooltip id="rocket-tooltip">
-                {this.props.systemStatus.market.detail}
-              </Tooltip>
-            }
-          >
-            <NavItem>
-              <i
-                className={
-                  "fa fa-rocket " +
-                  this.iconColor(this.props.systemStatus.market.status)
-                }
-              />
-            </NavItem>
-          </OverlayTrigger>
-          <OverlayTrigger
-            placement="bottom"
-            overlay={
               <Tooltip id="globe-tooltip">
-                {this.props.systemStatus.data.detail}
+                {this.props.systemStatus.account.detail}
               </Tooltip>
             }
           >
             <NavItem>
               <i
                 className={
-                  "fa fa-globe " +
-                  this.iconColor(this.props.systemStatus.data.status)
+                  "fa fa-user " +
+                  this.iconColor(this.props.systemStatus.account.status)
                 }
               />
             </NavItem>
@@ -93,7 +94,7 @@ class HeaderLinks extends Component {
             placement="bottom"
             overlay={
               <Tooltip id="university-tooltip">
-                {this.props.systemStatus.data.detail}
+                {this.props.systemStatus.market.detail}
               </Tooltip>
             }
           >
@@ -101,7 +102,7 @@ class HeaderLinks extends Component {
               <i
                 className={
                   "fa fa-university " +
-                  this.iconColor(this.props.systemStatus.data.status)
+                  this.iconColor(this.props.systemStatus.market.status)
                 }
               />
             </NavItem>
@@ -111,7 +112,9 @@ class HeaderLinks extends Component {
             title={
               <div>
                 <i className="fa fa-bell-o" />
-                <span className="notification">5</span>
+                <span className="notification">
+                  {this.props.notifications.length}
+                </span>
                 <p className="hidden-md hidden-lg">
                   Notifications
                   <b className="caret" />
@@ -121,11 +124,11 @@ class HeaderLinks extends Component {
             noCaret
             id="basic-nav-dropdown-2"
           >
-            <MenuItem eventKey={3.1}>Notification 1</MenuItem>
-            <MenuItem eventKey={3.2}>Notification 2</MenuItem>
-            <MenuItem eventKey={3.3}>Notification 3</MenuItem>
-            <MenuItem eventKey={3.4}>Notification 4</MenuItem>
-            <MenuItem eventKey={3.5}>Another notifications</MenuItem>
+            {this.props.notifications.map((notification, i) => (
+              <MenuItem eventKey={"3." + i} key={"3." + i}>
+                {notification.message}
+              </MenuItem>
+            ))}
           </NavDropdown>
           <NavDropdown
             eventKey={4}

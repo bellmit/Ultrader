@@ -49,7 +49,6 @@ class Header extends Component {
     document.documentElement.classList.toggle("nav-open");
   }
   render() {
-    console.log(this.props);
     return (
       <Navbar fluid>
         <div className="navbar-minimize">
