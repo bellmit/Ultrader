@@ -1,31 +1,24 @@
 package com.ultrader.bot.monitor;
 
+import com.ultrader.bot.dao.ChartDao;
 import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Account;
-import com.ultrader.bot.model.Order;
+import com.ultrader.bot.model.Chart;
 import com.ultrader.bot.model.Position;
-import com.ultrader.bot.model.websocket.DashboardDataMessage;
 import com.ultrader.bot.service.TradingService;
-import com.ultrader.bot.service.alpaca.AlpacaWebSocketHandler;
 import com.ultrader.bot.util.NotificationUtil;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
-import com.ultrader.bot.util.TradingUtil;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.socket.client.WebSocketConnectionManager;
-import org.springframework.web.socket.client.standard.StandardWebSocketClient;
-import org.ta4j.core.BaseBar;
 import org.ta4j.core.TimeSeries;
 import org.ta4j.core.num.PrecisionNum;
 
-import java.text.DecimalFormat;
-import java.time.*;
+import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -43,30 +36,35 @@ public class TradingAccountMonitor extends Monitor {
     private final SettingDao settingDao;
     private final OrderDao orderDao;
     private final SimpMessagingTemplate notifier;
+    private final ChartDao chartDao;
 
 
     private TradingAccountMonitor(long interval,
                                   final TradingService tradingService,
                                   final SettingDao settingDao,
                                   final SimpMessagingTemplate notifier,
-                                  final OrderDao orderDao) {
+                                  final OrderDao orderDao,
+                                  final ChartDao chartDao) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(notifier, "notifier is required");
         Validate.notNull(orderDao, "orderDao is required");
+        Validate.notNull(chartDao, "charDao is required");
         this.tradingService = tradingService;
         this.settingDao = settingDao;
         this.notifier = notifier;
         this.orderDao = orderDao;
+        this.chartDao = chartDao;
     }
 
     public static void init(long interval,
                             final TradingService tradingService,
                             final SettingDao settingDao,
                             final SimpMessagingTemplate notifier,
-                            final OrderDao orderDao) {
-        singleton_instance = new TradingAccountMonitor(interval, tradingService, settingDao, notifier, orderDao);
+                            final OrderDao orderDao,
+                            final ChartDao chartDao) {
+        singleton_instance = new TradingAccountMonitor(interval, tradingService, settingDao, notifier, orderDao, chartDao);
     }
 
     public static TradingAccountMonitor getInstance() throws IllegalAccessException {
@@ -148,6 +146,11 @@ public class TradingAccountMonitor extends Monitor {
      */
     public void syncAccount() throws RuntimeException {
         account = tradingService.getAccountInfo();
+        Chart chart = new Chart();
+        chart.setDate(new Date());
+        chart.setSerialName("Portfolio");
+        chart.setValue(account.getPortfolioValue());
+        chartDao.save(chart);
         LOGGER.info("Account {}", account);
         if (account == null) {
             throw new RuntimeException("Cannot get account info, skip executing trading strategies");
