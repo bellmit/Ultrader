@@ -33,7 +33,7 @@ var ps;
 class DashboardComp extends Component {
   constructor(props) {
     super(props);
-    this.handleNotificationClick = this.handleNotificationClick.bind(this);
+    this.handleNotification = this.handleNotification.bind(this);
     this.processMarketStatusMessage = this.processMarketStatusMessage.bind(
       this
     );
@@ -43,18 +43,19 @@ class DashboardComp extends Component {
     this.processProfitMessage = this.processProfitMessage.bind(this);
     this.connectToSockets = this.connectToSockets.bind(this);
     this.initMetadata = this.initMetadata.bind(this);
+    this.initData = this.initData.bind(this);
+    this.checkBotStatus = this.checkBotStatus.bind(this);
+
     this.state = {
       _notificationSystem: null
     };
   }
 
   processMarketStatusMessage(message) {
-    console.log(message);
     this.props.onReceivedMarketStatusMessage(message);
   }
 
   processDataStatusMessage(message) {
-    console.log(message);
     this.props.onReceivedDataStatusMessage(message);
   }
 
@@ -102,6 +103,15 @@ class DashboardComp extends Component {
     });
   }
 
+  initData() {
+    axiosGetWithAuth("/api/notification/dashboard")
+      .then(handleResponse)
+      .then(res => {
+        this.props.onReceivedDashboardNotifications(res);
+      })
+      .catch(error => {});
+  }
+
   initMetadata() {
     axiosGetWithAuth("/api/metadata/getStrategyMetadata")
       .then(handleResponse)
@@ -129,6 +139,17 @@ class DashboardComp extends Component {
       });
   }
 
+  checkBotStatus() {
+    axiosGetWithAuth("/api/metadata/getStrategyMetadata")
+      .then(handleResponse)
+      .then(res => {
+        this.props.onReceivedBotStatusMessage(true);
+      })
+      .catch(error => {
+        this.props.onReceivedBotStatusMessage(false);
+      });
+  }
+
   componentDidMount() {
     this.setState({ _notificationSystem: this.refs.notificationSystem });
     if (navigator.platform.indexOf("Win") > -1) {
@@ -136,11 +157,18 @@ class DashboardComp extends Component {
     }
     this.connectToSockets();
     this.initMetadata();
+    this.initData();
+    this.checkBotStatus();
+    this.interval = setInterval(() => {
+      this.checkBotStatus();
+    }, 5*60*1000);
   }
   componentWillUnmount() {
     if (navigator.platform.indexOf("Win") > -1) {
       ps.destroy();
     }
+
+    clearInterval(this.interval);
   }
   componentDidUpdate(e) {
     if (navigator.platform.indexOf("Win") > -1) {
@@ -167,38 +195,18 @@ class DashboardComp extends Component {
     }
   }
   // function that shows/hides notifications - it was put here, because the wrapper div has to be outside the main-panel class div
-  handleNotificationClick(position) {
-    var color = Math.floor(Math.random() * 4 + 1);
-    var level;
-    switch (color) {
-      case 1:
-        level = "success";
-        break;
-      case 2:
-        level = "warning";
-        break;
-      case 3:
-        level = "error";
-        break;
-      case 4:
-        level = "info";
-        break;
-      default:
-        break;
+  handleNotification(message, level, position) {
+    if (this.state._notificationSystem) {
+      this.state._notificationSystem.addNotification({
+        title: <span data-notify="icon" className="pe-7s-gift" />,
+        message: <div>{message}</div>,
+        level: level,
+        position: position,
+        autoDismiss: 15
+      });
     }
-    this.state._notificationSystem.addNotification({
-      title: <span data-notify="icon" className="pe-7s-gift" />,
-      message: (
-        <div>
-          Welcome to <b>Light Bootstrap Dashboard</b> - a beautiful freebie for
-          every web developer.
-        </div>
-      ),
-      level: level,
-      position: position,
-      autoDismiss: 15
-    });
   }
+
   render() {
     return (
       <div className="wrapper">
@@ -218,28 +226,13 @@ class DashboardComp extends Component {
             {dashboardRoutes.map((prop, key) => {
               if (prop.collapse) {
                 return prop.views.map((prop, key) => {
-                  if (prop.name === "Notifications") {
-                    return (
-                      <Route
-                        path={prop.path}
-                        key={key}
-                        render={routeProps => (
-                          <prop.component
-                            {...routeProps}
-                            handleClick={this.handleNotificationClick}
-                          />
-                        )}
-                      />
-                    );
-                  } else {
-                    return (
-                      <Route
-                        path={prop.path}
-                        component={prop.component}
-                        key={key}
-                      />
-                    );
-                  }
+                  return (
+                    <Route
+                      path={prop.path}
+                      component={prop.component}
+                      key={key}
+                    />
+                  );
                 });
               } else {
                 if (prop.redirect)

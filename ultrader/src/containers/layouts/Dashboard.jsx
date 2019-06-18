@@ -21,9 +21,11 @@ class Dashboard extends Component {
         categoryIndicatorMap={this.props.categoryIndicatorMap}
         socket={this.props.socket}
         stompClient={this.props.stompClient}
+        notifications={this.props.notifications}
         onConnectedToMonitor={this.props.onConnectedToMonitor}
         onReceivedDataStatusMessage={this.props.onReceivedDataStatusMessage}
         onReceivedMarketStatusMessage={this.props.onReceivedMarketStatusMessage}
+        onReceivedBotStatusMessage={this.props.onReceivedBotStatusMessage}
         onReceivedPortfolioMonitorMessage={
           this.props.onReceivedPortfolioMonitorMessage
         }
@@ -44,6 +46,9 @@ class Dashboard extends Component {
         onRetrievedStrategyMetadata={this.props.onRetrievedStrategyMetadata}
         onGetStrategiesSuccess={this.props.onGetStrategiesSuccess}
         onGetRulesSuccess={this.props.onGetRulesSuccess}
+        onReceivedDashboardNotifications={
+          this.props.onReceivedDashboardNotifications
+        }
       />
     );
   }
@@ -60,7 +65,9 @@ const mapStateToProps = state => {
     categoryIndicatorMap: state.global.categoryIndicatorMap,
 
     socket: state.global.socket,
-    stompClient: state.global.stompClient
+    stompClient: state.global.stompClient,
+
+    notifications: state.global.notifications
   };
 };
 
@@ -84,6 +91,12 @@ const mapDispatchToProps = dispatch => {
         type: ACTION_TYPES.RECEIVED_MARKET_STATUS_MESSAGE,
         response: response
       }),
+    onReceivedBotStatusMessage: response =>
+      dispatch({
+        type: ACTION_TYPES.RECEIVED_BOT_STATUS_MESSAGE,
+        response: response
+      }),
+
     onReceivedPortfolioMonitorMessage: response =>
       dispatch({
         type: ACTION_TYPES.RECEIVED_PORTFOLIO_MONITOR_MESSAGE,
@@ -114,6 +127,13 @@ const mapDispatchToProps = dispatch => {
     onGetRulesSuccess: response =>
       dispatch({
         type: RULES_ACTION_TYPES.GET_RULES_SUCCESS,
+        response: response
+      }),
+
+    // ---------------------- initialization ----------------------
+    onReceivedDashboardNotifications: response =>
+      dispatch({
+        type: ACTION_TYPES.RETRIEVED_DASHBOARD_NOTIFICATIONS,
         response: response
       })
   };

@@ -41,8 +41,26 @@ const initialState = {
     market: {
       status: "loading",
       detail: "Market Status Detail: Status is not updated yet."
+    },
+    account: {
+      status: "loading",
+      detail: "Account Status Detail: Status is not updated yet."
+    },
+    bot: {
+      status: "loading",
+      detail: "Bot Status Detail: Status is not updated yet."
     }
-  }
+  },
+  notifications: [
+    {
+      level: "error",
+      message: "This is a test notification"
+    },
+    {
+      level: "error",
+      message: "This is a test notification 2"
+    }
+  ]
 };
 
 const global = (state = initialState, action) => {
@@ -77,14 +95,42 @@ const global = (state = initialState, action) => {
           }
         }
       };
+    case ACTION_TYPES.RECEIVED_BOT_STATUS_MESSAGE:
+      var live = action.response;
+
+      var botStatus = live ? "success" : "error";
+      var botStatusMessage = live
+        ? "Bot is running on the backend."
+        : "Bot is not running on the backend.";
+      return {
+        ...state,
+        systemStatus: {
+          ...state.systemStatus,
+          bot: {
+            status: botStatus,
+            detail: "Bot Status Detail: " + botStatusMessage
+          }
+        }
+      };
     case ACTION_TYPES.RECEIVED_PORTFOLIO_MONITOR_MESSAGE:
       var messageBody = JSON.parse(action.response.body).data;
+      var accountStatus = messageBody.IsTradingBlocked ? "error" : "success";
+      var accountStatusMessage = messageBody.IsTradingBlocked
+        ? "Trading is blocked in this account."
+        : "Account is able to trade.";
       return {
         ...state,
         portfolio: {
           value: messageBody.Portfolio,
           buyingPower: messageBody.BuyingPower,
           withdrawableCash: messageBody.Cash
+        },
+        systemStatus: {
+          ...state.systemStatus,
+          account: {
+            status: accountStatus,
+            detail: "Account Status Detail: " + accountStatusMessage
+          }
         }
       };
     case ACTION_TYPES.RECEIVED_TRADES_MONITOR_MESSAGE:
@@ -150,7 +196,10 @@ const global = (state = initialState, action) => {
         ruleTypes: ruleTypes,
         ruleTypeSelectOptions: ruleTypeSelectOptions
       };
-
+    case ACTION_TYPES.RETRIEVED_DASHBOARD_NOTIFICATIONS:
+      return {
+        ...state
+      };
     default:
       return state;
   }
