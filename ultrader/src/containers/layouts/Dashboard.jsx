@@ -35,6 +35,10 @@ class Dashboard extends Component {
         onReceivedProfitMonitorMessage={
           this.props.onReceivedProfitMonitorMessage
         }
+        onReceivedNotificationMessage={
+          this.props.onReceivedNotificationMessage
+        }
+
         onRetrievedRuleTypes={this.props.onRetrievedRuleTypes}
         onRetrievedIndicatorTypes={this.props.onRetrievedIndicatorTypes}
         onRetrievedIndicatorCategories={
@@ -112,6 +116,14 @@ const mapDispatchToProps = dispatch => {
         type: ACTION_TYPES.RECEIVED_PROFIT_MONITOR_MESSAGE,
         response: response
       }),
+
+    onReceivedNotificationMessage: response =>
+      dispatch({
+        type: ACTION_TYPES.RETRIEVED_NOTIFICATION_MESSAGE,
+        response: response
+      }),
+
+
 
     // ---------------------- metadata ----------------------
     onRetrievedStrategyMetadata: response =>

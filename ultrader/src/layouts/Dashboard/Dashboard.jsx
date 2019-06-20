@@ -41,6 +41,9 @@ class DashboardComp extends Component {
     this.processPortfolioMessage = this.processPortfolioMessage.bind(this);
     this.processTradesMessage = this.processTradesMessage.bind(this);
     this.processProfitMessage = this.processProfitMessage.bind(this);
+
+    this.processNotification = this.processNotification.bind(this);
+
     this.connectToSockets = this.connectToSockets.bind(this);
     this.initMetadata = this.initMetadata.bind(this);
     this.initData = this.initData.bind(this);
@@ -69,6 +72,11 @@ class DashboardComp extends Component {
 
   processProfitMessage(message) {
     this.props.onReceivedProfitMonitorMessage(message);
+  }
+
+  processNotification(message) {
+    this.handleNotification(message, "success", "tr");
+    this.props.onReceivedNotificationMessage(message);
   }
 
   connectToSockets() {
@@ -100,6 +108,7 @@ class DashboardComp extends Component {
         "/topic/dashboard/profit",
         this.processProfitMessage
       );
+      stompClient.subscribe("/topic/order", this.processNotification);
     });
   }
 
@@ -161,8 +170,9 @@ class DashboardComp extends Component {
     this.checkBotStatus();
     this.interval = setInterval(() => {
       this.checkBotStatus();
-    }, 5*60*1000);
+    }, 5 * 60 * 1000);
   }
+
   componentWillUnmount() {
     if (navigator.platform.indexOf("Win") > -1) {
       ps.destroy();
@@ -170,6 +180,7 @@ class DashboardComp extends Component {
 
     clearInterval(this.interval);
   }
+
   componentDidUpdate(e) {
     if (navigator.platform.indexOf("Win") > -1) {
       setTimeout(() => {
@@ -189,17 +200,20 @@ class DashboardComp extends Component {
       document.documentElement.classList.toggle("nav-open");
     }
   }
+
   componentWillMount() {
     if (document.documentElement.className.indexOf("nav-open") !== -1) {
       document.documentElement.classList.toggle("nav-open");
     }
   }
+
   // function that shows/hides notifications - it was put here, because the wrapper div has to be outside the main-panel class div
   handleNotification(message, level, position) {
+    var messageBody = JSON.parse(message.body).content;
     if (this.state._notificationSystem) {
       this.state._notificationSystem.addNotification({
         title: <span data-notify="icon" className="pe-7s-gift" />,
-        message: <div>{message}</div>,
+        message: <div>{messageBody}</div>,
         level: level,
         position: position,
         autoDismiss: 15

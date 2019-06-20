@@ -154,6 +154,18 @@ const global = (state = initialState, action) => {
           averageProfitRate: messageBody.AverageProfitRatio
         }
       };
+    case ACTION_TYPES.RETRIEVED_NOTIFICATION_MESSAGE:
+      var messageBody = JSON.parse(action.response.body).content;
+      return {
+        ...state,
+        notifications: [
+          ...state.notifications,
+          {
+            level: "success",
+            message: messageBody
+          }
+        ]
+      };
     case ACTION_TYPES.RETRIEVED_STRATEGY_METADATA:
       let strategyMetadata = action.response.data;
 
