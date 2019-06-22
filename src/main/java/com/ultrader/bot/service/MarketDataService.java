@@ -24,4 +24,5 @@ public interface MarketDataService {
 
     void subscribe(String symbol);
     void unsubscribe(String symbol);
+    void restart();
 }

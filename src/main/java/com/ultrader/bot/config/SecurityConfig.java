@@ -78,6 +78,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/api/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString())
+                .antMatchers("/admin/**").hasAuthority(UserType.ADMIN.getId().toString())
                 // database console
                 .antMatchers("/h2-console/**").permitAll()
         ;

@@ -101,6 +101,7 @@ public class MarketDataMonitor extends Monitor {
                 if(marketStatusChanged) {
                     //Reload market data
                     timeSeriesMap.clear();
+                    tradingService.restart();
                 }
                 //TODO Currently we force all the indicator have to use same period, we should support different period for different indicators
                 Map<String, TimeSeries> currentTimeSeries = new HashMap<>();

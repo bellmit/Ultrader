@@ -54,7 +54,12 @@ public interface TradingService {
     List<Order> getHistoryOrders(Date startDate, Date endDate);
 
     /**
-     * Check and ensure websocket is working
+     * Check if websocket is working
      */
-    void checkWebSocket();
+    boolean checkWebSocket();
+
+    /**
+     * Restart
+     */
+    void restart();
 }

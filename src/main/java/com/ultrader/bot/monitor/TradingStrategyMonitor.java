@@ -139,30 +139,38 @@ public class TradingStrategyMonitor extends Monitor {
                             tradingRecord.enter(1, PrecisionNum.valueOf(positions.get(stock).getAverageCost()), PrecisionNum.valueOf(positions.get(stock).getQuantity()));
                         }
 
-                        if(entry.getValue().shouldEnter(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex())
-                                && !positions.containsKey(stock)
-                                && !openOrders.containsKey(stock)
-                                && positionNum + buyOpenOrder < holdLimit) {
-                            //buy strategy satisfy & no position & hold stock < limit
-                            int buyQuantity = calculateBuyShares(buyLimit, currentPrice, account);
-                            if(buyQuantity > 0) {
-                                if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null)) != null) {
-                                    account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
-                                    positionNum++;
-                                    LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
+                        try {
+                            if(entry.getValue().shouldEnter(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex())
+                                    && !positions.containsKey(stock)
+                                    && !openOrders.containsKey(stock)
+                                    && positionNum + buyOpenOrder < holdLimit) {
+                                //buy strategy satisfy & no position & hold stock < limit
+                                int buyQuantity = calculateBuyShares(buyLimit, currentPrice, account);
+                                if(buyQuantity > 0) {
+                                    if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null)) != null) {
+                                        account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
+                                        positionNum++;
+                                        LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
+                                    }
                                 }
-                            }
-                        } else if (entry.getValue().shouldExit(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex(), tradingRecord) //Check if sell satisfied
-                                && positions.containsKey(stock)
-                                && positions.get(stock).getQuantity() > 0) {
-                            //sell strategy satisfy & has position
-                            if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null)) != null) {
-                                account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
-                                positionNum--;
-                                LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
-                            }
+                            } else if (entry.getValue().shouldExit(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex(), tradingRecord) //Check if sell satisfied
+                                    && positions.containsKey(stock)
 
+                                    && positions.get(stock).getQuantity() > 0) {
+                                //sell strategy satisfy & has position
+                                if(tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null)) != null) {
+                                    account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
+                                    positionNum--;
+                                    LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
+                                }
+
+                            }
+                        } catch (Exception e) {
+                            //Delete time series when it failed
+                            LOGGER.error("Check {} failed, remove it to reload, {}", stock, e.getMessage());
+                            MarketDataMonitor.timeSeriesMap.remove(stock);
                         }
+
                     }
                 }
                 LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",

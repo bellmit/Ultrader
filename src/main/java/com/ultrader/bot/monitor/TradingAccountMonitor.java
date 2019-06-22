@@ -109,7 +109,9 @@ public class TradingAccountMonitor extends Monitor {
                     }
                 }
             }
-            tradingService.checkWebSocket();
+            if(!tradingService.checkWebSocket()) {
+                tradingService.restart();
+            }
             //Get current portfolio
             syncAccount();
             //Populate Dashboard Message

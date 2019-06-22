@@ -23,6 +23,10 @@ public class TradingPlatform {
     private final static Logger LOGGER = LoggerFactory.getLogger(TradingPlatform.class);
     private TradingService tradingService;
     private MarketDataService marketDataService;
+    private AlpacaPaperTradingService alpacaPaperTradingService;
+    private AlpacaMarketDataService alpacaMarketDataService;
+    private PolygonMarketDataService polygonMarketDataService;
+    private AlpacaTradingService alpacaTradingService;
     private SettingDao settingDao;
 
     @Autowired
@@ -33,6 +37,10 @@ public class TradingPlatform {
                            PolygonMarketDataService polygonMarketDataService) {
         Validate.notNull(settingDao, "SettingDao is required");
         this.settingDao = settingDao;
+        this.alpacaMarketDataService = alpacaMarketDataService;
+        this.polygonMarketDataService = polygonMarketDataService;
+        this.alpacaPaperTradingService = alpacaPaperTradingService;
+        this.alpacaTradingService = alpacaTradingService;
         String tradingPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADING_PLATFORM.getName(), "AlpacaPaper");
         String marketDataPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX");
         if(tradingPlatform.equals(TradingPlatformConstant.ALPACA)) {
@@ -57,5 +65,24 @@ public class TradingPlatform {
 
     public TradingService getTradingService() {
         return tradingService;
+    }
+
+    public void restart() {
+        String tradingPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADING_PLATFORM.getName(), "AlpacaPaper");
+        String marketDataPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX");
+        if(tradingPlatform.equals(TradingPlatformConstant.ALPACA)) {
+            tradingService = alpacaTradingService;
+        } else if(tradingPlatform.equals(TradingPlatformConstant.ALPACA_PAPER)) {
+            tradingService = alpacaPaperTradingService;
+        } else {
+            LOGGER.error("Unknown trading platform, please check your config.");
+        }
+        if(marketDataPlatform.equals("IEX")) {
+            marketDataService = alpacaMarketDataService;
+        } else if (marketDataPlatform.equals("POLYGON")) {
+            marketDataService = polygonMarketDataService;
+        } else {
+            LOGGER.error("Unknown market data platform, please check your config.");
+        }
     }
 }

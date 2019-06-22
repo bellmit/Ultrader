@@ -41,17 +41,19 @@ import java.util.concurrent.TimeUnit;
 public class PolygonMarketDataService implements MarketDataService {
     private final static Logger LOGGER = LoggerFactory.getLogger(PolygonMarketDataService.class);
     private final static int MIN_PER_TRADING_DAY = 390;
-    private final String polygonKey;
+    private String polygonKey;
     private final String frequency = "A.";
     private RestTemplate client;
     private Dispatcher dispatcher;
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    private final SettingDao settingDao;
 
     @Autowired
     public PolygonMarketDataService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
 
+        this.settingDao = settingDao;
         this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(),
                 RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), ""));
         if(polygonKey.isEmpty()) {
@@ -118,6 +120,31 @@ public class PolygonMarketDataService implements MarketDataService {
     @Override
     public void unsubscribe(String symbol) {
         dispatcher.unsubscribe(getFrequency() + symbol);
+    }
+
+    @Override
+    public void restart() {
+        this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(),
+                RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), ""));
+        if(polygonKey.isEmpty()) {
+            LOGGER.error("Cannot find Alpaca key, please set up and reboot.");
+        }
+        threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().clear();
+        //Init Websocket
+        try {
+            Options options = new Options.Builder()
+                    .server("nats1.polygon.io:31101")
+                    .server("nats2.polygon.io:31102")
+                    .server("nats3.polygon.io:31103")
+                    .token(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(),
+                            RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "")))
+                    .maxReconnects(-1).build();
+            Connection connection = Nats.connect(options);
+            LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
+            dispatcher = connection.createDispatcher(new PolygonMessageHandler(this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"))));
+        } catch (Exception e) {
+            LOGGER.error("Failed to connect to Polygon.", e);
+        }
     }
 
 

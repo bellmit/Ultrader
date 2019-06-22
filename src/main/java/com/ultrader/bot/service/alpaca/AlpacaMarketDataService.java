@@ -39,6 +39,7 @@ public class AlpacaMarketDataService implements MarketDataService {
     private String alpacaKey;
     private String alpacaSecret;
     private RestTemplate client;
+    private SettingDao settingDao;
 
     private ParameterizedTypeReference<HashMap<String, ArrayList<Bar>>> barResponseType;
     @Autowired
@@ -46,6 +47,7 @@ public class AlpacaMarketDataService implements MarketDataService {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
 
+        this.settingDao = settingDao;
         this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
         this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
         if(alpacaKey.equals("") || alpacaSecret.equals("")) {
@@ -90,6 +92,16 @@ public class AlpacaMarketDataService implements MarketDataService {
     @Override
     public void unsubscribe(String symbol) {
         //NoOp
+    }
+
+    @Override
+    public void restart() {
+        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
+        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
+        if(alpacaKey.equals("") || alpacaSecret.equals("")) {
+            //It can be the first time setup
+            LOGGER.warn("Cannot find Alpaca API key, please check our config");
+        }
     }
 
     private List<TimeSeries> updateStockTimeSeries(List<TimeSeries> stocks, Long interval, boolean isNewStock, int maxLength) {

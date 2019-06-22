@@ -34,12 +34,14 @@ import java.util.*;
  */
 @Service
 public class AlpacaTradingService implements TradingService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaTradingService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaPaperTradingService.class);
     private String alpacaKey;
     private String alpacaSecret;
     private final RestTemplate client;
-    private final WebSocketConnectionManager connectionManager;
+    private WebSocketConnectionManager connectionManager;
+    private final OrderDao orderDao;
     private final SimpMessagingTemplate notifier;
+    private final SettingDao settingDao;
 
     @Autowired
     public AlpacaTradingService(final SettingDao settingDao, final RestTemplateBuilder restTemplateBuilder, final OrderDao orderDao, final SimpMessagingTemplate notifier) {
@@ -48,8 +50,10 @@ public class AlpacaTradingService implements TradingService {
         Validate.notNull(orderDao, "orderDao is required");
         Validate.notNull(notifier, "notifier is required");
 
+        this.settingDao = settingDao;
         this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(), "");
         this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_SECRET.getName(), "");
+        this.orderDao = orderDao;
         if(alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
@@ -68,11 +72,26 @@ public class AlpacaTradingService implements TradingService {
         return httpHeaders;
     }
     @Override
-    public void checkWebSocket() {
+    public boolean checkWebSocket() {
         if(connectionManager != null && !connectionManager.isRunning()) {
-            connectionManager.start();
+            LOGGER.error("Alpaca websocket listener is not working.");
+            return false;
         }
+        return true;
     }
+
+    @Override
+    public void restart() {
+        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
+        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
+        if(alpacaKey.equals("") || alpacaSecret.equals("")) {
+            //It can be the first time setup
+            LOGGER.warn("Cannot find Alpaca API key, please check our config");
+        }
+        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notifier), "wss://paper-api.alpaca.markets/stream");
+        connectionManager.start();
+    }
+
 
     public boolean isMarketOpen() {
         try {

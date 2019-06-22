@@ -23,7 +23,7 @@ import org.springframework.stereotype.Component;
 public class MonitorManager implements CommandLineRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(MonitorManager.class);
 
-    private ThreadPoolTaskExecutor threadPoolTaskExecutor =new ThreadPoolTaskExecutor();
+    private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     @Autowired
     private LicenseService licenseService;
     @Autowired
@@ -43,6 +43,11 @@ public class MonitorManager implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
+        init();
+    }
+
+    private void init() throws Exception {
+        threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.setCorePoolSize(5);
         threadPoolTaskExecutor.setMaxPoolSize(5);
         threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
@@ -66,5 +71,14 @@ public class MonitorManager implements CommandLineRunner {
         threadPoolTaskExecutor.execute(TradingStrategyMonitor.getInstance());
     }
 
+    public void restart() {
+        try {
+            threadPoolTaskExecutor.shutdown();
+            init();
+            LOGGER.info("Restarted monitor manager.");
+        } catch (Exception e) {
+            LOGGER.error("Restart monitor manager failed.", e);
+        }
+    }
 
 }
