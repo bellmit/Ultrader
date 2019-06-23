@@ -5,6 +5,7 @@ import com.ultrader.bot.service.LicenseService;
 import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,8 @@ public class MonitorManager implements CommandLineRunner {
     private OrderDao orderDao;
     @Autowired
     private ChartDao chartDao;
+    @Autowired
+    private PositionDao positionDao;
 
     @Override
     public void run(String... args) throws Exception {
@@ -57,7 +60,7 @@ public class MonitorManager implements CommandLineRunner {
         threadPoolTaskExecutor.execute(LicenseMonitor.getInstance());
 
         //Trading account monitor
-        TradingAccountMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, feedbackNotifier, orderDao, chartDao);
+        TradingAccountMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, feedbackNotifier, orderDao, chartDao, positionDao);
         threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
         //Start MarketDate Monitor
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")) * 1000;

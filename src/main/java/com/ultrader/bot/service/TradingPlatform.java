@@ -41,7 +41,7 @@ public class TradingPlatform {
         this.polygonMarketDataService = polygonMarketDataService;
         this.alpacaPaperTradingService = alpacaPaperTradingService;
         this.alpacaTradingService = alpacaTradingService;
-        String tradingPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADING_PLATFORM.getName(), "AlpacaPaper");
+        String tradingPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADING_PLATFORM.getName(), TradingPlatformConstant.ALPACA_PAPER);
         String marketDataPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX");
         if(tradingPlatform.equals(TradingPlatformConstant.ALPACA)) {
             tradingService = alpacaTradingService;
@@ -68,7 +68,7 @@ public class TradingPlatform {
     }
 
     public void restart() {
-        String tradingPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADING_PLATFORM.getName(), "AlpacaPaper");
+        String tradingPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADING_PLATFORM.getName(), TradingPlatformConstant.ALPACA_PAPER);
         String marketDataPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX");
         if(tradingPlatform.equals(TradingPlatformConstant.ALPACA)) {
             tradingService = alpacaTradingService;

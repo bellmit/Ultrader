@@ -1,6 +1,7 @@
 package com.ultrader.bot.controller;
 
 import com.ultrader.bot.model.StrategyMetadata;
+import com.ultrader.bot.model.StrategyTemplate;
 import com.ultrader.bot.util.IndicatorType;
 import com.ultrader.bot.util.RuleType;
 import com.ultrader.bot.util.UserType;
@@ -42,6 +43,12 @@ public class MetadataController {
     @ResponseBody
     public IndicatorType[] getIndicatorType() {
         return IndicatorType.values();
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getStrategyTemplate")
+    @ResponseBody
+    public StrategyTemplate[] getStrategyTemplate() {
+        return StrategyTemplate.values();
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/getCategoryIndicator")

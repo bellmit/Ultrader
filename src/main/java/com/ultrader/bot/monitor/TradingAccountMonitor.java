@@ -2,6 +2,7 @@ package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.ChartDao;
 import com.ultrader.bot.dao.OrderDao;
+import com.ultrader.bot.dao.PositionDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Chart;
@@ -37,6 +38,7 @@ public class TradingAccountMonitor extends Monitor {
     private final OrderDao orderDao;
     private final SimpMessagingTemplate notifier;
     private final ChartDao chartDao;
+    private final PositionDao positionDao;
 
 
     private TradingAccountMonitor(long interval,
@@ -44,18 +46,21 @@ public class TradingAccountMonitor extends Monitor {
                                   final SettingDao settingDao,
                                   final SimpMessagingTemplate notifier,
                                   final OrderDao orderDao,
-                                  final ChartDao chartDao) {
+                                  final ChartDao chartDao,
+                                  final PositionDao positionDao) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(notifier, "notifier is required");
         Validate.notNull(orderDao, "orderDao is required");
         Validate.notNull(chartDao, "charDao is required");
+        Validate.notNull(chartDao, "positionDao is required");
         this.tradingService = tradingService;
         this.settingDao = settingDao;
         this.notifier = notifier;
         this.orderDao = orderDao;
         this.chartDao = chartDao;
+        this.positionDao = positionDao;
     }
 
     public static void init(long interval,
@@ -63,8 +68,9 @@ public class TradingAccountMonitor extends Monitor {
                             final SettingDao settingDao,
                             final SimpMessagingTemplate notifier,
                             final OrderDao orderDao,
-                            final ChartDao chartDao) {
-        singleton_instance = new TradingAccountMonitor(interval, tradingService, settingDao, notifier, orderDao, chartDao);
+                            final ChartDao chartDao,
+                            final PositionDao positionDao) {
+        singleton_instance = new TradingAccountMonitor(interval, tradingService, settingDao, notifier, orderDao, chartDao, positionDao);
     }
 
     public static TradingAccountMonitor getInstance() throws IllegalAccessException {
@@ -77,6 +83,8 @@ public class TradingAccountMonitor extends Monitor {
 
     private Map<String, Position> getAllPositions() throws RuntimeException {
         Map<String, Position> positionMap = tradingService.getAllPositions();
+        positionDao.deleteAll();
+        positionDao.saveAll(positionMap.values());
         if (positionMap == null) {
             throw new RuntimeException("Cannot get position info, skip executing trading strategies");
         }
