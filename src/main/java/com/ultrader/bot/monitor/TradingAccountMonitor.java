@@ -122,6 +122,11 @@ public class TradingAccountMonitor extends Monitor {
             }
             //Get current portfolio
             syncAccount();
+            Chart chart = new Chart();
+            chart.setDate(new Date());
+            chart.setSerialName("Portfolio");
+            chart.setValue(account.getPortfolioValue());
+            chartDao.save(chart);
             //Populate Dashboard Message
             notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(account));
             notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
@@ -156,12 +161,7 @@ public class TradingAccountMonitor extends Monitor {
      */
     public void syncAccount() throws RuntimeException {
         account = tradingService.getAccountInfo();
-        Chart chart = new Chart();
-        chart.setDate(new Date());
-        chart.setSerialName("Portfolio");
-        chart.setValue(account.getPortfolioValue());
-        chartDao.save(chart);
-        LOGGER.info("Account {}", account);
+        LOGGER.debug("Account {}", account);
         if (account == null) {
             throw new RuntimeException("Cannot get account info, skip executing trading strategies");
         }
