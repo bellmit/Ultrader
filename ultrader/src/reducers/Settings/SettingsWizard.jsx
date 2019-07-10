@@ -2,7 +2,8 @@
 import * as ACTION_TYPES from 'actions/Settings/SettingsWizardActions';
 
 const initialState = {
-     settings: {}
+     settings: {
+     }
 };
 
 const settingsWizard = (state = initialState, action) => {
@@ -14,7 +15,6 @@ const settingsWizard = (state = initialState, action) => {
              ...state.settings,
              [action.key]: action.value
           }
-
         };
     default:
       return state

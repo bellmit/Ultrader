@@ -10,34 +10,69 @@ import axios from "axios";
 import Card from "components/Card/Card.jsx";
 
 import Step1 from "./Step1.jsx";
+import Step2 from "./Step2.jsx";
 import FinalStep from "./FinalStep.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
+
+var booleanOptions = [
+  { value: "true", label: "true" },
+  { value: "false", label: "false" }
+];
 
 class SettingsWizardComp extends Component {
   constructor(props) {
     super(props);
     this.saveSettings = this.saveSettings.bind(this);
-    this.steps = [
-      {
-        name: "Keys",
-        component: (
-          <Step1
-            settings={this.props.settings}
-            onAddSetting={this.props.onAddSetting}
-          />
-        )
-      },
-      {
-        name: "Finish",
-        component: (
-          <FinalStep
-            settings={this.props.settings}
-            saveSettings={this.saveSettings}
-          />
-        )
-      }
-    ];
+    this.selectTradingPlatformOption = this.selectTradingPlatformOption.bind(
+      this
+    );
+    this.selectMarketDataPlatformOption = this.selectMarketDataPlatformOption.bind(
+      this
+    );
+    this.selectStrategyTemplateOption = this.selectStrategyTemplateOption.bind(
+      this
+    );
+
+    this.onExchangeInputChange = this.onExchangeInputChange.bind(this);
+    this.state = {
+      selectedTradingPlatformOption: {},
+      selectedMarketDataPlatformOption: {},
+      selectedExchangeOptions: [],
+      selectedStrategyTemplateOption: {}
+    };
+  }
+
+  selectTradingPlatformOption(option) {
+    let selectedTradingPlatformOption = option ? option : {};
+    this.setState({
+      selectedTradingPlatformOption: selectedTradingPlatformOption
+    });
+    this.props.onAddSetting("GLOBAL_TRADING_PLATFORM", option.value);
+  }
+
+  selectMarketDataPlatformOption(option) {
+    let selectedMarketDataPlatformOption = option ? option : {};
+    this.setState({
+      selectedMarketDataPlatformOption: selectedMarketDataPlatformOption
+    });
+    this.props.onAddSetting("GLOBAL_MARKETDATA_PLATFORM", option.value);
+  }
+
+  selectStrategyTemplateOption(option) {
+    let selectedStrategyTemplateOption = option ? option : {};
+    this.setState({
+      selectedStrategyTemplateOption: selectedStrategyTemplateOption
+    });
+  }
+
+  onExchangeInputChange(option) {
+    let selectedExchangeOptions = option ? option : [];
+    this.setState({
+      selectedExchangeOptions: selectedExchangeOptions
+    });
+    let optionStringList = selectedExchangeOptions.map(o => o.value).join(",");
+    this.props.onAddSetting("TRADE_EXCHANGE_LIST", optionStringList);
   }
 
   saveSettings() {
@@ -47,10 +82,22 @@ class SettingsWizardComp extends Component {
         settings.push({ name: key, value: this.props.settings[key] });
       }
     }
-    console.log(settings);
-    axiosPostWithAuth("/setting/addSettings", settings)
-      .then(res => {
-        alert("Saved " + res.data.length + " settings");
+
+    var strategyBundle = JSON.parse(
+      this.state.selectedStrategyTemplateOption.strategy
+    );
+    var promises = [];
+    promises.push(axiosPostWithAuth("/api/setting/addSettings", settings));
+    promises.push(axiosPostWithAuth("/api/strategy/import", strategyBundle));
+
+    Promise.all(promises)
+      .then(responses => {
+        alert(
+          "Saved " +
+            responses[0].data.length +
+            " settings and strategy template"
+        );
+        window.location = "/";
       })
       .catch(error => {
         alert(error);
@@ -58,30 +105,65 @@ class SettingsWizardComp extends Component {
   }
 
   render() {
+    const steps = [
+      {
+        name: "Licenses",
+        component: <Step1 {...this.props} />
+      },
+      {
+        name: "Trading",
+        component: (
+          <Step2
+            {...this.props}
+            selectedTradingPlatformOption={
+              this.state.selectedTradingPlatformOption
+            }
+            selectedMarketDataPlatformOption={
+              this.state.selectedMarketDataPlatformOption
+            }
+            selectedExchangeOptions={this.state.selectedExchangeOptions}
+            selectTradingPlatformOption={this.selectTradingPlatformOption}
+            selectMarketDataPlatformOption={this.selectMarketDataPlatformOption}
+            onExchangeInputChange={this.onExchangeInputChange}
+          />
+        )
+      },
+      {
+        name: "Strategy",
+        component: (
+          <FinalStep
+            {...this.props}
+            saveSettings={this.saveSettings}
+            selectedStrategyTemplateOption={
+              this.state.selectedStrategyTemplateOption
+            }
+            selectStrategyTemplateOption={this.selectStrategyTemplateOption}
+          />
+        )
+      }
+    ];
     return (
-      <div className="main-content">
-        <Grid fluid>
-          <Row>
-            <Col md={8} mdOffset={2}>
-              <Card
-                wizard
-                id="wizardCard"
-                textCenter
-                title="Awesome Wizard"
-                category="Split a complicated flow in multiple steps"
-                content={
-                  <StepZilla
-                    steps={this.steps}
-                    stepsNavigation={false}
-                    nextButtonCls="btn btn-prev btn-info btn-fill pull-right btn-wd"
-                    backButtonCls="btn btn-next btn-default btn-fill pull-left btn-wd"
-                  />
-                }
-              />
-            </Col>
-          </Row>
-        </Grid>
-      </div>
+      <Grid fluid>
+        <Row>
+          <Col md={8} mdOffset={2}>
+            <Card
+              wizard
+              id="wizardCard"
+              textCenter
+              title="Setting Wizard"
+              category="This is the first time you are using Ultrader, this wizard will help you set up the basic settings needed to get started, and we will provide you some example strategy templates to experiment with."
+              content={
+                <StepZilla
+                  steps={steps}
+                  stepsNavigation={false}
+                  nextButtonCls="btn btn-prev btn-info btn-fill pull-right btn-wd"
+                  backButtonCls="btn btn-next btn-default btn-fill pull-left btn-wd"
+                />
+              }
+            />
+          </Col>
+        </Row>
+      </Grid>
     );
   }
 }

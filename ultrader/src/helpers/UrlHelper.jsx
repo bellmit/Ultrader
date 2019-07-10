@@ -17,6 +17,11 @@ axiosInstance.interceptors.response.use(undefined, err => {
     localStorage.removeItem("user");
     window.location.reload(true);
   }
+
+    // if error is 406 (for checking is keys are setup)
+    if (error.status === 406) {
+      window.location.href = '/#/setup/wizard';
+    }
 });
 
 export function getAuthHeader() {

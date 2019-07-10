@@ -23,14 +23,15 @@ var booleanOptions = [
   { value: "false", label: "false" }
 ];
 
-export default class AddRuleComp extends React.Component {
+export default class EditRuleComp extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.validate = this.validate.bind(this);
     this.saveRule = this.saveRule.bind(this);
+    this.parseRule = this.parseRule.bind(this);
     this.state = {
-      ruleName: "",
-      ruleDescription: "",
+      ruleName: this.props.rule.name,
+      ruleDescription: this.props.rule.description,
       ruleFieldTypes: [],
       ruleFieldTypeOptions: [],
       ruleFields: {},
@@ -38,10 +39,39 @@ export default class AddRuleComp extends React.Component {
       selectedRuleFieldType: "",
       ruleFieldValues: []
     };
+    console.log(this.props);
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    this.selectRuleType(
+      this.props.ruleTypeSelectOptions.find(
+        e => e.classz === this.props.rule.type
+      )
+    );
+    this.selectRuleFieldsType;
+    var formulaParts = this.props.rule.formula.split(",");
+    for (var i = 0; i < formulaParts.length; i++) {
+      var formulaPart = formulaParts[i];
+      var hasFieldValue = !(formulaPart.indexOf(":") === -1);
+      if (hasFieldValue) {
+        var fieldType = formulaPart.substr(0, formulaPart.indexOf(":"));
+        var fieldTypeArgs = formulaPart.substr(formulaPart.indexOf(":") + 1);
+        console.log(fieldType);
+        console.log(fieldTypeArgs);
+      } else {
+        var fieldType = formulaPart;
+        console.log(fieldType);
+      }
+      console.log(this.state);
+    }
+    this.parseRule(this.props.rule);
+  }
 
+  parseRule(rule) {
+    this.selectRuleType(
+      this.props.ruleTypeSelectOptions.find(e => e.classz === rule.type)
+    );
+  }
   validate() {
     if (
       this.state.ruleName &&
@@ -120,6 +150,7 @@ export default class AddRuleComp extends React.Component {
 
   selectRuleType(option) {
     let ruleFieldTypes = option ? option.value : [];
+    console.log("aaa");
     console.log(option);
 
     let ruleFieldTypeOptions = option

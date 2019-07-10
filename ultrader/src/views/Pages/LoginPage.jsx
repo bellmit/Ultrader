@@ -47,7 +47,6 @@ class LoginPageComp extends Component {
           token: user.token
         };
         localStorage.setItem("user", JSON.stringify(userObj));
-        console.log(user);
         window.location = "/";
         return user;
       })

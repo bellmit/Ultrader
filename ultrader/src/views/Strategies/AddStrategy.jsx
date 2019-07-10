@@ -12,7 +12,6 @@ import {
   Form
 } from "react-bootstrap";
 import Select from "react-select";
-import "react-select/dist/react-select.css";
 
 import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";

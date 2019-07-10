@@ -19,6 +19,8 @@ class Dashboard extends Component {
         indicatorTypes={this.props.indicatorTypes}
         indicatorCategories={this.props.indicatorCategories}
         categoryIndicatorMap={this.props.categoryIndicatorMap}
+        strategyTemplates={this.props.strategyTemplates}
+        strategyTemplateOptions={this.props.strategyTemplateOptions}
         socket={this.props.socket}
         stompClient={this.props.stompClient}
         notifications={this.props.notifications}
@@ -48,6 +50,7 @@ class Dashboard extends Component {
           this.props.onRetrievedCategoryIndicatorMap
         }
         onRetrievedStrategyMetadata={this.props.onRetrievedStrategyMetadata}
+        onRetrievedStrategyTemplate={this.props.onRetrievedStrategyTemplate}
         onGetStrategiesSuccess={this.props.onGetStrategiesSuccess}
         onGetRulesSuccess={this.props.onGetRulesSuccess}
         onReceivedDashboardNotifications={
@@ -67,7 +70,8 @@ const mapStateToProps = state => {
     indicatorTypes: state.global.indicatorTypes,
     indicatorCategories: state.global.indicatorCategories,
     categoryIndicatorMap: state.global.categoryIndicatorMap,
-
+    strategyTemplateOptions: state.global.strategyTemplateOptions,
+    strategyTemplates: state.global.strategyTemplates,
     socket: state.global.socket,
     stompClient: state.global.stompClient,
 
@@ -123,12 +127,15 @@ const mapDispatchToProps = dispatch => {
         response: response
       }),
 
-
-
     // ---------------------- metadata ----------------------
     onRetrievedStrategyMetadata: response =>
       dispatch({
         type: ACTION_TYPES.RETRIEVED_STRATEGY_METADATA,
+        response: response
+      }),
+    onRetrievedStrategyTemplate: response =>
+      dispatch({
+        type: ACTION_TYPES.RETRIEVED_STRATEGY_TEMPLATE,
         response: response
       }),
     onGetStrategiesSuccess: response =>

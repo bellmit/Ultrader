@@ -8,6 +8,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 import axios from "axios";
 
 import AddRule from "containers/Rules/AddRule.jsx";
+import EditRule from "containers/Rules/EditRule.jsx";
 
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 
@@ -23,21 +24,43 @@ class RulesComp extends Component {
         console.log(error);
         alert(error);
       });
-    this.handleShow = this.handleShow.bind(this);
-    this.handleClose = this.handleClose.bind(this);
+    this.handleShowAdd = this.handleShowAdd.bind(this);
+    this.handleCloseAdd = this.handleCloseAdd.bind(this);
+    this.handleShowEdit = this.handleShowEdit.bind(this);
+    this.handleCloseEdit = this.handleCloseEdit.bind(this);
     this.deleteRule = this.deleteRule.bind(this);
+    this.editRule = this.editRule.bind(this);
 
     this.state = {
-      show: false
+      showAdd: false,
+      showEdit: false,
+      selectedRule: {}
     };
   }
 
-  handleClose() {
-    this.setState({ show: false });
+  handleCloseAdd() {
+    this.setState({ showAdd: false });
   }
 
-  handleShow() {
-    this.setState({ show: true });
+  handleShowAdd() {
+    this.setState({ showAdd: true });
+  }
+
+  handleCloseEdit() {
+    this.setState({ showEdit: false });
+  }
+
+  handleShowEdit() {
+    this.setState({ showEdit: true });
+  }
+
+  editRule(row) {
+    let id = row.original.id;
+    let index = row.index;
+    this.setState({
+        selectedRule : row.original,
+        showEdit: true
+    });
   }
 
   deleteRule(row) {
@@ -66,7 +89,7 @@ class RulesComp extends Component {
                     <Button
                       className="add_button"
                       variant="primary"
-                      onClick={this.handleShow}
+                      onClick={this.handleShowAdd}
                     >
                       Add Rule
                     </Button>
@@ -75,13 +98,23 @@ class RulesComp extends Component {
                 content={
                   <div>
                     <Modal
-                      show={this.state.show}
-                      onHide={this.handleClose}
+                      show={this.state.showAdd}
+                      onHide={this.handleCloseAdd}
                       dialogClassName="modal-90w"
                     >
                       <Modal.Header closeButton />
                       <Modal.Body>
                         <AddRule />
+                      </Modal.Body>
+                    </Modal>
+                    <Modal
+                      show={this.state.showEdit}
+                      onHide={this.handleCloseEdit}
+                      dialogClassName="modal-90w"
+                    >
+                      <Modal.Header closeButton />
+                      <Modal.Body>
+                        <EditRule rule={this.state.selectedRule}/>
                       </Modal.Body>
                     </Modal>
                     <ReactTable
@@ -111,6 +144,17 @@ class RulesComp extends Component {
                             textAlign: "center"
                           },
                           Cell: row => (
+                          <div>
+                            {/*<Button
+                              onClick={() => {
+                                this.editRule(row);
+                              }}
+                              bsStyle="danger"
+                              simple
+                              icon
+                            >
+                              <i className="fa fa-edit" />
+                            </Button>*/}
                             <Button
                               onClick={() => {
                                 this.deleteRule(row);
@@ -121,6 +165,7 @@ class RulesComp extends Component {
                             >
                               <i className="fa fa-times" />
                             </Button>
+                          </div>
                           ),
                           sortable: false,
                           filterable: false

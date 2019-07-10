@@ -60,7 +60,9 @@ const initialState = {
       level: "error",
       message: "This is a test notification 2"
     }
-  ]
+  ],
+  strategyTemplates: [],
+  strategyTemplateOptions: []
 };
 
 const global = (state = initialState, action) => {
@@ -166,6 +168,22 @@ const global = (state = initialState, action) => {
           }
         ]
       };
+    case ACTION_TYPES.RETRIEVED_STRATEGY_TEMPLATE:
+      let strategyTemplates = action.response.data;
+      const strategyTemplateOptions = strategyTemplates.map(
+        strategyTemplate => {
+          return {
+            ...strategyTemplate,
+            value: strategyTemplate.name,
+            label: strategyTemplate.name
+          };
+        }
+      );
+      return {
+        ...state,
+        strategyTemplates: strategyTemplates,
+        strategyTemplateOptions: strategyTemplateOptions
+      };
     case ACTION_TYPES.RETRIEVED_STRATEGY_METADATA:
       let strategyMetadata = action.response.data;
 
@@ -174,7 +192,11 @@ const global = (state = initialState, action) => {
 
       let ruleTypes = strategyMetadata.ruleTypes;
       let ruleTypeSelectOptions = _.map(ruleTypes, ruleType => {
-        return { value: ruleType.args, label: ruleType.name };
+        return {
+          value: ruleType.args,
+          label: ruleType.name,
+          classz: ruleType.classz
+        };
       });
 
       let categoryIndicatorMap = strategyMetadata.categoryIndicatorMap;

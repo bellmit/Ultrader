@@ -1,39 +1,75 @@
 import React, { Component } from "react";
+import {
+  Grid,
+  Row,
+  Col,
+  FormGroup,
+  FormControl,
+  ControlLabel
+} from "react-bootstrap";
 // react component used to create charts
-import SweetAlert from "react-bootstrap-sweetalert";
+import Select from "react-select";
+
+import Card from "components/Card/Card.jsx";
 
 import Button from "components/CustomButton/CustomButton.jsx";
 
 class FinalStep extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      alert: null
-    };
   }
+
   isValidated() {
     return true;
   }
-  successAlert() {
-    this.setState({
-      alert: (
-        <SweetAlert
-          success
-          style={{ display: "block", marginTop: "-100px" }}
-          title="Good job!"
-          onConfirm={() => this.setState({ alert: null })}
-          onCancel={() => this.setState({ alert: null })}
-          confirmBtnBsStyle="info"
-        >
-          You clicked the finish button!
-        </SweetAlert>
-      )
-    });
-  }
+
   render() {
     return (
       <div className="wizard-step">
-
+        <h5 className="text-center">Keys</h5>
+        <Grid fluid>
+          <Row>
+            <Col md={12}>
+              <Card
+                content={
+                  <form>
+                    <FormGroup>
+                      <ControlLabel>Strategy Template</ControlLabel>
+                      <Select
+                        placeholder="Strategy Templates"
+                        name="strategyTemplate"
+                        options={this.props.strategyTemplateOptions}
+                        value={this.props.selectedStrategyTemplateOption}
+                        id="STRATEGY_TEMPLATE"
+                        onChange={option =>
+                          this.props.selectStrategyTemplateOption(option)
+                        }
+                      />
+                    </FormGroup>
+                    {this.props.selectedStrategyTemplateOption &&
+                    this.props.selectedStrategyTemplateOption.description ? (
+                      <FormGroup>
+                        <ControlLabel>Strategy Description</ControlLabel>
+                        <Card
+                          content={
+                            <div
+                              dangerouslySetInnerHTML={{
+                                __html: this.props
+                                  .selectedStrategyTemplateOption.description
+                              }}
+                            />
+                          }
+                        ></Card>
+                      </FormGroup>
+                    ) : (
+                      ""
+                    )}
+                  </form>
+                }
+              />
+            </Col>
+          </Row>
+        </Grid>
         <div className="wizard-finish-button">
           <Button
             bsStyle="info"
@@ -45,7 +81,6 @@ class FinalStep extends Component {
             Finish
           </Button>
         </div>
-        {this.state.alert}
       </div>
     );
   }

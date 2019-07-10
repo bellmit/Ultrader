@@ -42,6 +42,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         return new JwtAuthenticationFilter();
     }
 
+    @Bean
+    public SetupCompleteCheckFilter setupCompleteCheckFilter() {
+        return new SetupCompleteCheckFilter();
+    }
+
     @Override
     public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
         authenticationManagerBuilder
@@ -70,6 +75,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                         "/ws/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 // api's
                 .antMatchers("/api/auth").permitAll()
+                .antMatchers("/api/metadata/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/api/rule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/api/order/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 .antMatchers("/api/position/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())//1 for Admin, 2 for User
@@ -87,6 +93,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.headers().frameOptions().sameOrigin();
         // Add our custom JWT security filter
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        // Add filter for checking keys
+        http.addFilterBefore(setupCompleteCheckFilter(), UsernamePasswordAuthenticationFilter.class);
     }
 
     @Bean

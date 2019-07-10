@@ -2,18 +2,17 @@ import React, { Component } from "react";
 
 import { connect } from "react-redux";
 
-import * as ACTION_TYPES from "actions/Settings/SettingsWizardActions";
+import * as ACTION_TYPES from "actions/layouts/SetupActions";
 
-import SettingsWizardComp from "views/Settings/Wizard/SettingsWizard";
+import SetupComp from "layouts/Setup/Setup";
 
-class SettingsWizard extends Component {
+class Setup extends Component {
   render() {
     return (
-      <SettingsWizardComp
-        settings={this.props.settings}
+      <SetupComp
         strategyTemplates={this.props.strategyTemplates}
         strategyTemplateOptions={this.props.strategyTemplateOptions}
-        onAddSetting={this.props.onAddSetting}
+
         onRetrievedStrategyTemplate={this.props.onRetrievedStrategyTemplate}
       />
     );
@@ -22,7 +21,6 @@ class SettingsWizard extends Component {
 
 const mapStateToProps = state => {
   return {
-    settings: state.settingsWizard.settings,
     strategyTemplateOptions: state.global.strategyTemplateOptions,
     strategyTemplates: state.global.strategyTemplates
   };
@@ -30,11 +28,10 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    onAddSetting: (key, value) =>
+    onRetrievedStrategyTemplate: response =>
       dispatch({
-        type: ACTION_TYPES.ADD_SETTING,
-        key: key,
-        value: value
+        type: ACTION_TYPES.RETRIEVED_STRATEGY_TEMPLATE,
+        response: response
       })
   };
 };
@@ -42,4 +39,4 @@ const mapDispatchToProps = dispatch => {
 export default connect(
   mapStateToProps,
   mapDispatchToProps
-)(SettingsWizard);
+)(Setup);

@@ -45,6 +45,7 @@ public class UserController {
                 return null;
             }
             user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
+            user.setRoleId(UserType.ADMIN.getId().toString());
             User savedUser = userDao.save(user);
             return savedUser;
         } catch (Exception e) {

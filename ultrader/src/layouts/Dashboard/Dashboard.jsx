@@ -85,37 +85,43 @@ class DashboardComp extends Component {
     stompClient.debug = () => {};
 
     let authHeader = getAuthHeader();
+    if(!this.props.stompClient||!this.props.socket){
+        stompClient.connect(authHeader, frame => {
 
-    stompClient.connect(authHeader, frame => {
-      this.props.onConnectedToMonitor(socket, stompClient);
-      stompClient.subscribe(
-        "/topic/status/data",
-        this.processDataStatusMessage
-      );
-      stompClient.subscribe(
-        "/topic/status/market",
-        this.processMarketStatusMessage
-      );
-      stompClient.subscribe(
-        "/topic/dashboard/account",
-        this.processPortfolioMessage
-      );
-      stompClient.subscribe(
-        "/topic/dashboard/trades",
-        this.processTradesMessage
-      );
-      stompClient.subscribe(
-        "/topic/dashboard/profit",
-        this.processProfitMessage
-      );
-      stompClient.subscribe("/topic/order", this.processNotification);
-    });
+          console.log("stompClient");
+          this.props.onConnectedToMonitor(socket, stompClient);
+          stompClient.subscribe(
+            "/topic/status/data",
+            this.processDataStatusMessage
+          );
+          stompClient.subscribe(
+            "/topic/status/market",
+            this.processMarketStatusMessage
+          );
+          stompClient.subscribe(
+            "/topic/dashboard/account",
+            this.processPortfolioMessage
+          );
+          stompClient.subscribe(
+            "/topic/dashboard/trades",
+            this.processTradesMessage
+          );
+          stompClient.subscribe(
+            "/topic/dashboard/profit",
+            this.processProfitMessage
+          );
+          stompClient.subscribe("/topic/order", this.processNotification);
+          this.initData();
+        });
+    }
+
   }
 
   initData() {
     axiosGetWithAuth("/api/notification/dashboard")
       .then(handleResponse)
       .then(res => {
+        console.log("initData");
         this.props.onReceivedDashboardNotifications(res);
       })
       .catch(error => {});
@@ -128,6 +134,12 @@ class DashboardComp extends Component {
         this.props.onRetrievedStrategyMetadata(res);
       })
       .catch(error => {});
+
+        axiosGetWithAuth("/api/metadata/getStrategyTemplate")
+          .then(res => {
+            this.props.onRetrievedStrategyTemplate(res);
+          })
+          .catch(error => {});
 
     axiosGetWithAuth("/api/strategy/getStrategies")
       .then(handleResponse)
@@ -171,6 +183,9 @@ class DashboardComp extends Component {
     this.interval = setInterval(() => {
       this.checkBotStatus();
     }, 5 * 60 * 1000);
+    setTimeout(() => {
+      this.initData();
+    }, 15 * 1000);
   }
 
   componentWillUnmount() {
