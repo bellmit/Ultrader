@@ -10,19 +10,13 @@ import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ta4j.core.*;
-import org.ta4j.core.indicators.SMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.num.PrecisionNum;
-import org.ta4j.core.trading.rules.BooleanIndicatorRule;
-import org.ta4j.core.trading.rules.IsHighestRule;
+
 
 import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,7 +36,7 @@ public class TradingUtil {
     public static final String DOUBLE = "Double";
     public static final String NUM_INDICATOR = "NumIndicator";
     public static final String BOOLEAN_INDICATOR = "BooleanIndicator";
-    public static org.ta4j.core.Rule generateTradingStrategy(StrategyDao strategyDao, RuleDao ruleDao, long strategyId, String stock) {
+    public static org.ta4j.core.Rule generateTradingStrategy(StrategyDao strategyDao, RuleDao ruleDao, long strategyId, TimeSeries stock) {
         try{
             Validate.notNull(strategyDao, "strategyDao is required");
             Validate.notNull(ruleDao, "ruleDao is required");
@@ -84,7 +78,7 @@ public class TradingUtil {
         }
     }
 
-    public static Rule generateTradingRule(RuleDao ruleDao , Long rid, String stock) throws Exception {
+    public static Rule generateTradingRule(RuleDao ruleDao , Long rid, TimeSeries stock) throws Exception {
         String ruleExp = ruleDao.findById(rid).map(r -> r.getFormula()).orElse(null);
         String ruleType = ruleDao.findById(rid).map(r -> r.getType()).orElse(null);
         Validate.notEmpty(ruleExp, "Cannot find ruleExp for rule id " + rid);
@@ -142,7 +136,7 @@ public class TradingUtil {
         return classes;
     }
 
-    public static Object[] getArgs(String[] args, String stock) throws Exception {
+    public static Object[] getArgs(String[] args, TimeSeries stock) throws Exception {
         Object[] values = new Object[args.length];
         for (int i = 0; i < values.length; i++) {
             try {
@@ -171,16 +165,16 @@ public class TradingUtil {
                     for (int j = 1; j < argStr.length; j++) {
                         if(argStr[j].equals(TIME_SERIES)) {
                             //Indicator value is time series
-                            if(!MarketDataMonitor.timeSeriesMap.containsKey(stock)) {
-                                LOGGER.error(String.format("Missing stock time series for %s when generating the rule", stock));
+                            if(stock == null) {
+                                LOGGER.error(String.format("Missing stock time series when generating the rule"));
                             }
-                            argValues[j-1] = MarketDataMonitor.timeSeriesMap.get(stock);
+                            argValues[j-1] = stock;
                         } else if (argStr[j].equals(CLOSE_PRICE)) {
                             //Indicator value is close price indicator
-                            if(!MarketDataMonitor.timeSeriesMap.containsKey(stock)) {
-                                LOGGER.error(String.format("Missing stock time series for %s when generating the rule", stock));
+                            if(stock == null) {
+                                LOGGER.error(String.format("Missing stock time series when generating the rule"));
                             }
-                            argValues[j-1] = new  ClosePriceIndicator(MarketDataMonitor.timeSeriesMap.get(stock));
+                            argValues[j-1] = new  ClosePriceIndicator(stock);
                         } else if (argStr[j].indexOf(".") >= 0) {
                             argValues[j-1] = Double.parseDouble(argStr[j]);
                         } else {
@@ -197,7 +191,7 @@ public class TradingUtil {
                 } else if (argType.equals(BOOLEAN)) {
                     values[i] = Boolean.parseBoolean(argStr[1]);
                 } else if (argType.equals(CLOSE_PRICE)) {
-                    values[i] = new ClosePriceIndicator(MarketDataMonitor.timeSeriesMap.get(stock));
+                    values[i] = new ClosePriceIndicator(stock);
                 } else if (argType.equals(ORDER_TYPE)) {
                     values[i] = Order.OrderType.valueOf(argStr[1]);
                 } else {
@@ -230,10 +224,10 @@ public class TradingUtil {
             Long sellStrategyId = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_SELL_STRATEGY.getName(), "-1"));
             Map<String, Strategy> strategyMap = new HashMap<>();
             for(String stock : MarketDataMonitor.timeSeriesMap.keySet()) {
-                if(!TradingStrategyMonitor.getStrategies().containsKey(stock)) {
+                if(!TradingStrategyMonitor.getStrategies().containsKey(stock) && MarketDataMonitor.timeSeriesMap.get(stock) != null) {
                     //Add strategy for new stock
-                    Rule buyRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, stock);
-                    Rule sellRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, stock);
+                    Rule buyRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, MarketDataMonitor.timeSeriesMap.get(stock));
+                    Rule sellRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, MarketDataMonitor.timeSeriesMap.get(stock));
                     if(buyRules != null && sellRules != null) {
                         strategyMap.put(stock, new BaseStrategy(stock, buyRules, sellRules));
                     } else {
