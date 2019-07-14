@@ -99,7 +99,7 @@ public class NotificationUtil {
         }
         map.put("TotalProfit", df.format(totalProfit));
         map.put("AverageProfit", df.format( sellCount == 0 ? 0 : totalProfit / sellCount));
-        map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : totalRatio / sellCount * 100));
+        map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : totalRatio / sellCount));
         LOGGER.info("Notify profit update {}", map);
         return new DashboardDataMessage(map);
     }
