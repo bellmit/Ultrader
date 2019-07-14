@@ -26,7 +26,6 @@ class FinalStep extends Component {
   render() {
     return (
       <div className="wizard-step">
-        <h5 className="text-center">Keys</h5>
         <Grid fluid>
           <Row>
             <Col md={12}>

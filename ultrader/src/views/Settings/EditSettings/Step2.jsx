@@ -22,13 +22,9 @@ var marketDataPlatformOptions = [
   { value: "Polygon", label: "Polygon API" }
 ];
 
-var exchangeOptions = [
-  { value: "NASDAQ", label: "NASDAQ" },
-  { value: "AMEX", label: "AMEX" },
-  { value: "ARCA", label: "ARCA" },
-  { value: "BATS", label: "BATS" },
-  { value: "NYSE", label: "NYSE" },
-  { value: "NYSEARCA", label: "NYSEARCA" }
+var booleanOptions = [
+  { value: "true", label: "true" },
+  { value: "false", label: "false" }
 ];
 
 class Step2 extends React.Component {
@@ -41,7 +37,7 @@ class Step2 extends React.Component {
   }
 
   render() {
-    const { inputValue, menuIsOpen } = this.state;
+    const { exchangeInputValue, exchangeMenuOpen } = this.state;
     return (
       <div className="wizard-step">
         <Grid fluid>
@@ -77,18 +73,18 @@ class Step2 extends React.Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Exchange List</ControlLabel>
+                      <ControlLabel>
+                        Auto Trading Enabled (Default True)
+                      </ControlLabel>
                       <Select
-                        isMulti
-                        value={this.props.selectedExchangeOptions}
-                        isClearable
-                        isSearchable
-                        inputValue={inputValue}
-                        onChange={this.props.onExchangeInputChange}
-                        name="exchange"
-                        id="TRADE_EXCHANGE_LIST"
-                        options={exchangeOptions}
-                        menuIsOpen={menuIsOpen}
+                        placeholder="Market Data Platform"
+                        name="marketDataPlatform"
+                        options={booleanOptions}
+                        value={this.props.selectedAutoTradingOption}
+                        id="GLOBAL_AUTO_TRADING_ENABLE"
+                        onChange={option =>
+                          this.props.selectAutoTradingOption(option)
+                        }
                       />
                     </FormGroup>
                   </form>

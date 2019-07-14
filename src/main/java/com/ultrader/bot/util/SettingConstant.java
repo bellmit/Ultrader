@@ -19,20 +19,18 @@ public enum SettingConstant {
     BOT_SECRET("KEY_ULTRADER_SECRET"),
     //Trading platform name
     TRADING_PLATFORM("GLOBAL_TRADING_PLATFORM"),
+    //Market data platform name
+    MARKET_DATA_PLATFORM("GLOBAL_MARKETDATA_PLATFORM"),
+    //Enabled auto trading
+    AUTO_TRADING_ENABLE("GLOBAL_AUTO_TRADING_ENABLE"),
+    //Trading period, 1min, 5min, etc
+    TRADE_PERIOD_SECOND("TRADE_PERIOD_SECOND"),
     //Regards the customized stock list as white list
     WHITE_LIST_ENABLE("TRADE_WHITE_LIST_ENABLE"),
     //User customized stock list
     TRADE_STOCK_LIST("TRADE_STOCK_LIST"),
     //Stock exchanges that need to be considered
     TRADE_EXCHANGE("TRADE_EXCHANGE_LIST"),
-    //Market data platform name
-    MARKET_DATA_PLATFORM("GLOBAL_MARKETDATA_PLATFORM"),
-    //The max bars that indicator can use to calculate
-    INDICATOR_MAX_LENGTH("INDICATOR_MAX_LENGTH"),
-    //Trading period, 1min, 5min, etc
-    TRADE_PERIOD_SECOND("TRADE_PERIOD_SECOND"),
-    //Enabled auto trading
-    AUTO_TRADING_ENABLE("GLOBAL_AUTO_TRADING_ENABLE"),
     //The max stock price filter
     TRADE_PRICE_LIMIT_MAX("TRADE_PRICE_LIMIT_MAX"),
     //The min stock price filter
@@ -52,7 +50,9 @@ public enum SettingConstant {
     //Buy order type, limit, market, etc
     TRADE_BUY_ORDER_TYPE("TRADE_BUY_ORDER_TYPE"),
     //Sell order type, limit, market, etc
-    TRADE_SELL_ORDER_TYPE("TRADE_SELL_ORDER_TYPE");
+    TRADE_SELL_ORDER_TYPE("TRADE_SELL_ORDER_TYPE"),
+    //The max bars that indicator can use to calculate
+    INDICATOR_MAX_LENGTH("INDICATOR_MAX_LENGTH");
 
     public static final String DELIMITER = ",";
     private String name;

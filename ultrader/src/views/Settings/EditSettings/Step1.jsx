@@ -17,6 +17,10 @@ class Step1 extends React.Component {
     this.textOnChange = this.textOnChange.bind(this);
   }
 
+  textOnChange(e) {
+    this.props.onAddSetting(e.target.id, e.target.value);
+  }
+
   isValidated() {
     var valid =
       this.props.settings["KEY_ULTRADER_KEY"] &&
@@ -29,9 +33,6 @@ class Step1 extends React.Component {
     return valid;
   }
 
-  textOnChange(e) {
-    this.props.onAddSetting(e.target.id, e.target.value);
-  }
   render() {
     return (
       <div className="wizard-step">

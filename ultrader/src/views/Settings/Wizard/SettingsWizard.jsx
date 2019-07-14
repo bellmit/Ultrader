@@ -15,11 +15,6 @@ import FinalStep from "./FinalStep.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 
-var booleanOptions = [
-  { value: "true", label: "true" },
-  { value: "false", label: "false" }
-];
-
 class SettingsWizardComp extends Component {
   constructor(props) {
     super(props);
@@ -97,6 +92,7 @@ class SettingsWizardComp extends Component {
             responses[0].data.length +
             " settings and strategy template"
         );
+        axiosGetWithAuth("/api/setting/restart");
         window.location = "/";
       })
       .catch(error => {

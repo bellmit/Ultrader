@@ -1,0 +1,5 @@
+/*this defines width of tabs for Stepzilla*/
+.multi-step .progtrckr > li {
+    width: 33.3333% !important;
+}
+

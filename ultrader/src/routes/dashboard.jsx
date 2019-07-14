@@ -1,5 +1,6 @@
 import Dashboard from "containers/Dashboard/Dashboard.jsx";
 import SettingsWizard from "containers/Settings/SettingsWizard.jsx";
+import EditSettings from "containers/Settings/EditSettings.jsx";
 
 import GreetingMonitor from "containers/Monitors/GreetingMonitor.jsx";
 import AddRule from "containers/Rules/AddRule.jsx";
@@ -18,19 +19,10 @@ var dashboardRoutes = [
     component: Dashboard
   },
   {
-    collapse: true,
-    path: "/settings",
-    name: "Settings",
-    state: "openSettings",
-    icon: "pe-7s-config",
-    views: [
-      {
-        path: "/settings/wizard",
-        name: "Settings Wizard",
-        mini: "SW",
-        component: SettingsWizard
-      }
-    ]
+        path: "/settings/editSettings",
+        name: "Edit Settings",
+        icon: "pe-7s-config",
+        component: EditSettings
   },
   {
     path: "/rules",

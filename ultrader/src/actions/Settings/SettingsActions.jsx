@@ -1,0 +1,2 @@
+export const ADD_SETTING = 'ADD_SETTING';
+export const GET_SETTINGS_SUCCESS = 'GET_SETTINGS_SUCCESS';

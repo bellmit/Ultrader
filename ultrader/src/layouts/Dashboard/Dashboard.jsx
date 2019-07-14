@@ -87,8 +87,6 @@ class DashboardComp extends Component {
     let authHeader = getAuthHeader();
     if(!this.props.stompClient||!this.props.socket){
         stompClient.connect(authHeader, frame => {
-
-          console.log("stompClient");
           this.props.onConnectedToMonitor(socket, stompClient);
           stompClient.subscribe(
             "/topic/status/data",
@@ -121,7 +119,6 @@ class DashboardComp extends Component {
     axiosGetWithAuth("/api/notification/dashboard")
       .then(handleResponse)
       .then(res => {
-        console.log("initData");
         this.props.onReceivedDashboardNotifications(res);
       })
       .catch(error => {});
