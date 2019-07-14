@@ -150,8 +150,6 @@ export default class EditRuleComp extends React.Component {
 
   selectRuleType(option) {
     let ruleFieldTypes = option ? option.value : [];
-    console.log("aaa");
-    console.log(option);
 
     let ruleFieldTypeOptions = option
       ? option.value.map(ruleFieldType => {
@@ -306,7 +304,7 @@ export default class EditRuleComp extends React.Component {
                             <Col sm={10}>
                               <FormControl
                                 type="text"
-                                pattern="[0-9]*"
+                                pattern="[+-]?[0-9]*"
                                 value={
                                   (
                                     (
@@ -396,7 +394,7 @@ export default class EditRuleComp extends React.Component {
         return (
           <FormControl
             type="text"
-            pattern="[0-9]*"
+            pattern="[+-]?[0-9]*"
             placeholder={ruleFieldName}
             value={
               ((this.state.ruleFieldValues[index] || {}).value || {}).value
