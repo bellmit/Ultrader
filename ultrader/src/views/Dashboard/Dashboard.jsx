@@ -8,8 +8,10 @@ import { VectorMap } from "react-jvectormap";
 import Card from "components/Card/Card.jsx";
 import StatsCard from "components/Card/StatsCard.jsx";
 import Tasks from "components/Tasks/Tasks.jsx";
+import Button from "components/CustomButton/CustomButton.jsx";
 
 import { parseMoney, parsePercentage } from "helpers/ParseHelper";
+import { axiosGetWithAuth} from "helpers/UrlHelper";
 
 import {
   dataPie,
@@ -22,38 +24,31 @@ import {
   table_data
 } from "variables/Variables.jsx";
 
-var mapData = {
-  AU: 760,
-  BR: 550,
-  CA: 120,
-  DE: 1300,
-  FR: 540,
-  GB: 690,
-  GE: 200,
-  IN: 200,
-  RO: 600,
-  RU: 300,
-  US: 2920
-};
-
 class DashboardComp extends Component {
-  createTableData() {
-    var tableRows = [];
-    for (var i = 0; i < table_data.length; i++) {
-      tableRows.push(
-        <tr key={i}>
-          <td>
-            <div className="flag">
-              <img src={table_data[i].flag} alt="us_flag" />
-            </div>
-          </td>
-          <td>{table_data[i].country}</td>
-          <td className="text-right">{table_data[i].count}</td>
-          <td className="text-right">{table_data[i].percentage}</td>
-        </tr>
-      );
-    }
-    return tableRows;
+  constructor(props) {
+    super(props);
+
+    this.getTotalPortfolioChart = this.getTotalPortfolioChart.bind(this);
+    this.getMonthlyTotalPortfolio = this.getMonthlyTotalPortfolio.bind(this);
+    this.getMonthlyTotalPortfolio();
+    this.state = {
+      totalPortfolioChart : {},
+      totalPortfolioUpdateDate : new Date().toLocaleString()
+    };
+  }
+  getTotalPortfolioChart(length, period) {
+      axiosGetWithAuth("/api/chart/getPortfolio?length=" + length + "&period=" + period)
+        .then(res => {
+          this.setState({totalPortfolioChart : res.data, totalPortfolioUpdateDate : new Date().toLocaleString()});
+        })
+        .catch(error => {
+          console.log(error);
+          alert(error);
+        });
+  }
+
+  getMonthlyTotalPortfolio() {
+    this.getTotalPortfolioChart(30, 86400);
   }
   render() {
     return (
@@ -217,56 +212,41 @@ class DashboardComp extends Component {
             </Col>
           </Row>
           <Row>
-            <Col md={6}>
+            <Col md={12}>
               <Card
-                title="Users Behavior"
-                category="24 Hours performance"
+                title="Total Portfolio"
+                category="30 Days"
                 content={
                   <ChartistGraph
-                    data={dataSales}
+                    data={this.state.totalPortfolioChart}
                     type="Line"
-                    options={optionsSales}
+                    options={ {
+                              showArea: false,
+                              height: "245px",
+                              axisX: {
+                                showGrid: false
+                              },
+                              lineSmooth: true,
+                              showLine: true,
+                              showPoint: true,
+                              fullWidth: true,
+                              chartPadding: {
+                                right: 50
+                              }
+                              }
+                            }
                     responsiveOptions={responsiveSales}
                   />
                 }
                 legend={
                   <div>
-                    <i className="fa fa-circle text-info" /> Open
-                    <i className="fa fa-circle text-danger" /> Click
-                    <i className="fa fa-circle text-warning" /> Click Second
+                    <i className="fa fa-circle text-info" /> Total Portfolio
                     Time
                   </div>
                 }
                 stats={
                   <div>
-                    <i className="fa fa-history" /> Updated 3 minutes ago
-                  </div>
-                }
-              />
-            </Col>
-            <Col md={6}>
-              <Card
-                title="Users Behavior"
-                category="24 Hours performance"
-                content={
-                  <ChartistGraph
-                    data={dataSales}
-                    type="Line"
-                    options={optionsSales}
-                    responsiveOptions={responsiveSales}
-                  />
-                }
-                legend={
-                  <div>
-                    <i className="fa fa-circle text-info" /> Open
-                    <i className="fa fa-circle text-danger" /> Click
-                    <i className="fa fa-circle text-warning" /> Click Second
-                    Time
-                  </div>
-                }
-                stats={
-                  <div>
-                    <i className="fa fa-history" /> Updated 3 minutes ago
+                    <Button bsSize="xs" onClick={this.getMonthlyTotalPortfolio}><i className="fa fa-history" /></Button> Updated at {this.state.totalPortfolioUpdateDate}
                   </div>
                 }
               />
