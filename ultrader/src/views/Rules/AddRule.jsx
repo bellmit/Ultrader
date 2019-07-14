@@ -35,7 +35,7 @@ export default class AddRuleComp extends React.Component {
       ruleFieldTypeOptions: [],
       ruleFields: {},
       selectedRuleTypeOption: {},
-      selectedRuleFieldType: "",
+      selectedRuleFieldTypeOption: "",
       ruleFieldValues: []
     };
   }
@@ -112,9 +112,9 @@ export default class AddRuleComp extends React.Component {
   }
 
   selectRuleFieldsType(option) {
-    let selectedRuleFieldType = option ? option : {};
+    let selectedRuleFieldTypeOption = option ? option : {};
     this.setState({
-      selectedRuleFieldType: selectedRuleFieldType
+      selectedRuleFieldTypeOption: selectedRuleFieldTypeOption
     });
   }
 
@@ -127,13 +127,13 @@ export default class AddRuleComp extends React.Component {
           return { label: ruleFieldType, value: ruleFieldType };
         })
       : [];
-    let selectedRuleFieldType =
+    let selectedRuleFieldTypeOption =
       ruleFieldTypeOptions.length > 0 ? ruleFieldTypeOptions[0] : {};
     this.setState({
       ruleFieldTypes: ruleFieldTypes,
       ruleFieldTypeOptions: ruleFieldTypeOptions,
       selectedRuleTypeOption: option,
-      selectedRuleFieldType: selectedRuleFieldType
+      selectedRuleFieldTypeOption: selectedRuleFieldTypeOption
     });
   }
 
@@ -176,10 +176,10 @@ export default class AddRuleComp extends React.Component {
 
   ruleFields() {
     if (
-      this.state.selectedRuleFieldType &&
-      this.state.selectedRuleFieldType.value
+      this.state.selectedRuleFieldTypeOption &&
+      this.state.selectedRuleFieldTypeOption.value
     ) {
-      let ruleFieldNames = this.state.selectedRuleFieldType.value.split("|");
+      let ruleFieldNames = this.state.selectedRuleFieldTypeOption.value.split("|");
       return (
         <div>
           {ruleFieldNames.map((ruleFieldName, index) => (
@@ -499,7 +499,7 @@ export default class AddRuleComp extends React.Component {
                             <Select
                               placeholder="Input Type"
                               name="singleSelect"
-                              value={this.state.selectedRuleFieldType}
+                              value={this.state.selectedRuleFieldTypeOption}
                               options={this.state.ruleFieldTypeOptions}
                               onChange={value =>
                                 this.selectRuleFieldsType(value)

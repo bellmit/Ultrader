@@ -39,10 +39,11 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
-    onEditRuleSuccess: response =>
+    onEditRuleSuccess: (response,index) =>
       dispatch({
         type: ACTION_TYPES.EDIT_RULE_SUCCESS,
-        response: response
+        response: response,
+        index: index
       })
   };
 };

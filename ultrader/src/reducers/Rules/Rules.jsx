@@ -14,8 +14,8 @@ const rules = (state = initialState, action) => {
       };
     case ACTION_TYPES.EDIT_RULE_SUCCESS:
       var rule = action.response.data;
-      var index = action.index;
       var rules = [...state.rules];
+      var index = rules.map(function(e) { return e.id; }).indexOf(rule.id);
       rules[index] = rule;
       return {
         ...state,

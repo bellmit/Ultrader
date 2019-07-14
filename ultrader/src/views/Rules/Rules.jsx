@@ -34,7 +34,8 @@ class RulesComp extends Component {
     this.state = {
       showAdd: false,
       showEdit: false,
-      selectedRule: {}
+      selectedRule: {},
+      selectedRuleIndex: -1
     };
   }
 
@@ -59,6 +60,7 @@ class RulesComp extends Component {
     let index = row.index;
     this.setState({
         selectedRule : row.original,
+        selectedRuleIndex : index,
         showEdit: true
     });
   }
@@ -114,7 +116,7 @@ class RulesComp extends Component {
                     >
                       <Modal.Header closeButton />
                       <Modal.Body>
-                        <EditRule rule={this.state.selectedRule}/>
+                        <EditRule rule={this.state.selectedRule} index={this.state.selectedRuleIndex}/>
                       </Modal.Body>
                     </Modal>
                     <ReactTable
@@ -145,7 +147,7 @@ class RulesComp extends Component {
                           },
                           Cell: row => (
                           <div>
-                            {/*<Button
+                            <Button
                               onClick={() => {
                                 this.editRule(row);
                               }}
@@ -154,7 +156,7 @@ class RulesComp extends Component {
                               icon
                             >
                               <i className="fa fa-edit" />
-                            </Button>*/}
+                            </Button>
                             <Button
                               onClick={() => {
                                 this.deleteRule(row);
