@@ -1,6 +1,7 @@
 package com.ultrader.bot.controller;
 
 import com.ultrader.bot.dao.OrderDao;
+import com.ultrader.bot.model.websocket.DashboardDataMessage;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
 import com.ultrader.bot.util.NotificationUtil;
 import com.ultrader.bot.util.UserType;
@@ -12,6 +13,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Notification Controller
@@ -28,11 +32,13 @@ public class NotificationController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/dashboard")
     @ResponseBody
-    public void dashboardNotification() {
+    public DashboardDataMessage dashboardNotification() {
         //Populate Dashboard Message
-        notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount()));
-        notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
-        notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
-
+        DashboardDataMessage message = new DashboardDataMessage();
+        message.setData(new HashMap<>());
+        message.getData().putAll(NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount()).getData());
+        message.getData().putAll(NotificationUtil.generateTradesNotification(orderDao).getData());
+        message.getData().putAll( NotificationUtil.generateProfitNotification(orderDao).getData());
+        return message;
     }
 }
