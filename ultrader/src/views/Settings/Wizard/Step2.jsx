@@ -19,7 +19,7 @@ var tradingPlatformOptions = [
 
 var marketDataPlatformOptions = [
   { value: "IEX", label: "The Investor Exchange" },
-  { value: "Polygon", label: "Polygon API" }
+  { value: "POLYGON", label: "Polygon API" }
 ];
 
 var exchangeOptions = [

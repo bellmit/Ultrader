@@ -20,7 +20,7 @@ var dashboardRoutes = [
   },
   {
         path: "/settings/editSettings",
-        name: "Edit Settings",
+        name: "Settings",
         icon: "pe-7s-config",
         component: EditSettings
   },

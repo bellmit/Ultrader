@@ -22,7 +22,7 @@ var tradingPlatformOptions = [
 
 var marketDataPlatformOptions = [
   { value: "IEX", label: "The Investor Exchange" },
-  { value: "Polygon", label: "Polygon API" }
+  { value: "POLYGON", label: "Polygon API" }
 ];
 
 var booleanOptions = [
@@ -39,10 +39,16 @@ var exchangeOptions = [
   { value: "NYSEARCA", label: "NYSEARCA" }
 ];
 
+var orderTypeOptions = [
+  { value: "market", label: "market" },
+  { value: "limit", label: "limit" }
+];
+
 class EditSettingsComp extends Component {
   constructor(props) {
     super(props);
 
+    this.initData();
     this.saveSettings = this.saveSettings.bind(this);
     this.selectTradingPlatformOption = this.selectTradingPlatformOption.bind(
       this
@@ -60,6 +66,9 @@ class EditSettingsComp extends Component {
     this.onExchangeInputChange = this.onExchangeInputChange.bind(this);
 
     this.setSelectedOptions = this.setSelectedOptions.bind(this);
+    this.setStrategiesSelectedOptions = this.setStrategiesSelectedOptions.bind(
+      this
+    );
 
     this.state = {
       buyStrategyOptions: [],
@@ -74,23 +83,16 @@ class EditSettingsComp extends Component {
     };
   }
 
-  componentDidMount() {
-    this.initData();
-  }
+  componentDidMount() {}
 
   initData() {
-    axiosGetWithAuth("/api/setting/getSettings")
-      .then(res => {
-        this.props.onGetSettingsSuccess(res);
-        this.setSelectedOptions();
-      })
-      .catch(error => {
-        console.log(error);
-      });
+    var promises = [];
+    promises.push(axiosGetWithAuth("/api/setting/getSettings"));
+    promises.push(axiosGetWithAuth("/api/strategy/getStrategies"));
 
-    axiosGetWithAuth("/api/strategy/getStrategies")
-      .then(res => {
-        var strategies = res.data;
+    Promise.all(promises)
+      .then(responses => {
+        var strategies = responses[1].data;
         var buyStrategyOptions = strategies
           .filter(strategy => {
             return strategy.type === "Buy";
@@ -111,11 +113,39 @@ class EditSettingsComp extends Component {
         this.setState({
           sellStrategyOptions: sellStrategyOptions
         });
+
+        this.props.onGetSettingsSuccess(responses[0]);
+        this.setSelectedOptions();
+        this.setStrategiesSelectedOptions(
+          buyStrategyOptions,
+          sellStrategyOptions
+        );
       })
       .catch(error => {
-        console.log(error);
         alert(error);
       });
+  }
+
+  setStrategiesSelectedOptions(buyStrategyOptions, sellStrategyOptions) {
+    /*****************************************************************************/
+    var buyStrategyOption = buyStrategyOptions.find(
+      e => e.value == this.props.settings["TRADE_BUY_STRATEGY"]
+    );
+    var selectedBuyStrategyOption = buyStrategyOption ? buyStrategyOption : {};
+    this.setState({
+      selectedBuyStrategyOption: selectedBuyStrategyOption
+    });
+
+    /*****************************************************************************/
+    var sellStrategyOption = sellStrategyOptions.find(
+      e => e.value === this.props.settings["TRADE_SELL_STRATEGY"]
+    );
+    var selectedSellStrategyOption = sellStrategyOption
+      ? sellStrategyOption
+      : {};
+    this.setState({
+      selectedSellStrategyOption: selectedSellStrategyOption
+    });
   }
 
   setSelectedOptions() {
@@ -152,11 +182,9 @@ class EditSettingsComp extends Component {
 
     /*****************************************************************************/
     var exchanges = this.props.settings["TRADE_EXCHANGE_LIST"].split(",");
-    console.log(exchanges);
     var selectedExchangeOptions = exchangeOptions.filter(exchangeOption => {
       return exchanges.includes(exchangeOption.value);
     });
-    console.log(selectedExchangeOptions);
     this.setState({
       selectedExchangeOptions: selectedExchangeOptions
     });
@@ -273,8 +301,8 @@ class EditSettingsComp extends Component {
             onExchangeInputChange={this.onExchangeInputChange}
             buyStrategyOptions={this.state.buyStrategyOptions}
             sellStrategyOptions={this.state.sellStrategyOptions}
-            selectedBuyStrategy={this.state.selectedBuyStrategy}
-            selectedSellStrategy={this.state.selectedSellStrategy}
+            selectedBuyStrategyOption={this.state.selectedBuyStrategyOption}
+            selectedSellStrategyOption={this.state.selectedSellStrategyOption}
             selectBuyStrategyOption={this.selectBuyStrategyOption}
             selectSellStrategyOption={this.selectSellStrategyOption}
           />

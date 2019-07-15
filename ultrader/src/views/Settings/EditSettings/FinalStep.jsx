@@ -25,13 +25,15 @@ class FinalStep extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      exchangeMenuOpen: null,
-      exchangeInputValue: null
     };
   }
 
   isValidated() {
     return true;
+  }
+
+  textOnChange(e) {
+    this.props.onAddSetting(e.target.id, e.target.value);
   }
 
   render() {

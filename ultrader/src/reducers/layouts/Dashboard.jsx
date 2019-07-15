@@ -52,6 +52,7 @@ const initialState = {
     }
   },
   notifications: [
+  /*
     {
       level: "error",
       message: "This is a test notification"
@@ -60,6 +61,7 @@ const initialState = {
       level: "error",
       message: "This is a test notification 2"
     }
+    */
   ],
   strategyTemplates: [],
   strategyTemplateOptions: []
