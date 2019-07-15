@@ -24,6 +24,7 @@ var exchangeOptions = [
 class FinalStep extends Component {
   constructor(props) {
     super(props);
+    this.textOnChange = this.textOnChange.bind(this);
     this.state = {
     };
   }

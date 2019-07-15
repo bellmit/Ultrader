@@ -138,7 +138,7 @@ class EditSettingsComp extends Component {
 
     /*****************************************************************************/
     var sellStrategyOption = sellStrategyOptions.find(
-      e => e.value === this.props.settings["TRADE_SELL_STRATEGY"]
+      e => e.value == this.props.settings["TRADE_SELL_STRATEGY"]
     );
     var selectedSellStrategyOption = sellStrategyOption
       ? sellStrategyOption
@@ -151,7 +151,7 @@ class EditSettingsComp extends Component {
   setSelectedOptions() {
     /*****************************************************************************/
     var tradingPlatformOption = tradingPlatformOptions.find(
-      e => e.value === this.props.settings["GLOBAL_TRADING_PLATFORM"]
+      e => e.value == this.props.settings["GLOBAL_TRADING_PLATFORM"]
     );
     var selectedTradingPlatformOption = tradingPlatformOption
       ? tradingPlatformOption
@@ -162,7 +162,7 @@ class EditSettingsComp extends Component {
 
     /*****************************************************************************/
     var marketDataPlatformOption = marketDataPlatformOptions.find(
-      e => e.value === this.props.settings["GLOBAL_MARKETDATA_PLATFORM"]
+      e => e.value == this.props.settings["GLOBAL_MARKETDATA_PLATFORM"]
     );
     let selectedMarketDataPlatformOption = marketDataPlatformOption
       ? marketDataPlatformOption
@@ -173,7 +173,7 @@ class EditSettingsComp extends Component {
 
     /*****************************************************************************/
     var autoTradingOption = booleanOptions.find(
-      e => e.value === this.props.settings["GLOBAL_AUTO_TRADING_ENABLE"]
+      e => e.value == this.props.settings["GLOBAL_AUTO_TRADING_ENABLE"]
     );
     let selectedAutoTradingOption = autoTradingOption ? autoTradingOption : {};
     this.setState({
