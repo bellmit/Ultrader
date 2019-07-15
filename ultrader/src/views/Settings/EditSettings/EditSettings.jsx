@@ -62,6 +62,8 @@ class EditSettingsComp extends Component {
     this.selectAutoTradingOption = this.selectAutoTradingOption.bind(this);
     this.selectBuyStrategyOption = this.selectBuyStrategyOption.bind(this);
     this.selectSellStrategyOption = this.selectSellStrategyOption.bind(this);
+    this.selectBuyOrderTypeOption = this.selectBuyOrderTypeOption.bind(this);
+    this.selectSellOrderTypeOption = this.selectSellOrderTypeOption.bind(this);
 
     this.onExchangeInputChange = this.onExchangeInputChange.bind(this);
 
@@ -79,7 +81,9 @@ class EditSettingsComp extends Component {
       selectedStrategyTemplateOption: {},
       selectedAutoTradingOption: {},
       selectedBuyStrategyOption: {},
-      selectedSellStrategyOption: {}
+      selectedSellStrategyOption: {},
+      selectedBuyOrderTypeOption: {},
+      selectedSellOrderTypeOption: {}
     };
   }
 
@@ -188,6 +192,28 @@ class EditSettingsComp extends Component {
     this.setState({
       selectedExchangeOptions: selectedExchangeOptions
     });
+
+    /*****************************************************************************/
+    var buyOrderTypeOption = orderTypeOptions.find(
+      e => e.value == this.props.settings["TRADE_BUY_ORDER_TYPE"]
+    );
+    let selectedBuyOrderTypeOption = buyOrderTypeOption
+      ? buyOrderTypeOption
+      : {};
+    this.setState({
+      selectedBuyOrderTypeOption: selectedBuyOrderTypeOption
+    });
+
+    /*****************************************************************************/
+    var sellOrderTypeOption = orderTypeOptions.find(
+      e => e.value == this.props.settings["TRADE_SELL_ORDER_TYPE"]
+    );
+    let selectedSellOrderTypeOption = sellOrderTypeOption
+      ? sellOrderTypeOption
+      : {};
+    this.setState({
+      selectedSellOrderTypeOption: selectedSellOrderTypeOption
+    });
   }
 
   selectTradingPlatformOption(option) {
@@ -235,6 +261,22 @@ class EditSettingsComp extends Component {
       selectedSellStrategyOption: selectedSellStrategyOption
     });
     this.props.onAddSetting("TRADE_SELL_STRATEGY", option.value);
+  }
+
+  selectBuyOrderTypeOption(option) {
+    let selectedBuyOrderTypeOption = option ? option : {};
+    this.setState({
+      selectedBuyOrderTypeOption: selectedBuyOrderTypeOption
+    });
+    this.props.onAddSetting("TRADE_BUY_ORDER_TYPE", option.value);
+  }
+
+  selectSellOrderTypeOption(option) {
+    let selectedSellOrderTypeOption = option ? option : {};
+    this.setState({
+      selectedSellOrderTypeOption: selectedSellOrderTypeOption
+    });
+    this.props.onAddSetting("TRADE_SELL_ORDER_TYPE", option.value);
   }
 
   onExchangeInputChange(option) {
@@ -305,6 +347,11 @@ class EditSettingsComp extends Component {
             selectedSellStrategyOption={this.state.selectedSellStrategyOption}
             selectBuyStrategyOption={this.selectBuyStrategyOption}
             selectSellStrategyOption={this.selectSellStrategyOption}
+            selectedBuyOrderTypeOption={this.state.selectedBuyOrderTypeOption}
+            selectedSellOrderTypeOption={this.state.selectedSellOrderTypeOption}
+            selectBuyOrderTypeOption={this.selectBuyOrderTypeOption}
+            selectSellOrderTypeOption={this.selectSellOrderTypeOption}
+            orderTypeOptions={orderTypeOptions}
           />
         )
       }

@@ -25,8 +25,7 @@ class FinalStep extends Component {
   constructor(props) {
     super(props);
     this.textOnChange = this.textOnChange.bind(this);
-    this.state = {
-    };
+    this.state = {};
   }
 
   isValidated() {
@@ -180,22 +179,28 @@ class FinalStep extends Component {
                     </FormGroup>
                     <FormGroup>
                       <ControlLabel>Trade Buy Order Type</ControlLabel>
-                      <FormControl
+                      <Select
+                        placeholder="Trade Buy Order Type"
+                        name="marketDataPlatform"
+                        options={this.props.orderTypeOptions}
+                        value={this.props.selectedBuyOrderTypeOption}
                         id="TRADE_BUY_ORDER_TYPE"
-                        value={this.props.settings["TRADE_BUY_ORDER_TYPE"]}
-                        onChange={this.textOnChange}
-                        type="text"
-                        placeholder="Ultrader Bot Key"
+                        onChange={option =>
+                          this.props.selectBuyOrderTypeOption(option)
+                        }
                       />
                     </FormGroup>
                     <FormGroup>
                       <ControlLabel>Trade Sell Order Type</ControlLabel>
-                      <FormControl
+                      <Select
+                        placeholder="Trade Sell Order Type"
+                        name="marketDataPlatform"
+                        options={this.props.orderTypeOptions}
+                        value={this.props.selectedSellOrderTypeOption}
                         id="TRADE_SELL_ORDER_TYPE"
-                        value={this.props.settings["TRADE_SELL_ORDER_TYPE"]}
-                        onChange={this.textOnChange}
-                        type="text"
-                        placeholder="Ultrader Bot Key"
+                        onChange={option =>
+                          this.props.selectSellOrderTypeOption(option)
+                        }
                       />
                     </FormGroup>
                   </form>
