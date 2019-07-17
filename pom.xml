@@ -126,7 +126,7 @@
 					<proguardVersion>6.1.0</proguardVersion>
 					<injar>${project.build.finalName}.jar</injar>
 					<outjar>${project.build.finalName}.jar</outjar>
-					<obfuscate>false</obfuscate>
+					<obfuscate>true</obfuscate>
 					<options>
 						<option>-dontshrink</option>
 						<option>-dontoptimize</option>
@@ -170,8 +170,8 @@
 							@javax.persistence.GeneratedValue *;
 							}
 						</option>
-						<option>-keep public class com.ultrader.bot.model.** </option>
-						<option>-keep public class com.ultrader.bot.config.** </option>
+						<option>-keep public class com.ultrader.bot.model.** { *; } </option>
+						<option>-keep public class com.ultrader.bot.config.WebConfig { *; }</option>
 						<option>-keep public interface com.ultrader.bot.dao.** { *; }</option>
 						<option>-keep abstract class com.ultrader.bot.** { *; }</option>
 						<option>-keep class !com.ultrader.bot.** { *; }</option>
