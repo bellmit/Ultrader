@@ -19,7 +19,7 @@ import javax.annotation.PostConstruct;
  * @author ytx1991
  */
 
-@Service
+@Service("UserService")
 public class UserService implements UserDetailsService {
     private static final Logger LOGGER = LoggerFactory.getLogger(UserService.class);
     @Autowired

@@ -2,13 +2,11 @@ package com.ultrader.bot.service.alpaca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ultrader.bot.dao.OrderDao;
-import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.alpaca.websocket.TradeUpdateResponse;
 import com.ultrader.bot.model.alpaca.websocket.TradeUpdate;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
 import com.ultrader.bot.util.NotificationUtil;
-import com.ultrader.bot.util.TradingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -56,7 +54,7 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
         LOG.info("Alpaca websocket Connected");
        String payload = String.format("{\"action\": \"authenticate\",\"data\": {\"key_id\":\"%s\" ,\"secret_key\":\"%s\"}}", key, secret);
-        LOG.info("Sending [" + payload + "]");
+        LOG.debug("Sending [" + payload + "]");
         session.sendMessage(new TextMessage(payload));
         payload = "{\n" +
                 "    \"action\": \"listen\",\n" +

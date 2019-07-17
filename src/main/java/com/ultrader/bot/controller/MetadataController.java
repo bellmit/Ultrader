@@ -22,7 +22,7 @@ import java.util.Map;
  * @author ytx1991
  */
 @RequestMapping("/api/metadata")
-@RestController
+@RestController("MetadataController")
 public class MetadataController {
     private final static Logger LOGGER = LoggerFactory.getLogger(MetadataController.class);
 

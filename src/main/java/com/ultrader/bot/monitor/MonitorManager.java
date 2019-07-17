@@ -20,7 +20,7 @@ import org.springframework.stereotype.Component;
  * It will in charge of all automatic functions.
  * @author ytx1991
  */
-@Component
+@Component("MonitorManager")
 public class MonitorManager implements CommandLineRunner {
     private static final Logger LOGGER = LoggerFactory.getLogger(MonitorManager.class);
 

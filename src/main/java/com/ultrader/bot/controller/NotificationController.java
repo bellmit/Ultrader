@@ -22,7 +22,7 @@ import java.util.Map;
  * @author ytx1991
  */
 @RequestMapping("/api/notification")
-@RestController
+@RestController("NotificationController")
 public class NotificationController {
     private final static Logger LOGGER = LoggerFactory.getLogger(NotificationController.class);
     @Autowired

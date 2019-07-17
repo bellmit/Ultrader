@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
  * Alpaca Market data API
  * @author ytx1991
  */
-@Service
+@Service("AlpacaMarketDataService")
 public class AlpacaMarketDataService implements MarketDataService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaMarketDataService.class);
     private static final int MAX_STOCK = 150;

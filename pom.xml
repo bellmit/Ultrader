@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.ultrader</groupId>
 	<artifactId>bot</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.7.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>bot</name>
 	<description>Bot of Ultrader</description>
@@ -123,10 +123,10 @@
 					</execution>
 				</executions>
 				<configuration>
-					<proguardVersion>5.3.3</proguardVersion>
+					<proguardVersion>6.1.0</proguardVersion>
 					<injar>${project.build.finalName}.jar</injar>
 					<outjar>${project.build.finalName}.jar</outjar>
-					<obfuscate>true</obfuscate>
+					<obfuscate>false</obfuscate>
 					<options>
 						<option>-dontshrink</option>
 						<option>-dontoptimize</option>
@@ -145,7 +145,7 @@
 							EnclosingMethod
 						</option>
 						<!-- This option will save all original names in interfaces (without obfuscate).-->
-						<option>-keepnames interface **</option>
+						<!--<option>-keep interface **</option>-->
 						<!-- This option will save all original class files (without obfuscate) but obfuscate all
                              in domain and service packages.-->
 						<option>-keep
@@ -159,13 +159,24 @@
 						<!-- This option will save all original class files (without obfuscate) in service package-->
 						<!--<option>-keep class com.slm.proguard.example.spring.boot.service { *; }</option>-->
 						<!-- This option will save all original interfaces files (without obfuscate) in all packages.-->
-						<option>-keep interface * extends * { *; }</option>
+						<!--<option>-keep interface * extends * { *; }</option>-->
 						<!-- This option will save all original defined annotations in all class in all packages.-->
 						<option>-keepclassmembers class * {
 							@org.springframework.beans.factory.annotation.Autowired *;
 							@org.springframework.beans.factory.annotation.Value *;
+							@org.springframework.** *;
+							@javax.persistence.Id *;
+							@javax.persistence.Column *;
+							@javax.persistence.GeneratedValue *;
 							}
 						</option>
+						<option>-keep public class com.ultrader.bot.model.** </option>
+						<option>-keep public class com.ultrader.bot.config.** </option>
+						<option>-keep public interface com.ultrader.bot.dao.** { *; }</option>
+						<option>-keep abstract class com.ultrader.bot.** { *; }</option>
+						<option>-keep class !com.ultrader.bot.** { *; }</option>
+						<option>-keep interface !com.ultrader.bot.** { *; }</option>
+						<option>-keep enum !com.ultrader.bot.** { *; }</option>
 					</options>
 					<injarNotExistsSkip>true</injarNotExistsSkip>
 					<libs>

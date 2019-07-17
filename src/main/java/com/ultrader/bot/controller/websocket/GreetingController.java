@@ -8,7 +8,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.util.HtmlUtils;
 
-@Controller
+@Controller("GreetingController")
 public class GreetingController {
     @MessageMapping("/hello")
     @SendTo("/topic/greetings")

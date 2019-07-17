@@ -20,7 +20,7 @@ import org.springframework.util.StringUtils;
  * Login success handler
  * @author ytx1991
  */
-@Component
+@Component("AuthenticationSuccessHandler")
 public class AuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
 
     private final static Logger LOGGER = LoggerFactory.getLogger(AuthenticationSuccessHandler.class);

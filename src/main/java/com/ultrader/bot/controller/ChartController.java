@@ -26,7 +26,7 @@ import java.util.List;
  */
 
 @RequestMapping("/api/chart")
-@RestController
+@RestController("ChartController")
 public class ChartController {
     private static Logger LOGGER = LoggerFactory.getLogger(ChartController.class);
 
@@ -68,7 +68,6 @@ public class ChartController {
 
         startDate = startDate.plusSeconds(period);
         for(Chart chart : charts) {
-            LOGGER.info("previous {} now {}", chart.getDate().getTime(), startDate.toEpochSecond(ZoneOffset.UTC));
             if(chart.getDate().getTime() / 1000 < startDate.toEpochSecond(ZoneOffset.UTC) - offset) {
 
                 lastValue = chart.getValue();

@@ -13,7 +13,7 @@ import java.util.List;
  * Chart Repository
  * @author ytx1991
  */
-@Repository
+@Repository("ChartDao")
 @Transactional
 public interface ChartDao extends CrudRepository<Chart, Long> {
     @Query(value = "SELECT * FROM CHARTS WHERE date > ?1 and date < ?2 and serial_Name = ?3 order by date asc",

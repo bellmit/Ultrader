@@ -3503,11 +3503,11 @@ button.rbc-input::-moz-focus-inner {
   height: auto; }
 
 .multi-step .wizard-finish-button > button {
-  margin-top: 0px;
+  margin-top: 45px;
   margin-right: 15px; }
 
 .multi-step .wizard-step {
-  padding-top: 60px}
+  padding: 45px 0px; }
 
 .multi-step .footer-buttons {
   padding: 0 15px 10px;

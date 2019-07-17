@@ -13,13 +13,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.Charset;
 import java.util.Date;
 
 /**
  * License Service
  * @author ytx1991
  */
-@Service
+@Service("ls")
 public class LicenseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(LicenseService.class);
 
@@ -42,6 +43,7 @@ public class LicenseService {
         request.setUltraderKey(ultraderKey);
         request.setTimestamp(new Date().getTime());
         request.setToken(encrypt(ultraderKey + ultraderSecret + request.getTimestamp().toString()));
+        LOGGER.info(request.toString());
         KeyVerificationResponse response = client.postForObject("/verify", request, KeyVerificationResponse.class);
         if(response.getToken() == null) {
             LOGGER.error(response.getMessage());
@@ -57,6 +59,6 @@ public class LicenseService {
     }
 
     private String encrypt(String raw) {
-        return new String(DigestUtils.md5Digest(raw.getBytes()));
+        return new String(DigestUtils.md5Digest(raw.getBytes(Charset.forName("UTF-8"))),  Charset.forName("UTF-8"));
     }
 }

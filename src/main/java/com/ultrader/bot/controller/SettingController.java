@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
  */
 
 @RequestMapping("/api/setting")
-@RestController
+@RestController("SettingController")
 public class SettingController {
     private static Logger LOGGER = LoggerFactory.getLogger(SettingController.class);
     @Autowired

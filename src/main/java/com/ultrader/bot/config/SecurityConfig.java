@@ -27,7 +27,7 @@ import javax.sql.DataSource;
  * REST security config
  * @author ytx1991
  */
-@Configuration
+@Configuration("SecurityConfig")
 @EnableWebSecurity
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 

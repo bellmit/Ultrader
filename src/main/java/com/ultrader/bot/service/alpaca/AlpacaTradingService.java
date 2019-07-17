@@ -32,7 +32,7 @@ import java.util.*;
  * Alpaca Order API
  * @author ytx1991
  */
-@Service
+@Service("AlpacaTradingService")
 public class AlpacaTradingService implements TradingService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaPaperTradingService.class);
     private String alpacaKey;

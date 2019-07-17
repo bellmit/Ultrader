@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  */
 
 @RequestMapping("/api/position")
-@RestController
+@RestController("PositionController")
 public class PositionController {
     private static Logger LOGGER = LoggerFactory.getLogger(PositionController.class);
 

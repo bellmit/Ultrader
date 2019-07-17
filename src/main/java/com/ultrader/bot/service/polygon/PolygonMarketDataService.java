@@ -37,7 +37,7 @@ import java.util.concurrent.TimeUnit;
  * Polygon Market Data Service
  * @author ytx1991
  */
-@Service
+@Service("PolygonMarketDataService")
 public class PolygonMarketDataService implements MarketDataService {
     private final static Logger LOGGER = LoggerFactory.getLogger(PolygonMarketDataService.class);
     private final static int MIN_PER_TRADING_DAY = 390;
@@ -90,7 +90,7 @@ public class PolygonMarketDataService implements MarketDataService {
     }
     @Override
     public List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) throws InterruptedException {
-
+        interval = interval < 60000 ? 60000 : interval;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String endDate = ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).plusDays(1).format(formatter);
         String startDate = getStartDate(stocks.get(0), endDate, interval, formatter);

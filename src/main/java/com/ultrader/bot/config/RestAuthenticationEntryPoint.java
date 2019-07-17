@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
  * The Entry Point will not redirect to any sort of Login - it will return the 401
  * @author ytx1991
  */
-@Component
+@Component("RestAuthenticationEntryPoint")
 public final class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     @Override

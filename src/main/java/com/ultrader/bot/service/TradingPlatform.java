@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
  * Trading platform, include all services
  * @author ytx1991
  */
-@Service
+@Service("TradingPlatform")
 public class TradingPlatform {
     private final static Logger LOGGER = LoggerFactory.getLogger(TradingPlatform.class);
     private TradingService tradingService;
