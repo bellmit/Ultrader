@@ -46,6 +46,8 @@ public class SetupCompleteCheckFilter extends OncePerRequestFilter {
         return path.startsWith("/h2-console") ||
                 path.startsWith("/api/metadata/") ||
                 path.startsWith("/api/setting/addSettings") ||
-                path.startsWith("/api/strategy/import");
+                path.startsWith("/api/strategy/import") ||
+                path.startsWith("/api/auth");
+
     }
 }

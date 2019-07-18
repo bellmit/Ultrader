@@ -7,7 +7,6 @@ import {
   FormControl,
   ControlLabel
 } from "react-bootstrap";
-// react component used to create charts
 import Select from "react-select";
 
 import Card from "components/Card/Card.jsx";
@@ -155,7 +154,7 @@ class FinalStep extends Component {
                       <ControlLabel>Trade Buy Strategy</ControlLabel>
                       <Select
                         placeholder="Trade Buy Strategy"
-                        name="marketDataPlatform"
+                        name="buyStrategy"
                         options={this.props.buyStrategyOptions}
                         value={this.props.selectedBuyStrategyOption}
                         id="TRADE_BUY_STRATEGY"
@@ -168,7 +167,7 @@ class FinalStep extends Component {
                       <ControlLabel>Trade Sell Strategy</ControlLabel>
                       <Select
                         placeholder="Trade Sell Strategy"
-                        name="marketDataPlatform"
+                        name="sellStrategy"
                         options={this.props.sellStrategyOptions}
                         value={this.props.selectedSellStrategyOption}
                         id="TRADE_SELL_STRATEGY"

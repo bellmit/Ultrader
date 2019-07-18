@@ -8,6 +8,7 @@ import strategies from './Strategies/Strategies';
 import positions from './Positions/Positions';
 import orders from './Orders/Orders';
 import dashboard from './Dashboard/Dashboard';
+import backtest from './Backtest/Backtest';
 
 
 export default combineReducers({
@@ -19,5 +20,6 @@ export default combineReducers({
   orders,
   greetingMonitor,
   settings,
-  dashboard
+  dashboard,
+  backtest
 })
