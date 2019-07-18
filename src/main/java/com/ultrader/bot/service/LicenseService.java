@@ -43,7 +43,6 @@ public class LicenseService {
         request.setUltraderKey(ultraderKey);
         request.setTimestamp(new Date().getTime());
         request.setToken(encrypt(ultraderKey + ultraderSecret + request.getTimestamp().toString()));
-        LOGGER.info(request.toString());
         KeyVerificationResponse response = client.postForObject("/verify", request, KeyVerificationResponse.class);
         if(response.getToken() == null) {
             LOGGER.error(response.getMessage());
