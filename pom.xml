@@ -171,6 +171,7 @@
 							}
 						</option>
 						<option>-keep public class com.ultrader.bot.model.** { *; } </option>
+						<option>-keep class com.ultrader.bot.service.polygon.PolygonMarketDataService$GetStockBarsTask { *; } </option>
 						<option>-keep public class com.ultrader.bot.config.WebConfig { *; }</option>
 						<option>-keep public interface com.ultrader.bot.dao.** { *; }</option>
 						<option>-keep abstract class com.ultrader.bot.** { *; }</option>
