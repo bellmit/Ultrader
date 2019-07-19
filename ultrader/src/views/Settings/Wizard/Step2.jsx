@@ -13,7 +13,7 @@ import Select from "react-select";
 import Card from "components/Card/Card.jsx";
 
 var tradingPlatformOptions = [
-  { value: "Alpaca", label: "Alpaca" },
+  { value: "Alpaca", label: "Alpaca v1" },
   { value: "AlpacaPaper", label: "Alpaca Paper" }
 ];
 

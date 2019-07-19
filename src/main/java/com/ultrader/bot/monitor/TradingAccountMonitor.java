@@ -123,6 +123,7 @@ public class TradingAccountMonitor extends Monitor {
             //Get current portfolio
             syncAccount();
             Chart chart = new Chart();
+            chart.setId(0);
             chart.setDate(new Date());
             chart.setSerialName("Portfolio");
             chart.setValue(account.getPortfolioValue());

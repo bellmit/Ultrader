@@ -16,7 +16,7 @@ var dashboardRoutes = [
   {
     path: "/dashboard",
     name: "Dashboard",
-    icon: "pe-7s-graph",
+    icon: "pe-7s-display1",
     component: Dashboard
   },
   {
@@ -28,19 +28,19 @@ var dashboardRoutes = [
   {
     path: "/rules",
     name: "Rules",
-    icon: "pe-7s-config",
+    icon: "pe-7s-copy-file",
     component: Rules
   },
   {
     path: "/strategies",
     name: "Strategies",
-    icon: "pe-7s-config",
+    icon: "pe-7s-file",
     component: Strategies
   },
   {
     path: "/positions",
     name: "Positions",
-    icon: "pe-7s-graph1",
+    icon: "pe-7s-portfolio",
     component: Positions
   },
   {

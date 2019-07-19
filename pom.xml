@@ -182,6 +182,7 @@
 
 						<option>-keep interface !com.ultrader.bot.** { *; }</option>
 						<option>-keep enum !com.ultrader.bot.** { *; }</option>
+						<option>-keep enum com.ultrader.bot.** { *; }</option>
 					</options>
 					<injarNotExistsSkip>true</injarNotExistsSkip>
 					<libs>

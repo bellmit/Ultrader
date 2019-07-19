@@ -16,7 +16,7 @@ import javax.persistence.*;
 public class Strategy {
     @Id
     @Column(name="ID", unique=true, updatable=false, nullable=false)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue
     private long id;
 
     @Column(name="name", nullable=false)

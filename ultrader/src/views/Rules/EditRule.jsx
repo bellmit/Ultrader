@@ -455,7 +455,6 @@ export default class EditRuleComp extends React.Component {
                           </FormGroup>
                         </fieldset>
                       );
-                    case "Number":
                     case "Integer":
                       return (
                         <fieldset>
@@ -489,6 +488,7 @@ export default class EditRuleComp extends React.Component {
                           </FormGroup>
                         </fieldset>
                       );
+                    case "Number":
                     case "Double":
                     case "Decimal":
                       return (
@@ -550,8 +550,6 @@ export default class EditRuleComp extends React.Component {
               )}
           </div>
         );
-
-      case "Number":
       case "Integer":
         return (
           <FormControl
@@ -570,6 +568,7 @@ export default class EditRuleComp extends React.Component {
             }}
           />
         );
+      case "Number":
       case "Double":
       case "Decimal":
         return (
