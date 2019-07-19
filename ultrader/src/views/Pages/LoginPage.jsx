@@ -43,11 +43,22 @@ class LoginPageComp extends Component {
       password: password
     })
       .then(user => {
-        let userObj = {
-          token: user.token
-        };
-        localStorage.setItem("user", JSON.stringify(userObj));
-        window.location = "/";
+        console.log(user);
+        if(!user) {
+          alert("Invalid Username or Password!");
+        } else {
+          let userObj = {
+            token: user.data.accessToken
+          };
+          localStorage.setItem("user", JSON.stringify(userObj));
+          if(user.data.setup) {
+            window.location = "/#/Dashboard";
+          } else {
+            window.location = "/#/setup/wizard";
+          }
+        }
+
+
         return user;
       })
       .catch(error => {

@@ -31,10 +31,10 @@ public class SetupCompleteCheckFilter extends OncePerRequestFilter {
                     //if the user has the keys
                     (RepositoryUtil.getSetting(settingDao, SettingConstant.BOT_KEY.getName(), "").isEmpty()
                     || RepositoryUtil.getSetting(settingDao, SettingConstant.BOT_SECRET.getName(), "").isEmpty())) {
-                response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE, "The keys are not set, the user needs to be redirected to a setup page.");
-            } else {
-                filterChain.doFilter(request, response);
+                response.sendError(HttpServletResponse.SC_NOT_ACCEPTABLE);
             }
+            filterChain.doFilter(request, response);
+
         } catch (Exception ex) {
             logger.error("Could not set user authentication in security context", ex);
         }

@@ -68,6 +68,18 @@ class SettingsWizardComp extends Component {
     });
     let optionStringList = selectedExchangeOptions.map(o => o.value).join(",");
     this.props.onAddSetting("TRADE_EXCHANGE_LIST", optionStringList);
+    this.props.onAddSetting("TRADE_WHITE_LIST_ENABLE", false);
+    this.props.onAddSetting("TRADE_PRICE_LIMIT_MAX", 2000);
+    this.props.onAddSetting("TRADE_PRICE_LIMIT_MIN", 1);
+    this.props.onAddSetting("TRADE_PERIOD_SECOND", 300);
+    this.props.onAddSetting("TRADE_BUY_MAX_LIMIT", "5%");
+    this.props.onAddSetting("TRADE_VOLUME_LIMIT_MAX",  -1);
+    this.props.onAddSetting("TRADE_VOLUME_LIMIT_MIN", -1);
+    this.props.onAddSetting("TRADE_BUY_HOLDING_LIMIT", 20);
+    this.props.onAddSetting("TRADE_SELL_ORDER_TYPE", "market");
+    this.props.onAddSetting("TRADE_BUY_ORDER_TYPE", "market");
+    this.props.onAddSetting("TRADE_SELL_STRATEGY", 1);
+    this.props.onAddSetting("TRADE_BUY_STRATEGY", 2);
   }
 
   saveSettings() {

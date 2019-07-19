@@ -1,9 +1,12 @@
 package com.ultrader.bot.controller;
 
+import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.UserDao;
 import com.ultrader.bot.payload.model.JwtAuthenticationResponse;
 import com.ultrader.bot.payload.model.LoginRequest;
 import com.ultrader.bot.security.JwtTokenProvider;
+import com.ultrader.bot.util.RepositoryUtil;
+import com.ultrader.bot.util.SettingConstant;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -23,16 +26,19 @@ import javax.validation.Valid;
 public class AuthController {
 
     @Autowired
-    AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    UserDao userDao;
+    private UserDao userDao;
 
     @Autowired
-    PasswordEncoder passwordEncoder;
+    private SettingDao settingDao;
 
     @Autowired
-    JwtTokenProvider tokenProvider;
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtTokenProvider tokenProvider;
 
     @RequestMapping(method = RequestMethod.POST, value = "/signin")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -47,7 +53,12 @@ public class AuthController {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = tokenProvider.generateToken(authentication);
-        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt));
+        boolean isSetup = true;
+        if (RepositoryUtil.getSetting(settingDao, SettingConstant.BOT_KEY.getName(), "").isEmpty()
+                || RepositoryUtil.getSetting(settingDao, SettingConstant.BOT_SECRET.getName(), "").isEmpty()) {
+            isSetup = false;
+        }
+        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt,"Bearer", isSetup));
     }
 
 }

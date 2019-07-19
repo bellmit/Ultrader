@@ -80,7 +80,7 @@ public class SettingController {
     @RequestMapping(method = RequestMethod.GET, value = "/restart")
     @ResponseBody
     public void restart() {
-
+        LOGGER.info("Restart Ultrader ...");
         alpacaMarketDataService.restart();
         alpacaPaperTradingService.restart();
         alpacaTradingService.restart();

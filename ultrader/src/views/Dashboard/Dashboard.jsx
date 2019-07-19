@@ -30,7 +30,9 @@ class DashboardComp extends Component {
 
     this.getTotalPortfolioChart = this.getTotalPortfolioChart.bind(this);
     this.getMonthlyTotalPortfolio = this.getMonthlyTotalPortfolio.bind(this);
+    this.getCards = this.getCards.bind(this);
     this.getMonthlyTotalPortfolio();
+    this.getCards();
     this.state = {
       totalPortfolioChart : {},
       totalPortfolioUpdateDate : new Date().toLocaleString()
@@ -46,7 +48,26 @@ class DashboardComp extends Component {
           alert(error);
         });
   }
-
+  getCards() {
+      axiosGetWithAuth("/api/notification/dashboard")
+        .then(res => {
+          console.log(res.data);
+          this.props.portfolio.value = res.data.data.Portfolio;
+          this.props.portfolio.buyingPower = res.data.data.BuyingPower;
+          this.props.portfolio.withdrawableCash = res.data.data.Cash;
+          this.props.trades.buyCount = res.data.data.BuyCount;
+          this.props.trades.sellCount = res.data.data.SellCount;
+          this.props.trades.buyAmount = res.data.data.BuyAmount;
+          this.props.trades.sellAmount = res.data.data.SellAmount;
+          this.props.daily.netIncome = res.data.data.TotalProfit;
+          this.props.daily.averageProfit = res.data.data.AverageProfit;
+          this.props.daily.averageProfitRate = res.data.data.AverageProfitRatio;
+        })
+        .catch(error => {
+          console.log(error);
+          alert(error);
+        });
+  }
   getMonthlyTotalPortfolio() {
     this.getTotalPortfolioChart(30, 86400);
   }

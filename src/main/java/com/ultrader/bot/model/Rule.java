@@ -16,7 +16,7 @@ import javax.persistence.*;
 public class Rule {
     @Id
     @Column(name="ID", unique=true, updatable=false, nullable=false)
-    @GeneratedValue
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
     @Column(name="name", nullable=false)

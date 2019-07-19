@@ -234,10 +234,8 @@ public class StrategyController {
                     series.getBar(0).getBeginTime().toString(),
                     series.getLastBar().getEndTime().toString());
         } catch (Exception e) {
-            LOGGER.error("Back test {} failed. Start {} End {}",
+            LOGGER.error("Back test {} failed.",
                     series.getName(),
-                    series.getBar(0).getBeginTime().toString(),
-                    series.getLastBar().getEndTime().toString(),
                     e);
             return null;
         }
