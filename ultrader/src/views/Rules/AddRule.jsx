@@ -365,8 +365,6 @@ export default class AddRuleComp extends React.Component {
               )}
           </div>
         );
-
-
       case "Integer":
         return (
           <FormControl
