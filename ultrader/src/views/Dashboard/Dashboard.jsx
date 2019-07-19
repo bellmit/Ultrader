@@ -11,7 +11,8 @@ import Tasks from "components/Tasks/Tasks.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
 import { parseMoney, parsePercentage } from "helpers/ParseHelper";
-import { axiosGetWithAuth} from "helpers/UrlHelper";
+import { axiosGetWithAuth } from "helpers/UrlHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 import {
   dataPie,
@@ -34,39 +35,44 @@ class DashboardComp extends Component {
     this.getMonthlyTotalPortfolio();
     this.getCards();
     this.state = {
-      totalPortfolioChart : {},
-      totalPortfolioUpdateDate : new Date().toLocaleString()
+      totalPortfolioChart: {},
+      totalPortfolioUpdateDate: new Date().toLocaleString()
     };
   }
   getTotalPortfolioChart(length, period) {
-      axiosGetWithAuth("/api/chart/getPortfolio?length=" + length + "&period=" + period)
-        .then(res => {
-          this.setState({totalPortfolioChart : res.data, totalPortfolioUpdateDate : new Date().toLocaleString()});
-        })
-        .catch(error => {
-          console.log(error);
-          alert(error);
+    axiosGetWithAuth(
+      "/api/chart/getPortfolio?length=" + length + "&period=" + period
+    )
+      .then(res => {
+        this.setState({
+          totalPortfolioChart: res.data,
+          totalPortfolioUpdateDate: new Date().toLocaleString()
         });
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
   }
   getCards() {
-      axiosGetWithAuth("/api/notification/dashboard")
-        .then(res => {
-          console.log(res.data);
-          this.props.portfolio.value = res.data.data.Portfolio;
-          this.props.portfolio.buyingPower = res.data.data.BuyingPower;
-          this.props.portfolio.withdrawableCash = res.data.data.Cash;
-          this.props.trades.buyCount = res.data.data.BuyCount;
-          this.props.trades.sellCount = res.data.data.SellCount;
-          this.props.trades.buyAmount = res.data.data.BuyAmount;
-          this.props.trades.sellAmount = res.data.data.SellAmount;
-          this.props.daily.netIncome = res.data.data.TotalProfit;
-          this.props.daily.averageProfit = res.data.data.AverageProfit;
-          this.props.daily.averageProfitRate = res.data.data.AverageProfitRatio;
-        })
-        .catch(error => {
-          console.log(error);
-          alert(error);
-        });
+    axiosGetWithAuth("/api/notification/dashboard")
+      .then(res => {
+        console.log(res.data);
+        this.props.portfolio.value = res.data.data.Portfolio;
+        this.props.portfolio.buyingPower = res.data.data.BuyingPower;
+        this.props.portfolio.withdrawableCash = res.data.data.Cash;
+        this.props.trades.buyCount = res.data.data.BuyCount;
+        this.props.trades.sellCount = res.data.data.SellCount;
+        this.props.trades.buyAmount = res.data.data.BuyAmount;
+        this.props.trades.sellAmount = res.data.data.SellAmount;
+        this.props.daily.netIncome = res.data.data.TotalProfit;
+        this.props.daily.averageProfit = res.data.data.AverageProfit;
+        this.props.daily.averageProfitRate = res.data.data.AverageProfitRatio;
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
   }
   getMonthlyTotalPortfolio() {
     this.getTotalPortfolioChart(30, 86400);
@@ -241,21 +247,20 @@ class DashboardComp extends Component {
                   <ChartistGraph
                     data={this.state.totalPortfolioChart}
                     type="Line"
-                    options={ {
-                              showArea: false,
-                              height: "245px",
-                              axisX: {
-                                showGrid: false
-                              },
-                              lineSmooth: true,
-                              showLine: true,
-                              showPoint: true,
-                              fullWidth: true,
-                              chartPadding: {
-                                right: 50
-                              }
-                              }
-                            }
+                    options={{
+                      showArea: false,
+                      height: "245px",
+                      axisX: {
+                        showGrid: false
+                      },
+                      lineSmooth: true,
+                      showLine: true,
+                      showPoint: true,
+                      fullWidth: true,
+                      chartPadding: {
+                        right: 50
+                      }
+                    }}
                     responsiveOptions={responsiveSales}
                   />
                 }
@@ -267,7 +272,10 @@ class DashboardComp extends Component {
                 }
                 stats={
                   <div>
-                    <Button bsSize="xs" onClick={this.getMonthlyTotalPortfolio}><i className="fa fa-history" /></Button> Updated at {this.state.totalPortfolioUpdateDate}
+                    <Button bsSize="xs" onClick={this.getMonthlyTotalPortfolio}>
+                      <i className="fa fa-history" />
+                    </Button>{" "}
+                    Updated at {this.state.totalPortfolioUpdateDate}
                   </div>
                 }
               />

@@ -13,6 +13,7 @@ import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 import Checkbox from "components/CustomCheckbox/CustomCheckbox.jsx";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 import axios from "axios";
 
 class LoginPageComp extends Component {
@@ -45,7 +46,7 @@ class LoginPageComp extends Component {
       .then(user => {
         console.log(user);
         if(!user) {
-          alert("Invalid Username or Password!");
+          alertError("Invalid Username or Password!");
         } else {
           let userObj = {
             token: user.data.accessToken
@@ -62,7 +63,7 @@ class LoginPageComp extends Component {
         return user;
       })
       .catch(error => {
-        alert(error);
+        alertError(error);
       });
   }
 

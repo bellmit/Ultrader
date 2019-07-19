@@ -11,6 +11,7 @@ import AddRule from "containers/Rules/AddRule.jsx";
 import EditRule from "containers/Rules/EditRule.jsx";
 
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 class RulesComp extends Component {
   constructor(props) {
@@ -22,7 +23,7 @@ class RulesComp extends Component {
       })
       .catch(error => {
         console.log(error);
-        alert(error);
+        alertError(error);
       });
     this.handleShowAdd = this.handleShowAdd.bind(this);
     this.handleCloseAdd = this.handleCloseAdd.bind(this);
@@ -59,9 +60,9 @@ class RulesComp extends Component {
     let id = row.original.id;
     let index = row.index;
     this.setState({
-        selectedRule : row.original,
-        selectedRuleIndex : index,
-        showEdit: true
+      selectedRule: row.original,
+      selectedRuleIndex: index,
+      showEdit: true
     });
   }
 
@@ -70,11 +71,11 @@ class RulesComp extends Component {
     let index = row.index;
     axiosDeleteWithAuth("/api/rule/deleteRule/" + id)
       .then(res => {
-        alert("Deleted rule successfully.");
+        alertSuccess("Deleted rule successfully.");
         this.props.onDeleteRuleSuccess(index);
       })
       .catch(error => {
-        alert(error);
+        alertError(error);
       });
   }
 
@@ -116,7 +117,10 @@ class RulesComp extends Component {
                     >
                       <Modal.Header closeButton />
                       <Modal.Body>
-                        <EditRule rule={this.state.selectedRule} index={this.state.selectedRuleIndex}/>
+                        <EditRule
+                          rule={this.state.selectedRule}
+                          index={this.state.selectedRuleIndex}
+                        />
                       </Modal.Body>
                     </Modal>
                     <ReactTable
@@ -146,28 +150,28 @@ class RulesComp extends Component {
                             textAlign: "center"
                           },
                           Cell: row => (
-                          <div>
-                            <Button
-                              onClick={() => {
-                                this.editRule(row);
-                              }}
-                              bsStyle="danger"
-                              simple
-                              icon
-                            >
-                              <i className="fa fa-edit" />
-                            </Button>
-                            <Button
-                              onClick={() => {
-                                this.deleteRule(row);
-                              }}
-                              bsStyle="danger"
-                              simple
-                              icon
-                            >
-                              <i className="fa fa-times" />
-                            </Button>
-                          </div>
+                            <div>
+                              <Button
+                                onClick={() => {
+                                  this.editRule(row);
+                                }}
+                                bsStyle="danger"
+                                simple
+                                icon
+                              >
+                                <i className="fa fa-edit" />
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  this.deleteRule(row);
+                                }}
+                                bsStyle="danger"
+                                simple
+                                icon
+                              >
+                                <i className="fa fa-times" />
+                              </Button>
+                            </div>
                           ),
                           sortable: false,
                           filterable: false

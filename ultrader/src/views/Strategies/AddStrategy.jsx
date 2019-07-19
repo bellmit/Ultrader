@@ -17,6 +17,7 @@ import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 var strategyTypeOptions = [
   { label: "buy", value: "buy" },
@@ -49,7 +50,7 @@ export default class AddStrategyComp extends React.Component {
         this.props.onGetRulesSuccess(res);
       })
       .catch(error => {
-        alert(error);
+        alertError(error);
       });
   }
 
@@ -94,14 +95,14 @@ export default class AddStrategyComp extends React.Component {
       };
       axiosPostWithAuth("/api/strategy/addStrategy", strategy)
         .then(res => {
-          alert("Saved strategy successfully.");
+          alertSuccess("Saved strategy successfully.");
           this.props.onAddStrategySuccess(res);
         })
         .catch(error => {
-          alert(error);
+          alertError(error);
         });
     } else {
-      alert("All fields need to be filled");
+      alertError("All fields need to be filled");
     }
   }
 

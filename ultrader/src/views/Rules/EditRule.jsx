@@ -81,6 +81,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { isFloat, isInt } from "helpers/ParseHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 var booleanOptions = [
   { value: "true", label: "true" },
@@ -288,14 +289,14 @@ export default class EditRuleComp extends React.Component {
       };
       axiosPostWithAuth("/api/rule/addRule", rule)
         .then(res => {
-          alert("Saved rule successfully.");
+          alertSuccess("Saved rule successfully.");
           this.props.onEditRuleSuccess(res, this.props.index);
         })
         .catch(error => {
-          alert(error);
+          alertError(error);
         });
     } else {
-      alert("All fields need to be filled");
+      alertError("All fields need to be filled");
     }
   }
 
@@ -447,6 +448,7 @@ export default class EditRuleComp extends React.Component {
                               <FormControl
                                 type="text"
                                 disabled
+                                defaultValue="N/A"
                                 placeholder="N/A"
                               />
                             </Col>
@@ -589,7 +591,14 @@ export default class EditRuleComp extends React.Component {
         );
       case "ClosePrice":
       case "TimeSeries":
-        return <FormControl type="text" disabled placeholder="N/A" />;
+        return (
+          <FormControl
+            type="text"
+            disabled
+            defaultValue="N/A"
+            placeholder="N/A"
+          />
+        );
       case "Boolean":
         return (
           <Select

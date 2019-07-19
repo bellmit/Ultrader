@@ -83,7 +83,7 @@ class Sidebar extends Component {
             href=""
             className="simple-text logo-normal"
           >
-            Ultrader
+            <span style={{color:'red'}}>Ul</span><span style={{color:'#8B572A'}}>t</span><span style={{color:'green'}}>rader</span>
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">

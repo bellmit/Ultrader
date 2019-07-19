@@ -14,6 +14,7 @@ import Step2 from "./Step2.jsx";
 import FinalStep from "./FinalStep.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 class SettingsWizardComp extends Component {
   constructor(props) {
@@ -73,7 +74,7 @@ class SettingsWizardComp extends Component {
     this.props.onAddSetting("TRADE_PRICE_LIMIT_MIN", 1);
     this.props.onAddSetting("TRADE_PERIOD_SECOND", 300);
     this.props.onAddSetting("TRADE_BUY_MAX_LIMIT", "5%");
-    this.props.onAddSetting("TRADE_VOLUME_LIMIT_MAX",  -1);
+    this.props.onAddSetting("TRADE_VOLUME_LIMIT_MAX", -1);
     this.props.onAddSetting("TRADE_VOLUME_LIMIT_MIN", -1);
     this.props.onAddSetting("TRADE_BUY_HOLDING_LIMIT", 20);
     this.props.onAddSetting("TRADE_SELL_ORDER_TYPE", "market");
@@ -99,7 +100,7 @@ class SettingsWizardComp extends Component {
 
     Promise.all(promises)
       .then(responses => {
-        alert(
+        alertSuccess(
           "Saved " +
             responses[0].data.length +
             " settings and strategy template"
@@ -108,7 +109,7 @@ class SettingsWizardComp extends Component {
         window.location = "/";
       })
       .catch(error => {
-        alert(error);
+        alertError(error);
       });
   }
 

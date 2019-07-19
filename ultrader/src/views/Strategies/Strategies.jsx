@@ -10,6 +10,7 @@ import axios from "axios";
 import AddStrategy from "containers/Strategies/AddStrategy.jsx";
 
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 var operatorMap = { "&": " and ", "|": " or ", "^": " xor " };
 var operators = ["&", "|", "^"];
@@ -23,7 +24,7 @@ class StrategiesComp extends Component {
       })
       .catch(error => {
         console.log(error);
-        alert(error);
+        alertError(error);
       });
 
     axiosGetWithAuth("/api/rule/getRules")
@@ -32,7 +33,7 @@ class StrategiesComp extends Component {
       })
       .catch(error => {
         console.log(error);
-        alert(error);
+        alertError(error);
       });
     this.handleShow = this.handleShow.bind(this);
     this.handleClose = this.handleClose.bind(this);
@@ -45,24 +46,26 @@ class StrategiesComp extends Component {
 
   parseFormula(cell) {
     let formula = cell.value;
-    let tokens = formula
-      .replace(",", "")
-      .split(new RegExp("([" + operators.join("") + "])", "g"));
-    let parsed = tokens.map(token => {
-      if (operatorMap[token]) {
-        return operatorMap[token];
-      } else {
-        let foundRule = this.props.rules.filter(rule => {
-          return rule.id === parseInt(token);
-        });
+    if (formula) {
+      let tokens = formula
+        .replace(",", "")
+        .split(new RegExp("([" + operators.join("") + "])", "g"));
+      let parsed = tokens.map(token => {
+        if (operatorMap[token]) {
+          return operatorMap[token];
+        } else {
+          let foundRule = this.props.rules.filter(rule => {
+            return rule.id === parseInt(token);
+          });
 
-        return foundRule.length > 0
-          ? "(" + foundRule[0].name + ")"
-          : "(Unknown Rule)";
-      }
-    });
-    let resultString = parsed.join(" ");
-    return <span>{resultString}</span>;
+          return foundRule.length > 0
+            ? "(" + foundRule[0].name + ")"
+            : "(Unknown Rule)";
+        }
+      });
+      let resultString = parsed.join(" ");
+      return <span>{resultString}</span>;
+    }
   }
 
   handleClose() {
@@ -78,11 +81,11 @@ class StrategiesComp extends Component {
     let index = row.index;
     axiosDeleteWithAuth("/api/strategy/deleteStrategy/" + id)
       .then(res => {
-        alert("Deleted strategy successfully.");
+        alertSuccess("Deleted strategy successfully.");
         this.props.onDeleteStrategySuccess(index);
       })
       .catch(error => {
-        alert(error);
+        alertError(error);
       });
   }
 

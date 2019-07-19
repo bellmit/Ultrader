@@ -14,6 +14,7 @@ import Step2 from "./Step2.jsx";
 import FinalStep from "./FinalStep.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 var tradingPlatformOptions = [
   { value: "Alpaca", label: "Alpaca" },
@@ -126,7 +127,7 @@ class EditSettingsComp extends Component {
         );
       })
       .catch(error => {
-        alert(error);
+        alertError(error);
       });
   }
 
@@ -301,11 +302,11 @@ class EditSettingsComp extends Component {
 
     Promise.all(promises)
       .then(responses => {
-        alert("Saved " + responses[0].data.length + " settings.");
+        alertSuccess("Saved " + responses[0].data.length + " settings.");
         axiosGetWithAuth("/api/setting/restart");
       })
       .catch(error => {
-        alert(error);
+        alertError(error);
       });
   }
 

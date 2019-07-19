@@ -9,6 +9,7 @@ import {
   ControlLabel
 } from "react-bootstrap";
 import { axiosPostWithAuth } from "helpers/UrlHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 import Card from "components/Card/Card.jsx";
 
@@ -105,12 +106,12 @@ class RegisterPageComp extends Component {
         console.log(response);
         let user = response.data;
         if (user) {
-          alert("Registeration succeeded! Redirecting to login page.");
+          alertSuccess("Registeration succeeded! Redirecting to login page.");
           window.location = "/#/pages/login-page";
         }
       })
       .catch(error => {
-        alert(error);
+        alertError(error);
       });
   }
 
