@@ -25,9 +25,12 @@ var booleanOptions = [
   { value: "false", label: "false" }
 ];
 
+var noValuesNeeded = ["ClosePrice", "TimeSeries"];
+
 export default class AddRuleComp extends React.Component {
   constructor(props, context) {
     super(props, context);
+    this.initializeRuleFields = this.initializeRuleFields.bind(this);
     this.validate = this.validate.bind(this);
     this.saveRule = this.saveRule.bind(this);
     this.state = {
@@ -52,8 +55,14 @@ export default class AddRuleComp extends React.Component {
       this.state.ruleFieldValues &&
       this.state.selectedRuleTypeOption &&
       this.state.selectedRuleTypeOption.value &&
-      Object.values(this.state.ruleFieldValues).length ===
-        this.state.selectedRuleTypeOption.value.length
+      this.state.ruleFieldValues.every(
+        o =>
+          noValuesNeeded.includes(o.ruleFieldName) ||
+          (o.value &&
+            (o.value.value ||
+              (o.value.indicatorArgs &&
+                o.value.indicatorArgs.every(ia => noValuesNeeded.includes(ia.label) || ia.value))))
+      )
     ) {
       return true;
     } else {
@@ -82,7 +91,11 @@ export default class AddRuleComp extends React.Component {
         }
         break;
       default:
-        return res + ":" + ruleFieldValue.value.value;
+        if (ruleFieldValue.value.value == "N/A") {
+          return res;
+        } else {
+          return res + ":" + ruleFieldValue.value.value;
+        }
         break;
     }
   }
@@ -123,7 +136,6 @@ export default class AddRuleComp extends React.Component {
 
   selectRuleType(option) {
     let ruleFieldTypes = option ? option.value : [];
-    console.log(option);
 
     let ruleFieldTypeOptions = option
       ? option.value.map(ruleFieldType => {
@@ -132,11 +144,44 @@ export default class AddRuleComp extends React.Component {
       : [];
     let selectedRuleFieldTypeOption =
       ruleFieldTypeOptions.length > 0 ? ruleFieldTypeOptions[0] : {};
+
+    this.initializeRuleFields(selectedRuleFieldTypeOption);
     this.setState({
       ruleFieldTypes: ruleFieldTypes,
       ruleFieldTypeOptions: ruleFieldTypeOptions,
       selectedRuleTypeOption: option,
       selectedRuleFieldTypeOption: selectedRuleFieldTypeOption
+    });
+  }
+
+  initializeRuleFields(selectedRuleFieldTypeOption) {
+    console.log(selectedRuleFieldTypeOption);
+    let ruleFields = selectedRuleFieldTypeOption.value.split("|");
+    var ruleFieldValues = ruleFields.map(ruleField => {
+      switch (ruleField) {
+        case "ClosePrice":
+        case "TimeSeries":
+          var ruleFieldValue = {
+            label: ruleField,
+            ruleFieldName: ruleField,
+            value: {
+              value: "N/A"
+            }
+          };
+          return ruleFieldValue;
+        default:
+          var ruleFieldValue = {
+            label: ruleField,
+            ruleFieldName: ruleField,
+            value: {
+              value: ""
+            }
+          };
+          return ruleFieldValue;
+      }
+    });
+    this.setState({
+      ruleFieldValues: ruleFieldValues
     });
   }
 

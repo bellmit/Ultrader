@@ -88,6 +88,8 @@ var booleanOptions = [
   { value: "false", label: "false" }
 ];
 
+var noValuesNeeded = ["ClosePrice", "TimeSeries"];
+
 export default class EditRuleComp extends React.Component {
   constructor(props, context) {
     super(props, context);
@@ -95,6 +97,7 @@ export default class EditRuleComp extends React.Component {
     this.saveRule = this.saveRule.bind(this);
     this.parseRule = this.parseRule.bind(this);
     this.getFieldType = this.getFieldType.bind(this);
+    this.initializeRuleFields = this.initializeRuleFields.bind(this);
     this.generateIndicatorArgs = this.generateIndicatorArgs.bind(this);
     this.state = {
       ruleName: this.props.rule.name,
@@ -188,9 +191,9 @@ export default class EditRuleComp extends React.Component {
         ruleFieldValue.label = formulaPart;
         ruleFieldValue.ruleFieldName = formulaPart;
         ruleFieldValue.value = {
-          value: ""
+          value: "N/A"
         };
-        ruleFieldValue[i] = ruleFieldValue;
+        ruleFieldValues[i] = ruleFieldValue;
       }
     }
     var selectedFieldTypeValue = ruleFieldValues
@@ -230,6 +233,7 @@ export default class EditRuleComp extends React.Component {
       this.props.ruleTypeSelectOptions.find(e => e.classz === rule.type)
     );
   }
+
   validate() {
     if (
       this.state.ruleName &&
@@ -238,8 +242,14 @@ export default class EditRuleComp extends React.Component {
       this.state.ruleFieldValues &&
       this.state.selectedRuleTypeOption &&
       this.state.selectedRuleTypeOption.value &&
-      Object.values(this.state.ruleFieldValues).length ===
-        this.state.selectedRuleTypeOption.value.length
+      this.state.ruleFieldValues.every(
+        o =>
+          noValuesNeeded.includes(o.ruleFieldName) ||
+          (o.value &&
+            (o.value.value ||
+              (o.value.indicatorArgs &&
+                o.value.indicatorArgs.every(ia => noValuesNeeded.includes(ia.label) || ia.value))))
+      )
     ) {
       return true;
     } else {
@@ -268,12 +278,17 @@ export default class EditRuleComp extends React.Component {
         }
         break;
       default:
-        return res + ":" + ruleFieldValue.value.value;
+        if (ruleFieldValue.value.value == "N/A") {
+          return res;
+        } else {
+          return res + ":" + ruleFieldValue.value.value;
+        }
         break;
     }
   }
 
   saveRule() {
+    console.log(this.state);
     if (this.validate()) {
       let formulaParts = this.state.ruleFieldValues.map((value, i) => {
         return this.getStringForRuleFieldValue(value);
@@ -317,6 +332,7 @@ export default class EditRuleComp extends React.Component {
       : [];
     let selectedRuleFieldTypeOption =
       ruleFieldTypeOptions.length > 0 ? ruleFieldTypeOptions[0] : {};
+    this.initializeRuleFields(selectedRuleFieldTypeOption);
     this.setState({
       ruleFieldTypes: ruleFieldTypes,
       ruleFieldTypeOptions: ruleFieldTypeOptions,
@@ -360,6 +376,37 @@ export default class EditRuleComp extends React.Component {
       default:
         break;
     }
+  }
+
+  initializeRuleFields(selectedRuleFieldTypeOption) {
+    console.log(selectedRuleFieldTypeOption);
+    let ruleFields = selectedRuleFieldTypeOption.value.split("|");
+    var ruleFieldValues = ruleFields.map(ruleField => {
+      switch (ruleField) {
+        case "ClosePrice":
+        case "TimeSeries":
+          var ruleFieldValue = {
+            label: ruleField,
+            ruleFieldName: ruleField,
+            value: {
+              value: "N/A"
+            }
+          };
+          return ruleFieldValue;
+        default:
+          var ruleFieldValue = {
+            label: ruleField,
+            ruleFieldName: ruleField,
+            value: {
+              value: ""
+            }
+          };
+          return ruleFieldValue;
+      }
+    });
+    this.setState({
+      ruleFieldValues: ruleFieldValues
+    });
   }
 
   ruleFields() {
