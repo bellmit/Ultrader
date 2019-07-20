@@ -547,7 +547,7 @@ export default class EditRuleComp extends React.Component {
                             <Col sm={10}>
                               <FormControl
                                 type="text"
-                                pattern="^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$"
+                                pattern="^([0-9+-]+([.][0-9]*)?|[.][0-9]+)$"
                                 value={
                                   (
                                     (
@@ -621,7 +621,7 @@ export default class EditRuleComp extends React.Component {
         return (
           <FormControl
             type="text"
-            pattern="^[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)$"
+            pattern="^([0-9+-]+([.][0-9]*)?|[.][0-9]+)$"
             placeholder={ruleFieldName}
             value={
               ((this.state.ruleFieldValues[index] || {}).value || {}).value
