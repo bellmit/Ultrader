@@ -34,11 +34,16 @@ public class NotificationController {
     @ResponseBody
     public DashboardDataMessage dashboardNotification() {
         //Populate Dashboard Message
-        DashboardDataMessage message = new DashboardDataMessage();
-        message.setData(new HashMap<>());
-        message.getData().putAll(NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount()).getData());
-        message.getData().putAll(NotificationUtil.generateTradesNotification(orderDao).getData());
-        message.getData().putAll( NotificationUtil.generateProfitNotification(orderDao).getData());
-        return message;
+        try {
+            DashboardDataMessage message = new DashboardDataMessage();
+            message.setData(new HashMap<>());
+            message.getData().putAll(NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount()).getData());
+            message.getData().putAll(NotificationUtil.generateTradesNotification(orderDao).getData());
+            message.getData().putAll( NotificationUtil.generateProfitNotification(orderDao).getData());
+            return message;
+        } catch (Exception e) {
+            LOGGER.error("Populate notification failed.", e);
+            return  null;
+        }
     }
 }

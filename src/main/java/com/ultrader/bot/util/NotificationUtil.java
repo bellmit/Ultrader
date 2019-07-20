@@ -4,6 +4,7 @@ import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.websocket.DashboardDataMessage;
+import com.ultrader.bot.monitor.LicenseMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,13 +28,13 @@ public class NotificationUtil {
      * @param account
      * @return
      */
-    public static DashboardDataMessage generateAccountNotification(Account account) {
+    public static DashboardDataMessage generateAccountNotification(Account account) throws IllegalAccessException {
         DecimalFormat df = new DecimalFormat("#.##");
         Map<String, String> map = new HashMap<>();
         map.put("Portfolio", df.format(account.getPortfolioValue()));
         map.put("BuyingPower", df.format(account.getBuyingPower()));
         map.put("Cash", df.format(account.getCashWithdrawable()));
-        map.put("status", account.getStatus());
+        map.put("status", LicenseMonitor.getInstance().isValidLicense() ? account.getStatus() : "Invalid License");
         map.put("IsTradingBlock", String.valueOf(account.isTradingBlocked()));
         LOGGER.info("Notify account update {}", map);
         return new DashboardDataMessage(map);

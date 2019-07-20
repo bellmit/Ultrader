@@ -71,7 +71,7 @@ public class ChartController {
             if(chart.getDate().getTime() / 1000 < startDate.toEpochSecond(ZoneOffset.UTC) - offset) {
 
                 lastValue = chart.getValue();
-            } else {
+            } else if(lastValue > 1) {
                 values.add(lastValue);
                 labels.add(startDate.format(formatter));
                 startDate = startDate.plusSeconds(period);
