@@ -8,7 +8,7 @@ import "perfect-scrollbar/css/perfect-scrollbar.css";
 import HeaderLinks from "components/Header/HeaderLinks.jsx";
 
 // backgroundImage for Sidebar
-import image from "assets/img/full-screen-image-3.jpg";
+import image from "assets/img/blur-chart-data-159888.jpg";
 // image for avatar in Sidebar
 import avatar from "assets/img/default-avatar.png";
 // logo for sidebar
@@ -83,7 +83,7 @@ class Sidebar extends Component {
             href=""
             className="simple-text logo-normal"
           >
-            <span style={{color:'red'}}>Ul</span><span style={{color:'#8B572A'}}>t</span><span style={{color:'green'}}>rader</span>
+            <span style={{color:'#cc1111'}}>Ul</span><span style={{color:'#dddd22'}}>tra</span><span style={{color:'#11cc11'}}>der</span>
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">
