@@ -231,8 +231,8 @@ public class StrategyController {
                     rewardRiskRatio,
                     vsBuyAndHold,
                     totalProfit,
-                    series.getBar(0).getBeginTime().toString(),
-                    series.getLastBar().getEndTime().toString());
+                    series.getBar(0).getBeginTime().toLocalDateTime(),
+                    series.getLastBar().getEndTime().toLocalDateTime());
         } catch (Exception e) {
             LOGGER.error("Back test {} failed.",
                     series.getName(),

@@ -1,3 +1,9 @@
+import moment from 'moment'
+
+export function parseDate(date) {
+  return moment(date).format('YYYY/MM/DD HH:mm:ss');
+}
+
 export function parsePercentage(num) {
   return (num * 100).toFixed(1) + "%";
 }

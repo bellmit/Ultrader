@@ -8,7 +8,7 @@
     "chartist": "0.10.1",
     "history": "^4.7.2",
     "lodash": "^4.17.11",
-    "moment": "2.21.0",
+    "moment": "^2.21.0",
     "node-sass": "^4.11.0",
     "node-sass-chokidar": "0.0.3",
     "nouislider": "11.0.3",

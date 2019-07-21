@@ -18,6 +18,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
+import { parseDate } from "helpers/ParseHelper";
 
 class BacktestComp extends Component {
   constructor(props) {
@@ -263,23 +264,30 @@ class BacktestComp extends Component {
                         },
                         {
                           Header: "Reward/Risk",
-                          accessor: "rewardRiskRatio"
+                          accessor: "rewardRiskRatio",
+                          Cell: cell => parseFloat(cell.value).toFixed(6)
                         },
                         {
                           Header: "Buy vs Hold",
-                          accessor: "vsBuyAndHold"
+                          accessor: "vsBuyAndHold",
+                          Cell: cell => parseFloat(cell.value).toFixed(6)
                         },
                         {
                           Header: "Total Profit",
-                          accessor: "totalProfit"
+                          accessor: "totalProfit",
+                          Cell: cell => parseFloat(cell.value).toFixed(6)
                         },
                         {
                           Header: "Start Date",
-                          accessor: "startDate"
+                          accessor: "startDate",
+                          Cell: cell =>
+                            cell.value ? parseDate(cell.value) : ""
                         },
                         {
                           Header: "End Date",
-                          accessor: "endDate"
+                          accessor: "endDate",
+                          Cell: cell =>
+                            cell.value ? parseDate(cell.value) : ""
                         }
                       ]}
                       defaultPageSize={10}
