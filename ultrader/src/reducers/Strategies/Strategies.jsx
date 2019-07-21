@@ -12,6 +12,15 @@ const strategies = (state = initialState, action) => {
         ...state,
         strategies: [...state.strategies, strategy]
       };
+    case ACTION_TYPES.EDIT_STRATEGY_SUCCESS:
+      var strategy = action.response.data;
+      var strategies = [...state.strategies];
+      var index = strategies.map(function(e) { return e.id; }).indexOf(strategy.id);
+      strategies[index] = strategy;
+      return {
+        ...state,
+        strategies: strategies
+      };
     case ACTION_TYPES.GET_STRATEGIES_SUCCESS:
       let strategies = action.response.data;
       return {

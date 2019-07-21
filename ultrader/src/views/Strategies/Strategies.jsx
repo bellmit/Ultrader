@@ -8,6 +8,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 import axios from "axios";
 
 import AddStrategy from "containers/Strategies/AddStrategy.jsx";
+import EditStrategy from "containers/Strategies/EditStrategy.jsx";
 
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
@@ -35,27 +36,61 @@ class StrategiesComp extends Component {
         console.log(error);
         alertError(error);
       });
-    this.handleShow = this.handleShow.bind(this);
-    this.handleClose = this.handleClose.bind(this);
+    this.handleShowAdd = this.handleShowAdd.bind(this);
+    this.handleCloseAdd = this.handleCloseAdd.bind(this);
+    this.handleShowEdit = this.handleShowEdit.bind(this);
+    this.handleCloseEdit = this.handleCloseEdit.bind(this);
     this.deleteStrategy = this.deleteStrategy.bind(this);
+    this.editStrategy = this.editStrategy.bind(this);
 
     this.state = {
-      show: false
+      showAdd: false,
+      showEdit: false,
+      selectedStrategy: {},
+      selectedStrategyIndex: -1
     };
+  }
+
+  handleCloseAdd() {
+    this.setState({ showAdd: false });
+  }
+
+  handleShowAdd() {
+    this.setState({ showAdd: true });
+  }
+
+  handleCloseEdit() {
+    this.setState({ showEdit: false });
+  }
+
+  handleShowEdit() {
+    this.setState({ showEdit: true });
+  }
+
+  editStrategy(row) {
+    let id = row.original.id;
+    let index = row.index;
+    this.setState({
+      selectedStrategy: row.original,
+      selectedStrategyIndex: index,
+      showEdit: true
+    });
   }
 
   parseFormula(cell) {
     let formula = cell.value;
     if (formula) {
-      let tokens = formula
-        .replace(",", "")
-        .split(new RegExp("([" + operators.join("") + "])", "g"));
+      var formulaWithoutCommas = formula.replace(/\,/g, "");
+      let tokens = formulaWithoutCommas.split(
+        new RegExp("([" + operators.join("") + "])", "g")
+      );
+
       let parsed = tokens.map(token => {
         if (operatorMap[token]) {
           return operatorMap[token];
         } else {
           let foundRule = this.props.rules.filter(rule => {
-            return rule.id === parseInt(token);
+            return rule.id == parseInt(token);
           });
 
           return foundRule.length > 0
@@ -66,14 +101,6 @@ class StrategiesComp extends Component {
       let resultString = parsed.join(" ");
       return <span>{resultString}</span>;
     }
-  }
-
-  handleClose() {
-    this.setState({ show: false });
-  }
-
-  handleShow() {
-    this.setState({ show: true });
   }
 
   deleteStrategy(row) {
@@ -102,7 +129,7 @@ class StrategiesComp extends Component {
                     <Button
                       className="add_button"
                       variant="primary"
-                      onClick={this.handleShow}
+                      onClick={this.handleShowAdd}
                     >
                       Add Strategy
                     </Button>
@@ -111,13 +138,26 @@ class StrategiesComp extends Component {
                 content={
                   <div>
                     <Modal
-                      show={this.state.show}
-                      onHide={this.handleClose}
+                      show={this.state.showAdd}
+                      onHide={this.handleCloseAdd}
                       dialogClassName="modal-90w"
                     >
                       <Modal.Header closeButton />
                       <Modal.Body>
                         <AddStrategy />
+                      </Modal.Body>
+                    </Modal>
+                    <Modal
+                      show={this.state.showEdit}
+                      onHide={this.handleCloseEdit}
+                      dialogClassName="modal-90w"
+                    >
+                      <Modal.Header closeButton />
+                      <Modal.Body>
+                        <EditStrategy
+                          strategy={this.state.selectedStrategy}
+                          index={this.state.selectedStrategyIndex}
+                        />
                       </Modal.Body>
                     </Modal>
                     <ReactTable
@@ -148,16 +188,28 @@ class StrategiesComp extends Component {
                             textAlign: "center"
                           },
                           Cell: row => (
-                            <Button
-                              onClick={() => {
-                                this.deleteStrategy(row);
-                              }}
-                              bsStyle="danger"
-                              simple
-                              icon
-                            >
-                              <i className="fa fa-times" />
-                            </Button>
+                            <div>
+                              <Button
+                                onClick={() => {
+                                  this.editStrategy(row);
+                                }}
+                                bsStyle="danger"
+                                simple
+                                icon
+                              >
+                                <i className="fa fa-edit" />
+                              </Button>
+                              <Button
+                                onClick={() => {
+                                  this.deleteStrategy(row);
+                                }}
+                                bsStyle="danger"
+                                simple
+                                icon
+                              >
+                                <i className="fa fa-times" />
+                              </Button>
+                            </div>
                           ),
                           sortable: false,
                           filterable: false

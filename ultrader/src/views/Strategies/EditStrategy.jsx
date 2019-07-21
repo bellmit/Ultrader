@@ -1,3 +1,13 @@
+/*
+{
+  "id": 9128,
+  "name": "test",
+  "description": "test",
+  "type": "buy",
+  "formula": "1&,2|,1^,1"
+}
+*/
+
 import React from "react";
 
 import axios from "axios";
@@ -30,15 +40,16 @@ var operatorOptions = [
   { label: "xor", value: "^" }
 ];
 
-export default class AddStrategyComp extends React.Component {
+export default class EditStrategyComp extends React.Component {
   constructor(props, context) {
     super(props, context);
     this.validate = this.validate.bind(this);
     this.saveStrategy = this.saveStrategy.bind(this);
     this.addRule = this.addRule.bind(this);
+    this.setSelectedValues = this.setSelectedValues.bind(this);
     this.state = {
-      strategyName: "",
-      strategyDescription: "",
+      strategyName: this.props.strategy.name,
+      strategyDescription: this.props.strategy.description,
       selectedStrategyTypeOption: {},
       strategyRuleOptions: [],
       strategyOperatorOptions: [],
@@ -47,17 +58,52 @@ export default class AddStrategyComp extends React.Component {
       strategyOperators: [""],
       ruleOptions: []
     };
+  }
 
+  componentDidMount() {
     axiosGetWithAuth("/api/rule/getRules")
       .then(res => {
         this.props.onGetRulesSuccess(res);
+        this.setSelectedValues();
       })
       .catch(error => {
         alertError(error);
       });
   }
 
-  componentDidMount() {}
+  setSelectedValues(ruleOptions) {
+    var selectedStrategyTypeOption = strategyTypeOptions.find(
+      e => e.value == this.props.strategy.type
+    );
+    this.setStrategyType(selectedStrategyTypeOption);
+    var formulaParts = this.props.strategy.formula.split(",");
+    var strategyRules = [];
+    var strategyRuleOptions = [];
+    var strategyOperators = [];
+    var strategyOperatorOptions = [];
+    for (var i = 0; i < formulaParts.length; i++) {
+      var formulaPart = formulaParts[i];
+      var r = /\d+/;
+      var id = formulaPart.match(r);
+      var operator = formulaPart.replace(id, "");
+      var selectedStrategyRuleOption = this.state.ruleOptions.find(
+        e => e.value == id
+      );
+      var selectedStrategyOperatorOption = operatorOptions.find(
+        e => e.value == operator
+      );
+      strategyRules[i] = id;
+      strategyRuleOptions[i] = selectedStrategyRuleOption;
+      strategyOperators[i] = operator;
+      strategyOperatorOptions[i] = selectedStrategyOperatorOption;
+    }
+    this.setState({
+      strategyRules: strategyRules,
+      strategyRuleOptions: strategyRuleOptions,
+      strategyOperators: strategyOperators,
+      strategyOperatorOptions: strategyOperatorOptions
+    });
+  }
 
   componentWillReceiveProps(nextProps) {
     let ruleOptions = nextProps.rules.map((item, index) => {
@@ -91,6 +137,7 @@ export default class AddStrategyComp extends React.Component {
       }
       formula += this.state.strategyRules[this.state.strategyRules.length - 1];
       let strategy = {
+        id: this.props.strategy.id,
         name: this.state.strategyName,
         description: this.state.strategyDescription,
         type: this.state.selectedStrategyType,
@@ -99,7 +146,7 @@ export default class AddStrategyComp extends React.Component {
       axiosPostWithAuth("/api/strategy/addStrategy", strategy)
         .then(res => {
           alertSuccess("Saved strategy successfully.");
-          this.props.onAddStrategySuccess(res);
+          this.props.onEditStrategySuccess(res);
         })
         .catch(error => {
           alertError(error);
@@ -108,7 +155,6 @@ export default class AddStrategyComp extends React.Component {
       alertError("All fields need to be filled");
     }
   }
-
   setRuleValue(option, index) {
     let strategyRules = this.state.strategyRules;
     let strategyRuleOptions = this.state.strategyRuleOptions;
@@ -134,7 +180,7 @@ export default class AddStrategyComp extends React.Component {
   setStrategyType(option) {
     this.setState({
       selectedStrategyTypeOption: option,
-      selectedStrategyType: option.value
+      selectedStrategyType: option ? option.value : ""
     });
   }
 
