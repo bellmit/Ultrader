@@ -157,20 +157,12 @@ public class StrategyController {
             trades += result.getTradingCount();
             if (result.getTradingCount() > 0) {
                 tradeCount += 1;
-            }
-            if (!Double.isNaN(result.getProfitTradesRatio())) {
                 profitTradesRatio += result.getProfitTradesRatio();
                 profitTradesRatioCount += 1;
-            }
-            if (!Double.isNaN(result.getRewardRiskRatio())) {
                 rewardRiskRatio += result.getRewardRiskRatio();
                 rewardRiskRatioCount += 1;
-            }
-            if (!Double.isNaN(result.getTotalProfit())) {
                 totalProfit += result.getTotalProfit();
                 totalProfitCount += 1;
-            }
-            if (!Double.isNaN(result.getVsBuyAndHold())) {
                 vsBuyAndHold += result.getVsBuyAndHold();
                 vsBuyAndHoldCount += 1;
             }
