@@ -6,6 +6,7 @@ import com.ultrader.bot.dao.PositionDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Chart;
+import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.TradingService;
@@ -19,6 +20,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.ta4j.core.TimeSeries;
 import org.ta4j.core.num.PrecisionNum;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 /**
@@ -106,7 +108,13 @@ public class TradingAccountMonitor extends Monitor {
         for (Position position : positionMap.values()) {
             if(!existedStock.contains(position.getSymbol())) {
                 //Add New stocks
-                position.setBuyDate(orderDao.findLastTradeBySymbol(position.getSymbol()).get(0).getCloseDate());
+                List<Order> orders =orderDao.findLastTradeBySymbol(position.getSymbol());
+                if (orders.size() > 0) {
+                    position.setBuyDate(orders.get(0).getCloseDate());
+                } else {
+                    position.setBuyDate(new Date());
+                }
+
                 positionDao.save(position);
                 addCount++;
             }
@@ -145,11 +153,13 @@ public class TradingAccountMonitor extends Monitor {
             }
             //Get current portfolio
             syncAccount();
+            List<Chart> lastOne = chartDao.getLastId();
+            long id = lastOne.size() > 0 ? (lastOne.get(0).getId()) + 1 : 1000;
             Chart chart = new Chart();
-            chart.setId(0);
             chart.setDate(new Date());
             chart.setSerialName("Portfolio");
             chart.setValue(account.getPortfolioValue());
+            chart.setId(id);
             chartDao.save(chart);
             //Populate Dashboard Message
             notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(account));

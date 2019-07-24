@@ -30,7 +30,12 @@ var booleanOptions = [
   { value: "true", label: "true" },
   { value: "false", label: "false" }
 ];
-
+var intervalOptions = [
+  { value: "60", label: "1 Minute" },
+  { value: "300", label: "5 Minutes" },
+  { value: "900", label: "15 Minutes" },
+  { value: "86400", label: "1 Day" }
+];
 var exchangeOptions = [
   { value: "NASDAQ", label: "NASDAQ" },
   { value: "AMEX", label: "AMEX" },
@@ -65,6 +70,7 @@ class EditSettingsComp extends Component {
     this.selectSellStrategyOption = this.selectSellStrategyOption.bind(this);
     this.selectBuyOrderTypeOption = this.selectBuyOrderTypeOption.bind(this);
     this.selectSellOrderTypeOption = this.selectSellOrderTypeOption.bind(this);
+    this.selectPeriodOption = this.selectPeriodOption.bind(this);
 
     this.onExchangeInputChange = this.onExchangeInputChange.bind(this);
 
@@ -77,6 +83,7 @@ class EditSettingsComp extends Component {
       buyStrategyOptions: [],
       sellStrategyOptions: [],
       selectedTradingPlatformOption: {},
+      periodOption: {},
       selectedMarketDataPlatformOption: {},
       selectedExchangeOptions: [],
       selectedStrategyTemplateOption: {},
@@ -154,6 +161,15 @@ class EditSettingsComp extends Component {
   }
 
   setSelectedOptions() {
+    var periodOption = intervalOptions.find(
+      e => e.value == this.props.settings["TRADE_PERIOD_SECOND"]
+    );
+    periodOption = periodOption
+      ? periodOption
+      : {};
+    this.setState({
+      periodOption: periodOption
+    });
     /*****************************************************************************/
     var tradingPlatformOption = tradingPlatformOptions.find(
       e => e.value == this.props.settings["GLOBAL_TRADING_PLATFORM"]
@@ -216,7 +232,13 @@ class EditSettingsComp extends Component {
       selectedSellOrderTypeOption: selectedSellOrderTypeOption
     });
   }
-
+  selectPeriodOption(option) {
+    let periodOption = option ? option : {};
+    this.setState({
+      periodOption: periodOption
+    });
+    this.props.onAddSetting("TRADE_PERIOD_SECOND", option.value);
+  }
   selectTradingPlatformOption(option) {
     let selectedTradingPlatformOption = option ? option : {};
     this.setState({
@@ -341,6 +363,8 @@ class EditSettingsComp extends Component {
             {...this.props}
             saveSettings={this.saveSettings}
             selectedExchangeOptions={this.state.selectedExchangeOptions}
+            periodOption={this.state.periodOption}
+            selectPeriodOption={this.selectPeriodOption}
             onExchangeInputChange={this.onExchangeInputChange}
             buyStrategyOptions={this.state.buyStrategyOptions}
             sellStrategyOptions={this.state.sellStrategyOptions}

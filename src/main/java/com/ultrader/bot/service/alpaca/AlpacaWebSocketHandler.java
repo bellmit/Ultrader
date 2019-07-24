@@ -91,7 +91,12 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
                     tradeUpdate.getOrder().getFilled_avg_price(),
                     tradeUpdate.getOrder().getStatus(),
                     tradeUpdate.getOrder().getFilled_at());
-            orderDao.save(order);
+            try {
+                orderDao.save(order);
+            } catch (Exception e) {
+                LOG.error("Cannot store order {}", order, e);
+            }
+
             //Populate Dashboard Message
             try {
                 TradingAccountMonitor.getInstance().syncAccount();

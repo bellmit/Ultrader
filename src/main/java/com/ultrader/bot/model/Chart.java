@@ -17,7 +17,6 @@ import java.util.Date;
 public class Chart {
     @Id
     @Column(name="ID", unique=true, updatable=false, nullable=false)
-    @GeneratedValue
     private long id;
 
 

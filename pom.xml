@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.ultrader</groupId>
-	<artifactId>bot</artifactId>
+	<artifactId>Ultrader</artifactId>
 	<version>0.7.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>bot</name>

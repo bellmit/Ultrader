@@ -20,6 +20,14 @@ var exchangeOptions = [
   { value: "NYSE", label: "NYSE" },
   { value: "NYSEARCA", label: "NYSEARCA" }
 ];
+
+var intervalOptions = [
+  { value: "60", label: "1 Minute" },
+  { value: "300", label: "5 Minutes" },
+  { value: "900", label: "15 Minutes" },
+  { value: "86400", label: "1 Day" }
+];
+
 class FinalStep extends Component {
   constructor(props) {
     super(props);
@@ -62,12 +70,13 @@ class FinalStep extends Component {
                     </FormGroup>
                     <FormGroup>
                       <ControlLabel>Trading Period in Seconds</ControlLabel>
-                      <FormControl
-                        id="TRADE_PERIOD_SECOND"
-                        value={this.props.settings["TRADE_PERIOD_SECOND"]}
-                        onChange={this.textOnChange}
-                        type="text"
+                      <Select
                         placeholder="Trading Period in Seconds"
+                        name="tradeperiod"
+                        options={intervalOptions}
+                        value={this.props.periodOption}
+                        id="TRADE_PERIOD_SECOND"
+                        onChange={option => this.props.selectPeriodOption(option)}
                       />
                     </FormGroup>
                     <FormGroup>

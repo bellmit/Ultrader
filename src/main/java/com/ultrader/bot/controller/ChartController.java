@@ -48,7 +48,7 @@ public class ChartController {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startDate = now.minusSeconds(length * period);
         long offset = now.toEpochSecond(ZoneOffset.UTC) - new Date().getTime() / 1000;
-        List<Chart> charts = chartDao.getPortfolioByDate(startDate, now, "Portfolio");
+        List<Chart> charts = chartDao.getPortfolioByName(startDate, now, "Portfolio");
         ChartResponse response = new ChartResponse();
         response.setName("Portfolio");
         List<String> labels = new ArrayList<>();
