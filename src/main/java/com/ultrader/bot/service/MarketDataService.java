@@ -3,6 +3,7 @@ package com.ultrader.bot.service;
 import org.ta4j.core.Bar;
 import org.ta4j.core.TimeSeries;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +22,7 @@ public interface MarketDataService {
      * @throws InterruptedException
      */
     List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) throws InterruptedException;
-
+    void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate) throws InterruptedException;
     void subscribe(String symbol);
     void unsubscribe(String symbol);
     void restart();

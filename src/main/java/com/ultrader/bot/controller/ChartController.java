@@ -71,7 +71,7 @@ public class ChartController {
             startDate = startDate.plusSeconds(period);
         }
         for (Chart chart : charts) {
-            LOGGER.info("start {} chart {}", startDate.toString(), chart.getDate().toString());
+            LOGGER.debug("start {} chart {}", startDate.toString(), chart.getDate().toString());
             if(chart.getDate().getTime() / 1000 < startDate.toEpochSecond(ZoneOffset.UTC) - offset) {
                 lastValue = chart.getValue();
             } else {

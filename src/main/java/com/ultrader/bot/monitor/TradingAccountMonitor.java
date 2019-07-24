@@ -7,6 +7,7 @@ import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Chart;
 import com.ultrader.bot.model.Position;
+import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.NotificationUtil;
 import com.ultrader.bot.util.RepositoryUtil;
@@ -154,7 +155,12 @@ public class TradingAccountMonitor extends Monitor {
             notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(account));
             notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
             notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
-
+            //Publish status
+            if (MarketDataMonitor.isMarketOpen()) {
+                notifier.convertAndSend("/topic/status/market", new StatusMessage("opened", "Market is open"));
+            } else {
+                notifier.convertAndSend("/topic/status/market", new StatusMessage("closed", "Market is close"));
+            }
 
         } catch (Exception e) {
             LOGGER.error("Update trading account failed.", e);

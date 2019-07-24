@@ -25,11 +25,13 @@ import org.ta4j.core.num.Num;
 import org.ta4j.core.num.PrecisionNum;
 
 import java.time.*;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * Alpaca Market data API
+ *
  * @author ytx1991
  */
 @Service("AlpacaMarketDataService")
@@ -42,6 +44,7 @@ public class AlpacaMarketDataService implements MarketDataService {
     private SettingDao settingDao;
 
     private ParameterizedTypeReference<HashMap<String, ArrayList<Bar>>> barResponseType;
+
     @Autowired
     public AlpacaMarketDataService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
@@ -50,12 +53,13 @@ public class AlpacaMarketDataService implements MarketDataService {
         this.settingDao = settingDao;
         this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
         this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
-        if(alpacaKey.equals("") || alpacaSecret.equals("")) {
+        if (alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
         }
         client = restTemplateBuilder.rootUri("https://data.alpaca.markets/v1/").build();
-        barResponseType = new ParameterizedTypeReference<HashMap<String, ArrayList<Bar>>>() {};
+        barResponseType = new ParameterizedTypeReference<HashMap<String, ArrayList<Bar>>>() {
+        };
     }
 
     @Override
@@ -64,24 +68,54 @@ public class AlpacaMarketDataService implements MarketDataService {
         List<TimeSeries> oldStocks = new ArrayList<>();
         List<TimeSeries> result = new ArrayList<>();
         int maxLength = 0;
-        for(TimeSeries timeSeries : stocks) {
-            if(timeSeries.getBarCount() == 0) {
+        for (TimeSeries timeSeries : stocks) {
+            if (timeSeries.getBarCount() == 0) {
                 newStocks.add(timeSeries);
             } else {
                 oldStocks.add(timeSeries);
             }
-            if(timeSeries.getMaximumBarCount() > maxLength) {
+            if (timeSeries.getMaximumBarCount() > maxLength) {
                 maxLength = timeSeries.getMaximumBarCount();
             }
         }
-        if(newStocks.size() > 0) {
-           result.addAll(updateStockTimeSeries(newStocks, interval, true, maxLength));
+        if (newStocks.size() > 0) {
+            result.addAll(updateStockTimeSeries(newStocks, interval, true, maxLength));
         }
-        if(oldStocks.size() > 0) {
+        if (oldStocks.size() > 0) {
             result.addAll(updateStockTimeSeries(oldStocks, interval, false, maxLength));
         }
 
         return result;
+    }
+
+    @Override
+    public void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate) throws InterruptedException {
+        Map<String, TimeSeries> result = new HashMap<>();
+        stocks.stream().forEach(s -> result.put(s.getName(), s));
+        int count = 0;
+        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+        StringBuilder symbols = new StringBuilder();
+        for (TimeSeries timeSeries : stocks) {
+            if (count == 0) {
+                symbols.append(timeSeries.getName());
+            } else {
+                symbols.append("," + timeSeries.getName());
+            }
+            count++;
+
+            if (count < MAX_STOCK) {
+                continue;
+            }
+            //Do a batch call when reach the max stocks per call limit
+            updateBars(symbols.toString(), interval, 1000, result, startDate.format(formatter), endDate.format(formatter));
+
+            symbols = new StringBuilder();
+            count = 0;
+        }
+        if (count != 0) {
+            updateBars(symbols.toString(), interval, 1000, result, startDate.format(formatter), endDate.format(formatter));
+        }
+        LOGGER.info("Batch updated {} stocks.", result.size());
     }
 
     @Override
@@ -98,7 +132,7 @@ public class AlpacaMarketDataService implements MarketDataService {
     public void restart() {
         this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
         this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
-        if(alpacaKey.equals("") || alpacaSecret.equals("")) {
+        if (alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
         }
@@ -109,36 +143,43 @@ public class AlpacaMarketDataService implements MarketDataService {
         stocks.stream().forEach(s -> result.put(s.getName(), s));
         int count = 0;
         StringBuilder symbols = new StringBuilder();
-        for(TimeSeries timeSeries : stocks) {
-            if(count == 0) {
+        for (TimeSeries timeSeries : stocks) {
+            if (count == 0) {
                 symbols.append(timeSeries.getName());
             } else {
                 symbols.append("," + timeSeries.getName());
             }
-            count ++;
+            count++;
 
-            if(count < MAX_STOCK) {
+            if (count < MAX_STOCK) {
                 continue;
             }
             //Do a batch call when reach the max stocks per call limit
-            updateBars(symbols.toString(), interval, (isNewStock ? maxLength : 3), result);
+            updateBars(symbols.toString(), interval, (isNewStock ? maxLength : 3), result, null, null);
 
             symbols = new StringBuilder();
             count = 0;
         }
-        if(count != 0) {
-            updateBars(symbols.toString(), interval, (isNewStock ? maxLength : 3), result);
+        if (count != 0) {
+            updateBars(symbols.toString(), interval, (isNewStock ? maxLength : 3), result, null, null);
         }
         LOGGER.info("Batch updated {} stocks.", result.size());
         return new ArrayList<>(result.values());
     }
 
-    private void updateBars(String symbols, Long interval, int limit, Map<String, TimeSeries> batchTimeSeries) {
+    private void updateBars(String symbols, Long interval, int limit, Map<String, TimeSeries> batchTimeSeries, String startDateStr, String endDateStr) {
         HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
         StringBuilder parameter = new StringBuilder("?");
 
         parameter.append("symbols=" + symbols);
         parameter.append("&limit=" + limit);
+        if (startDateStr != null) {
+            parameter.append("&start=" + startDateStr);
+        }
+
+        if (endDateStr != null) {
+            parameter.append("&end=" + endDateStr);
+        }
         //parameter.append("&start=" + (new Date().getTime() - interval * (limit + 1)));
         //Get new bars
         ResponseEntity<HashMap<String, ArrayList<Bar>>> responseEntity = client.exchange("/bars/" + convertIntervalToTimeframe(interval) + parameter.toString(), HttpMethod.GET, entity, barResponseType);
@@ -149,25 +190,25 @@ public class AlpacaMarketDataService implements MarketDataService {
         LOGGER.debug("Download {} stocks market data", responseEntity.getBody().size());
         int filterCount = 0;
         //Update time series
-        for(String stock : responseEntity.getBody().keySet()) {
+        for (String stock : responseEntity.getBody().keySet()) {
             LOGGER.debug(String.format("Update stocks %s, %d bars", stock, responseEntity.getBody().get(stock).size()));
-            for(Bar bar : responseEntity.getBody().get(stock)) {
+            for (Bar bar : responseEntity.getBody().get(stock)) {
                 int barSize = batchTimeSeries.get(stock).getBarCount();
-                if( barSize == 0 || batchTimeSeries.get(stock).getLastBar().getBeginTime().toEpochSecond() <= bar.getT()) {
+                if (barSize == 0 || batchTimeSeries.get(stock).getLastBar().getBeginTime().toEpochSecond() <= bar.getT()) {
                     LOGGER.debug("Last bar begin at {}, current bar begin at {}, stock {}, bars {}",
                             barSize == 0 ? "null" : batchTimeSeries.get(stock).getLastBar().getBeginTime().toEpochSecond(),
                             bar.getT(),
                             stock,
                             barSize);
-                    Instant i = Instant.ofEpochSecond(bar.getT() + interval/1000);
+                    Instant i = Instant.ofEpochSecond(bar.getT() + interval / 1000);
                     ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE));
-                    org.ta4j.core.Bar newBar = new BaseBar(Duration.ofMillis(interval),endDate, PrecisionNum.valueOf(bar.getO()), PrecisionNum.valueOf(bar.getH()), PrecisionNum.valueOf(bar.getL()), PrecisionNum.valueOf(bar.getC()), PrecisionNum.valueOf(bar.getV()), PrecisionNum.valueOf(bar.getV() * bar.getC()));
-                    if(barSize > 0 && batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond() == endDate.toEpochSecond()) {
+                    org.ta4j.core.Bar newBar = new BaseBar(Duration.ofMillis(interval), endDate, PrecisionNum.valueOf(bar.getO()), PrecisionNum.valueOf(bar.getH()), PrecisionNum.valueOf(bar.getL()), PrecisionNum.valueOf(bar.getC()), PrecisionNum.valueOf(bar.getV()), PrecisionNum.valueOf(bar.getV() * bar.getC()));
+                    if (barSize > 0 && batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond() == endDate.toEpochSecond()) {
                         //Replace last bar
                         batchTimeSeries.get(stock).addBar(newBar, true);
                         LOGGER.debug("Replaced {} last bar {}", stock, newBar);
                     } else {
-                        if(barSize == 0 || endDate.getDayOfYear() != batchTimeSeries.get(stock).getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond()) <= 3600) {
+                        if (barSize == 0 || endDate.getDayOfYear() != batchTimeSeries.get(stock).getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond()) <= 3600) {
                             //Time series must be continuous
                             batchTimeSeries.get(stock).addBar(newBar);
                         } else {
@@ -186,20 +227,22 @@ public class AlpacaMarketDataService implements MarketDataService {
         }
         LOGGER.debug("Filtered out {} stocks when downloading.", filterCount);
     }
+
     private HttpHeaders generateHeader() {
         HttpHeaders httpHeaders = new HttpHeaders();
         httpHeaders.set("APCA-API-KEY-ID", alpacaKey);
         httpHeaders.set("APCA-API-SECRET-KEY", alpacaSecret);
         return httpHeaders;
     }
+
     private String convertIntervalToTimeframe(long interval) {
-        if(interval == 60 * 1000L) {
+        if (interval == 60 * 1000L) {
             return "1Min";
-        } else if(interval == 300 * 1000L) {
+        } else if (interval == 300 * 1000L) {
             return "5Min";
-        } else if(interval == 900 * 1000L) {
+        } else if (interval == 900 * 1000L) {
             return "15Min";
-        } else if(interval == 24 * 3600 * 1000L) {
+        } else if (interval == 24 * 3600 * 1000L) {
             return "day";
         } else {
             return "5Min";

@@ -24,10 +24,7 @@ import org.ta4j.core.BaseBar;
 import org.ta4j.core.TimeSeries;
 import org.ta4j.core.num.PrecisionNum;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +32,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Polygon Market Data Service
+ *
  * @author ytx1991
  */
 @Service("PolygonMarketDataService")
@@ -56,7 +54,7 @@ public class PolygonMarketDataService implements MarketDataService {
         this.settingDao = settingDao;
         this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(),
                 RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), ""));
-        if(polygonKey.isEmpty()) {
+        if (polygonKey.isEmpty()) {
             LOGGER.error("Cannot find Alpaca key, please set up and reboot.");
         }
         client = restTemplateBuilder.rootUri("https://api.polygon.io").build();
@@ -86,22 +84,22 @@ public class PolygonMarketDataService implements MarketDataService {
         }
 
 
-
     }
+
     @Override
     public List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) throws InterruptedException {
         interval = interval < 60000 ? 60000 : interval;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String endDate = ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).plusDays(1).format(formatter);
         String startDate = getStartDate(stocks.get(0), endDate, interval, formatter);
-        if(startDate == null) {
+        if (startDate == null) {
             LOGGER.error("Cannot get the start date");
             return new ArrayList<>();
         }
         int newStockCount = 0;
         LOGGER.debug("Start date {}, End Date {}", startDate, endDate);
-        for(TimeSeries timeSeries : stocks) {
-            if(timeSeries.getBarCount() == 0 && interval >= 60000) {
+        for (TimeSeries timeSeries : stocks) {
+            if (timeSeries.getBarCount() == 0 && interval >= 60000) {
                 GetStockBarsTask task = new GetStockBarsTask(timeSeries, client, startDate, endDate, getPeriodUnit(interval), getPeriodLength(interval), interval, polygonKey);
                 threadPoolTaskExecutor.execute(task);
                 newStockCount++;
@@ -109,12 +107,32 @@ public class PolygonMarketDataService implements MarketDataService {
             }
         }
         LOGGER.info("Submitted {} update tasks", newStockCount);
-        while(threadPoolTaskExecutor.getActiveCount() != 0) {
+        while (threadPoolTaskExecutor.getActiveCount() != 0) {
             LOGGER.debug("Remain {} stocks to update", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
             Thread.sleep(1000);
         }
         LOGGER.info("Completed {} update tasks", newStockCount);
         return stocks;
+    }
+
+    @Override
+    public void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate) throws InterruptedException {
+        int newStockCount = 0;
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        for (TimeSeries timeSeries : stocks) {
+            if (timeSeries.getBarCount() == 0 && interval >= 60000) {
+                GetStockBarsTask task = new GetStockBarsTask(timeSeries, client, startDate.format(formatter), endDate.format(formatter), getPeriodUnit(interval), getPeriodLength(interval), interval, polygonKey);
+                threadPoolTaskExecutor.execute(task);
+                newStockCount++;
+
+            }
+        }
+        LOGGER.info("Submitted {} get stocks request", newStockCount);
+        while (threadPoolTaskExecutor.getActiveCount() != 0) {
+            LOGGER.debug("Remain {} stocks to update", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
+            Thread.sleep(1000);
+        }
+        LOGGER.info("Completed {} update tasks", newStockCount);
     }
 
     @Override
@@ -131,7 +149,7 @@ public class PolygonMarketDataService implements MarketDataService {
     public void restart() {
         this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(),
                 RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), ""));
-        if(polygonKey.isEmpty()) {
+        if (polygonKey.isEmpty()) {
             LOGGER.error("Cannot find Alpaca key, please set up and reboot.");
         }
         threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().clear();
@@ -153,20 +171,20 @@ public class PolygonMarketDataService implements MarketDataService {
     }
 
 
-    private String getStartDate(TimeSeries timeSeries, String endDate, long interval, DateTimeFormatter formatter){
+    private String getStartDate(TimeSeries timeSeries, String endDate, long interval, DateTimeFormatter formatter) {
         try {
             long days = interval * timeSeries.getMaximumBarCount() / 60000 / MIN_PER_TRADING_DAY + 1;
             ZonedDateTime startDate = ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).minusDays(days);
             AggResponse response = null;
             int lastSize = 0;
             do {
-                if(response != null) {
+                if (response != null) {
                     lastSize = response.getResults().size();
                 }
                 String url = String.format("/v2/aggs/ticker/%s/range/%s/%s/%s/%s?apiKey=%s",
                         "AAPL", getPeriodLength(interval), getPeriodUnit(interval), startDate.format(formatter), endDate, polygonKey);
                 response = client.getForObject(url, AggResponse.class);
-                if(response.getResults().size() == lastSize) {
+                if (response.getResults().size() == lastSize) {
                     //Cannot get more results, throw exception
                     throw new Exception("Cannot get more results for stock " + timeSeries.getName() + " size: " + response.getResults().size());
                 }
@@ -200,7 +218,7 @@ public class PolygonMarketDataService implements MarketDataService {
     }
 
     private String getPeriodUnit(long interval) {
-        if(interval / 1000 >= 24 * 3600) {
+        if (interval / 1000 >= 24 * 3600) {
             return "day";
         } else if (interval / 1000 >= 3600) {
             return "hour";
@@ -218,6 +236,7 @@ public class PolygonMarketDataService implements MarketDataService {
         private final long timeLength;
         private final long interval;
         private final String key;
+
         protected GetStockBarsTask(TimeSeries timeSeries,
                                    final RestTemplate client,
                                    final String startDate,
@@ -236,21 +255,22 @@ public class PolygonMarketDataService implements MarketDataService {
             this.interval = interval;
             this.key = key;
         }
+
         @Override
         public void run() {
             String url = String.format("/v2/aggs/ticker/%s/range/%s/%s/%s/%s?apiKey=%s",
                     timeSeries.getName(), timeLength, timeUnit, startDate, endDate, key);
             try {
                 AggResponse response = client.getForObject(url, AggResponse.class);
-                if(response.getResults() == null) {
-                    return ;
+                if (response.getResults() == null) {
+                    return;
                 }
                 for (Aggv2 bar : response.getResults()) {
                     int barSize = timeSeries.getBarCount();
-                    if( barSize == 0 || timeSeries.getLastBar().getBeginTime().toEpochSecond() <= bar.getT() / 1000) {
+                    if (barSize == 0 || timeSeries.getLastBar().getBeginTime().toEpochSecond() <= bar.getT() / 1000) {
                         Instant i = Instant.ofEpochSecond(bar.getT() / 1000);
                         ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE));
-                        Bar newBar = new BaseBar(Duration.ofMillis(interval),endDate, PrecisionNum.valueOf(bar.getO()), PrecisionNum.valueOf(bar.getH()), PrecisionNum.valueOf(bar.getL()), PrecisionNum.valueOf(bar.getC()), PrecisionNum.valueOf(bar.getV()), PrecisionNum.valueOf(bar.getV() * bar.getC()));
+                        Bar newBar = new BaseBar(Duration.ofMillis(interval), endDate, PrecisionNum.valueOf(bar.getO()), PrecisionNum.valueOf(bar.getH()), PrecisionNum.valueOf(bar.getL()), PrecisionNum.valueOf(bar.getC()), PrecisionNum.valueOf(bar.getV()), PrecisionNum.valueOf(bar.getV() * bar.getC()));
                         timeSeries.addBar(newBar);
                     }
                 }

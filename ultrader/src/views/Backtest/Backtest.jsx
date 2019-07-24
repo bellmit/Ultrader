@@ -19,6 +19,15 @@ import Button from "components/CustomButton/CustomButton.jsx";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 import { parseDate } from "helpers/ParseHelper";
+import Datetime from 'react-datetime';
+import 'react-datetime/css/react-datetime.css';
+
+var intervalOptions = [
+  { value: "60", label: "1 Minute" },
+  { value: "300", label: "5 Minutes" },
+  { value: "900", label: "15 Minutes" },
+  { value: "86400", label: "1 Day" }
+];
 
 class BacktestComp extends Component {
   constructor(props) {
@@ -28,6 +37,7 @@ class BacktestComp extends Component {
     this.validate = this.validate.bind(this);
     this.search = this.search.bind(this);
     this.selectBuyStrategyOption = this.selectBuyStrategyOption.bind(this);
+    this.selectSellStrategyOption = this.selectSellStrategyOption.bind(this);
     this.selectSellStrategyOption = this.selectSellStrategyOption.bind(this);
     this.initData = this.initData.bind(this);
     this.toggleInputs = this.toggleInputs.bind(this);
@@ -86,6 +96,13 @@ class BacktestComp extends Component {
     });
   }
 
+  selectIntervalOption(option) {
+    let selectedIntervalOption = option ? option : {};
+    this.setState({
+      selectedIntervalOption: selectedIntervalOption
+    });
+  }
+
   selectSellStrategyOption(option) {
     let selectedSellStrategyOption = option ? option : {};
     this.setState({
@@ -96,11 +113,13 @@ class BacktestComp extends Component {
   getBacktest() {
     console.log(this.state);
     axiosGetWithAuth(
-      "/api/strategy/backtest?" +
-        "length=" +
-        this.state.length +
+      "/api/strategy/backtestByDate?" +
+        "startDate=" +
+        this.state.startDate +
+        "&endDate=" +
+        this.state.endDate+
         "&interval=" +
-        this.state.interval +
+        this.state.selectedIntervalOption.value +
         "&stocks=" +
         this.state.stocks +
         "&buyStrategyId=" +
@@ -121,8 +140,9 @@ class BacktestComp extends Component {
 
   validate() {
     if (
-      this.state.length &&
-      this.state.interval &&
+      this.state.startDate &&
+      this.state.endDate &&
+      this.state.selectedIntervalOption &&
       this.state.stocks &&
       this.state.selectedBuyStrategyOption &&
       this.state.selectedSellStrategyOption
@@ -157,27 +177,35 @@ class BacktestComp extends Component {
                 <Collapse in={this.state.showInputs}>
                   <form>
                     <FormGroup>
-                      <ControlLabel>Length</ControlLabel>
-                      <FormControl
-                        id="length"
-                        value={this.state.length}
-                        onChange={e => {
-                          this.setState({ length: e.target.value });
-                        }}
-                        type="text"
-                        placeholder="length"
-                      />
+                        <ControlLabel>Start Date</ControlLabel>
+                        <Datetime
+                            id="startDate"
+                            inputProps={{placeholder:"Test Start Date"}}
+                            onChange={e => {
+                                this.setState({ startDate: e.format()});
+                            }}
+                        />
+                    </FormGroup>
+                    <FormGroup>
+                        <ControlLabel>End Date</ControlLabel>
+                        <Datetime
+                            id="endDate"
+                            inputProps={{placeholder:"Test End Date"}}
+                            onChange={e => {
+                                this.setState({ endDate: e.format()});
+                            }}
+                        />
                     </FormGroup>
                     <FormGroup>
                       <ControlLabel>Interval</ControlLabel>
-                      <FormControl
-                        id="interval"
-                        value={this.state.interval}
-                        onChange={e => {
-                          this.setState({ interval: e.target.value });
-                        }}
-                        type="text"
-                        placeholder="interval"
+                      <Select
+                        placeholder="One bar represent how long"
+                        name="intervalInput"
+                        options={intervalOptions}
+                        value={this.state.selectedIntervalOption}
+                        id="intervalInput1"
+                        onChange={option => this.selectIntervalOption(option)
+                        }
                       />
                     </FormGroup>
                     <FormGroup>
@@ -290,7 +318,7 @@ class BacktestComp extends Component {
                             cell.value ? parseDate(cell.value) : ""
                         }
                       ]}
-                      defaultPageSize={10}
+                      defaultPageSize={20}
                       showPaginationTop
                       showPaginationBottom={false}
                       className="-striped -highlight"

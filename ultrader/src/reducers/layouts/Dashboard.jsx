@@ -89,12 +89,13 @@ const global = (state = initialState, action) => {
       };
     case ACTION_TYPES.RECEIVED_MARKET_STATUS_MESSAGE:
       var messageBody = JSON.parse(action.response.body);
+      var marketStatus = messageBody.status == "closed" ? "error" : "success";
       return {
         ...state,
         systemStatus: {
           ...state.systemStatus,
           market: {
-            status: messageBody.status,
+            status: marketStatus,
             detail: "Market Status Detail: " + messageBody.message
           }
         }
