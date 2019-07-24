@@ -18,9 +18,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.ta4j.core.TimeSeries;
 import org.ta4j.core.num.PrecisionNum;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * Sync Account information
@@ -83,12 +81,36 @@ public class TradingAccountMonitor extends Monitor {
 
     private Map<String, Position> getAllPositions() throws RuntimeException {
         Map<String, Position> positionMap = tradingService.getAllPositions();
-        positionDao.deleteAll();
-        positionDao.saveAll(positionMap.values());
         if (positionMap == null) {
             throw new RuntimeException("Cannot get position info, skip executing trading strategies");
         }
-        LOGGER.info(String.format("Found %d positions.", positionMap.size()));
+        int updateCount = 0, deleteCount = 0, addCount = 0;
+        //Update database
+        Set<String> existedStock = new HashSet<>();
+        Iterable<Position> positions = positionDao.findAll();
+        for (Position position : positions) {
+            if(positionMap.containsKey(position.getSymbol())) {
+                //Update existed stocks
+                Position newPosition = positionMap.get(position.getSymbol());
+                newPosition.setBuyDate(position.getBuyDate());
+                positionDao.save(newPosition);
+                existedStock.add(newPosition.getSymbol());
+                updateCount++;
+            } else {
+                //Delete sold stocks
+                positionDao.delete(position);
+                deleteCount++;
+            }
+        }
+        for (Position position : positionMap.values()) {
+            if(!existedStock.contains(position.getSymbol())) {
+                //Add New stocks
+                position.setBuyDate(orderDao.findLastTradeBySymbol(position.getSymbol()).get(0).getCloseDate());
+                positionDao.save(position);
+                addCount++;
+            }
+        }
+        LOGGER.info(String.format("Positions: Add %d, Delete %d, Update %d.", addCount, deleteCount, updateCount));
         return positionMap;
     }
 

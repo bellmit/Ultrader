@@ -56,24 +56,30 @@ public class ChartController {
         List<Double> values = new ArrayList<>();
         response.setSeries(Collections.singletonList(values));
         if(charts.size() == 0) {
+
             return response;
         }
         Double lastValue = 0.0;
         DateTimeFormatter formatter;
         if (period >= 24 * 3600) {
-            formatter = DateTimeFormatter.ofPattern("MM-dd");
+            formatter = DateTimeFormatter.ofPattern("dd");
         } else {
             formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm");
         }
 
-        startDate = startDate.plusSeconds(period);
-        for(Chart chart : charts) {
+        while (startDate.toEpochSecond(ZoneOffset.UTC) - offset < charts.get(0).getDate().getTime() / 1000) {
+            startDate = startDate.plusSeconds(period);
+        }
+        for (Chart chart : charts) {
+            LOGGER.info("start {} chart {}", startDate.toString(), chart.getDate().toString());
             if(chart.getDate().getTime() / 1000 < startDate.toEpochSecond(ZoneOffset.UTC) - offset) {
-
                 lastValue = chart.getValue();
-            } else if(lastValue > 1) {
-                values.add(lastValue);
-                labels.add(startDate.format(formatter));
+            } else {
+                if(lastValue > 0) {
+                    values.add(lastValue);
+                    labels.add(startDate.format(formatter));
+                }
+
                 startDate = startDate.plusSeconds(period);
                 lastValue = chart.getValue();
             }

@@ -50,12 +50,10 @@ public class TradingPlatform {
         } else {
             LOGGER.error("Unknown trading platform, please check your config.");
         }
-        if(marketDataPlatform.equals("IEX")) {
-            marketDataService = alpacaMarketDataService;
-        } else if (marketDataPlatform.equals("POLYGON")) {
+        if(marketDataPlatform.equals("POLYGON")) {
             marketDataService = polygonMarketDataService;
-        } else {
-            LOGGER.error("Unknown market data platform, please check your config.");
+        } else  {
+            marketDataService = alpacaMarketDataService;
         }
     }
 

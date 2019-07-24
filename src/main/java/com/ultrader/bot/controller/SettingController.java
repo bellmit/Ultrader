@@ -4,6 +4,7 @@ import com.ultrader.bot.BotApplication;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.monitor.MonitorManager;
+import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.service.alpaca.AlpacaMarketDataService;
 import com.ultrader.bot.service.alpaca.AlpacaPaperTradingService;
 import com.ultrader.bot.service.alpaca.AlpacaTradingService;
@@ -34,7 +35,8 @@ public class SettingController {
     private AlpacaMarketDataService alpacaMarketDataService;
     @Autowired
     private PolygonMarketDataService polygonMarketDataService;
-
+    @Autowired
+    private TradingPlatform tradingPlatform;
     @Autowired
     private SettingDao settingDao;
 
@@ -81,6 +83,7 @@ public class SettingController {
     @ResponseBody
     public void restart() {
         LOGGER.info("Restart Ultrader ...");
+        tradingPlatform.restart();
         alpacaMarketDataService.restart();
         alpacaPaperTradingService.restart();
         alpacaTradingService.restart();

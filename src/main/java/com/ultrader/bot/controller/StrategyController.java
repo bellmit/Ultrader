@@ -157,12 +157,10 @@ public class StrategyController {
             trades += result.getTradingCount();
             if (result.getTradingCount() > 0) {
                 tradeCount += 1;
-                profitTradesRatio += result.getProfitTradesRatio();
-                profitTradesRatioCount += 1;
+                profitTradesRatio += result.getProfitTradesRatio() * result.getTradingCount();
                 rewardRiskRatio += result.getRewardRiskRatio();
                 rewardRiskRatioCount += 1;
                 totalProfit += result.getTotalProfit();
-                totalProfitCount += 1;
                 vsBuyAndHold += result.getVsBuyAndHold();
                 vsBuyAndHoldCount += 1;
             }
@@ -170,21 +168,21 @@ public class StrategyController {
         }
         //Add summary
         results.add(new BackTestingResult(
-                "Aggregate Summary",
+                "Aggregate Summary by trades",
                 trades,
-                profitTradesRatio,
-                rewardRiskRatio,
+                profitTradesRatio / trades,
+                Double.NaN,
                 vsBuyAndHold,
                 totalProfit,
                 null,
                 null));
         results.add(new BackTestingResult(
-                "Average Summary",
-                tradeCount == 0 ? 0: trades / tradeCount,
-                profitTradesRatioCount == 0 ? 0 : profitTradesRatio / profitTradesRatioCount,
+                "Average Summary by trades",
+                trades == 0 ? 0 : trades / trades,
+                Double.NaN,
                 rewardRiskRatioCount == 0 ? 0 : rewardRiskRatio / rewardRiskRatioCount,
-                vsBuyAndHoldCount == 0 ? 0 : vsBuyAndHold / vsBuyAndHoldCount,
-                totalProfitCount == 0 ? 0 : totalProfit * 1.0 / totalProfitCount,
+                vsBuyAndHold / timeSeriesList.size(),
+                totalProfit / trades,
                 null,
                 null));
 
@@ -221,8 +219,8 @@ public class StrategyController {
                     tradingRecord.getTradeCount(),
                     profitTradesRatio,
                     rewardRiskRatio,
-                    vsBuyAndHold,
-                    totalProfit,
+                    vsBuyAndHold - 1,
+                    totalProfit - 1,
                     series.getBar(0).getBeginTime().toLocalDateTime(),
                     series.getLastBar().getEndTime().toLocalDateTime());
         } catch (Exception e) {

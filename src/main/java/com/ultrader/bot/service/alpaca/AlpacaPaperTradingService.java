@@ -141,7 +141,7 @@ public class AlpacaPaperTradingService implements TradingService {
             }
             Map<String, Position> positionMap = new HashMap<>();
             for (com.ultrader.bot.model.alpaca.Position position : positions.getBody()) {
-                positionMap.put(position.getSymbol(), new Position(position.getSymbol(), position.getQty(), position.getAvg_entry_price(), new Date(), position.getCurrent_price(), position.getExchange(), position.getMarket_value(), position.getChange_today()));
+                positionMap.put(position.getSymbol(), new Position(position.getSymbol(), position.getQty(), position.getAvg_entry_price(), null, position.getCurrent_price(), position.getExchange(), position.getMarket_value(), position.getChange_today()));
             }
             return positionMap;
         } catch (Exception e) {
