@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.ultrader</groupId>
 	<artifactId>bot</artifactId>
-	<version>0.7.1-SNAPSHOT</version>
+	<version>0.7.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>bot</name>
 	<description>Bot of Ultrader</description>

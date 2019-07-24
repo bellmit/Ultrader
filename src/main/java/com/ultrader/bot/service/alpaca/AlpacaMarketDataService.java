@@ -38,6 +38,8 @@ import java.util.stream.Collectors;
 public class AlpacaMarketDataService implements MarketDataService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaMarketDataService.class);
     private static final int MAX_STOCK = 150;
+    private final static int MIN_PER_TRADING_DAY = 390;
+    private final static int MAX_DATA_PER_REQUEST = 1000;
     private String alpacaKey;
     private String alpacaSecret;
     private RestTemplate client;
@@ -92,30 +94,42 @@ public class AlpacaMarketDataService implements MarketDataService {
     public void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate) throws InterruptedException {
         Map<String, TimeSeries> result = new HashMap<>();
         stocks.stream().forEach(s -> result.put(s.getName(), s));
-        int count = 0;
-        DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-        StringBuilder symbols = new StringBuilder();
-        for (TimeSeries timeSeries : stocks) {
-            if (count == 0) {
-                symbols.append(timeSeries.getName());
-            } else {
-                symbols.append("," + timeSeries.getName());
+        long sectionLength = MAX_DATA_PER_REQUEST * interval / 60000 / MIN_PER_TRADING_DAY;
+        LocalDateTime currentDate = null;
+        do {
+            currentDate = startDate.plusDays(sectionLength);
+            if (currentDate.isAfter(endDate)) {
+                currentDate = endDate;
             }
-            count++;
+            int count = 0;
+            DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+            LOGGER.info("Loading history data from {} to {}.", startDate.format(formatter), currentDate.format(formatter));
+            StringBuilder symbols = new StringBuilder();
+            for (TimeSeries timeSeries : stocks) {
+                if (count == 0) {
+                    symbols.append(timeSeries.getName());
+                } else {
+                    symbols.append("," + timeSeries.getName());
+                }
+                count++;
 
-            if (count < MAX_STOCK) {
-                continue;
+                if (count < MAX_STOCK) {
+                    continue;
+                }
+                //Do a batch call when reach the max stocks per call limit
+                updateBars(symbols.toString(), interval, 1000, result, startDate.format(formatter), currentDate.format(formatter));
+
+                symbols = new StringBuilder();
+                count = 0;
             }
-            //Do a batch call when reach the max stocks per call limit
-            updateBars(symbols.toString(), interval, 1000, result, startDate.format(formatter), endDate.format(formatter));
+            if (count != 0) {
+                updateBars(symbols.toString(), interval, 1000, result, startDate.format(formatter), currentDate.format(formatter));
+            }
+            LOGGER.info("Batch updated {} stocks.", result.size());
 
-            symbols = new StringBuilder();
-            count = 0;
-        }
-        if (count != 0) {
-            updateBars(symbols.toString(), interval, 1000, result, startDate.format(formatter), endDate.format(formatter));
-        }
-        LOGGER.info("Batch updated {} stocks.", result.size());
+            startDate = currentDate;
+        } while (currentDate.isBefore(endDate));
+
     }
 
     @Override
@@ -174,11 +188,11 @@ public class AlpacaMarketDataService implements MarketDataService {
         parameter.append("symbols=" + symbols);
         parameter.append("&limit=" + limit);
         if (startDateStr != null) {
-            parameter.append("&start=" + startDateStr);
+            parameter.append("&start=" + startDateStr + "-04:00");
         }
 
         if (endDateStr != null) {
-            parameter.append("&end=" + endDateStr);
+            parameter.append("&end=" + endDateStr + "-04:00");
         }
         //parameter.append("&start=" + (new Date().getTime() - interval * (limit + 1)));
         //Get new bars

@@ -39,6 +39,7 @@ import java.util.concurrent.TimeUnit;
 public class PolygonMarketDataService implements MarketDataService {
     private final static Logger LOGGER = LoggerFactory.getLogger(PolygonMarketDataService.class);
     private final static int MIN_PER_TRADING_DAY = 390;
+    private final static int MAX_DATA_PER_REQUEST = 5000;
     private String polygonKey;
     private final String frequency = "A.";
     private RestTemplate client;
@@ -117,22 +118,36 @@ public class PolygonMarketDataService implements MarketDataService {
 
     @Override
     public void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate) throws InterruptedException {
-        int newStockCount = 0;
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        for (TimeSeries timeSeries : stocks) {
-            if (timeSeries.getBarCount() == 0 && interval >= 60000) {
-                GetStockBarsTask task = new GetStockBarsTask(timeSeries, client, startDate.format(formatter), endDate.format(formatter), getPeriodUnit(interval), getPeriodLength(interval), interval, polygonKey);
-                threadPoolTaskExecutor.execute(task);
-                newStockCount++;
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        long sectionLength = MAX_DATA_PER_REQUEST * interval / 60000 / MIN_PER_TRADING_DAY;
+        LocalDateTime currentDate = null;
+        do {
+            int newStockCount = 0;
+            currentDate = startDate.plusDays(sectionLength);
+            if (currentDate.isAfter(endDate)) {
+                currentDate = endDate;
             }
+            LOGGER.info("Loading history data from {} to {}.", startDate.format(formatter), currentDate.format(formatter));
+            for (TimeSeries timeSeries : stocks) {
+                if (interval >= 60000) {
+                    GetStockBarsTask task = new GetStockBarsTask(timeSeries, client, startDate.format(formatter), currentDate.format(formatter), getPeriodUnit(interval), getPeriodLength(interval), interval, polygonKey);
+                    threadPoolTaskExecutor.execute(task);
+                    newStockCount++;
+
+                }
+            }
+            LOGGER.info("Submitted {} get stocks request", newStockCount);
+            while (threadPoolTaskExecutor.getActiveCount() != 0) {
+                LOGGER.debug("Remain {} stocks to update", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
+                Thread.sleep(1000);
+            }
+            LOGGER.info("Completed {} update tasks", newStockCount);
+            startDate = currentDate;
+        } while (currentDate.isBefore(endDate));
+        for (TimeSeries timeSeries : stocks) {
+            LOGGER.info("stock {} bar {}", timeSeries.getName(), timeSeries.getBarCount());
         }
-        LOGGER.info("Submitted {} get stocks request", newStockCount);
-        while (threadPoolTaskExecutor.getActiveCount() != 0) {
-            LOGGER.debug("Remain {} stocks to update", threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().size());
-            Thread.sleep(1000);
-        }
-        LOGGER.info("Completed {} update tasks", newStockCount);
     }
 
     @Override
