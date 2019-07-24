@@ -53,8 +53,10 @@ public class PolygonMarketDataService implements MarketDataService {
         Validate.notNull(settingDao, "settingDao is required");
 
         this.settingDao = settingDao;
-        this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(),
-                RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), ""));
+        this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(), "");
+        if (polygonKey.isEmpty()) {
+            polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
+        }
         if (polygonKey.isEmpty()) {
             LOGGER.error("Cannot find Alpaca key, please set up and reboot.");
         }
@@ -73,8 +75,7 @@ public class PolygonMarketDataService implements MarketDataService {
                         .server("nats1.polygon.io:31101")
                         .server("nats2.polygon.io:31102")
                         .server("nats3.polygon.io:31103")
-                        .token(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(),
-                                RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "")))
+                        .token(polygonKey)
                         .maxReconnects(-1).build();
                 Connection connection = Nats.connect(options);
                 LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
@@ -162,8 +163,10 @@ public class PolygonMarketDataService implements MarketDataService {
 
     @Override
     public void restart() {
-        this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(),
-                RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), ""));
+        this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(), "");
+        if (polygonKey.isEmpty()) {
+            polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
+        }
         if (polygonKey.isEmpty()) {
             LOGGER.error("Cannot find Alpaca key, please set up and reboot.");
         }
@@ -174,8 +177,7 @@ public class PolygonMarketDataService implements MarketDataService {
                     .server("nats1.polygon.io:31101")
                     .server("nats2.polygon.io:31102")
                     .server("nats3.polygon.io:31103")
-                    .token(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(),
-                            RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "")))
+                    .token(polygonKey)
                     .maxReconnects(-1).build();
             Connection connection = Nats.connect(options);
             LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
