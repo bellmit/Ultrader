@@ -162,7 +162,7 @@ public class TradingAccountMonitor extends Monitor {
             chart.setId(id);
             chartDao.save(chart);
             //Populate Dashboard Message
-            notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(account));
+            notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(account, chartDao));
             notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
             notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
             //Publish status

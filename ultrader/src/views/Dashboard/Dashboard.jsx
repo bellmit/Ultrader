@@ -57,9 +57,11 @@ class DashboardComp extends Component {
   getCards() {
     axiosGetWithAuth("/api/notification/dashboard")
       .then(res => {
+        var changePercentage = res.data.data.Change / (res.data.data.Portfolio - res.data.data.Change);
+        var signal = res.data.data.Change >= 0 ? '+' : '';
         this.props.portfolio.value = res.data.data.Portfolio;
         this.props.portfolio.buyingPower = res.data.data.BuyingPower;
-        this.props.portfolio.withdrawableCash = res.data.data.Cash;
+        this.props.portfolio.change = signal + parseMoney(res.data.data.Change) + " (" + signal + parsePercentage(changePercentage) + ")";
         this.props.trades.buyCount = res.data.data.BuyCount;
         this.props.trades.sellCount = res.data.data.SellCount;
         this.props.trades.buyAmount = res.data.data.BuyAmount;
@@ -108,8 +110,8 @@ class DashboardComp extends Component {
                             {parseMoney(this.props.portfolio.buyingPower)}
                           </p>
                           <p>
-                            Withdrawable :{" "}
-                            {parseMoney(this.props.portfolio.withdrawableCash)}
+                            24H Change :{" "}
+                            {this.props.portfolio.change}
                           </p>{" "}
                         </div>
                       </div>

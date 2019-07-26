@@ -1,7 +1,9 @@
 package com.ultrader.bot.util;
 
+import com.ultrader.bot.dao.ChartDao;
 import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.model.Account;
+import com.ultrader.bot.model.Chart;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.websocket.DashboardDataMessage;
 import com.ultrader.bot.monitor.LicenseMonitor;
@@ -28,12 +30,18 @@ public class NotificationUtil {
      * @param account
      * @return
      */
-    public static DashboardDataMessage generateAccountNotification(Account account) throws IllegalAccessException {
+    public static DashboardDataMessage generateAccountNotification(Account account, ChartDao chartDao) throws IllegalAccessException {
         DecimalFormat df = new DecimalFormat("#.##");
         Map<String, String> map = new HashMap<>();
+        List<Chart> now = chartDao.getDataByDate(LocalDateTime.now(), ChartType.Portfolio.name());
+        List<Chart> before = chartDao.getDataByDate(LocalDateTime.now().minusDays(1), ChartType.Portfolio.name());
+        Double change = 0.0;
+        if (now.size() > 0 && before.size() > 0 && account.getPortfolioValue() > 0) {
+            change = now.get(0).getValue() - before.get(0).getValue();
+        }
         map.put("Portfolio", df.format(account.getPortfolioValue()));
         map.put("BuyingPower", df.format(account.getBuyingPower()));
-        map.put("Cash", df.format(account.getCashWithdrawable()));
+        map.put("Change", df.format(change));
         map.put("status", LicenseMonitor.getInstance().isValidLicense() ? account.getStatus() : "Invalid License");
         map.put("IsTradingBlock", String.valueOf(account.isTradingBlocked()));
         LOGGER.info("Notify account update {}", map);

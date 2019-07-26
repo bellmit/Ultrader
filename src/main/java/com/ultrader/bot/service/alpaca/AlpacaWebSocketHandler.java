@@ -1,6 +1,7 @@
 package com.ultrader.bot.service.alpaca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ultrader.bot.dao.ChartDao;
 import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.alpaca.websocket.TradeUpdateResponse;
@@ -24,14 +25,16 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
     private final String key;
     private final String secret;
     private final OrderDao orderDao;
+    private final ChartDao chartDao;
     private ObjectMapper objectMapper;
     private SimpMessagingTemplate notifier;
 
-    public AlpacaWebSocketHandler(final String key, final String secret, final OrderDao orderDao, final SimpMessagingTemplate notifier) {
+    public AlpacaWebSocketHandler(final String key, final String secret, final OrderDao orderDao, final ChartDao chartDao, final SimpMessagingTemplate notifier) {
         this.key = key;
         this.secret = secret;
         this.objectMapper = new ObjectMapper();
         this.orderDao = orderDao;
+        this.chartDao = chartDao;
         this.notifier = notifier;
     }
 
@@ -100,7 +103,7 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
             //Populate Dashboard Message
             try {
                 TradingAccountMonitor.getInstance().syncAccount();
-                notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount()));
+                notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount(), chartDao));
                 notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
                 notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
                 notifier.convertAndSend("/topic/order", order);

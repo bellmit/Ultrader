@@ -118,6 +118,7 @@ public class MarketDataMonitor extends Monitor {
                         updateSeries.add(timeSeries);
                     }
                 }
+
                 updateSeries = marketDataService.updateTimeSeries(updateSeries, getInterval());
                 //For max, If smaller than 0 then no limit
                 double priceMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MAX.getName(), "-1.0"));
@@ -125,7 +126,11 @@ public class MarketDataMonitor extends Monitor {
                 double volumeMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MAX.getName(), "-1.0"));
                 double volumeMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MIN.getName(), "1000.0"));
                 for (TimeSeries timeSeries : updateSeries) {
-
+                    //Don't filter positions
+                    if(TradingAccountMonitor.getPositions().containsKey(timeSeries.getName())) {
+                        currentTimeSeries.put(timeSeries.getName(), timeSeries);
+                        continue;
+                    }
                     //Filter by time series length
                     if (timeSeries.getBarCount() <= maxLength / 2) {
                         LOGGER.debug("Filter out {} because of missing data. Bar length {}", timeSeries.getName(), timeSeries.getBarCount());

@@ -1,7 +1,7 @@
 import _ from "lodash";
 
 import * as ACTION_TYPES from "actions/layouts/DashboardActions";
-
+import { parseMoney, parsePercentage } from "helpers/ParseHelper";
 const initialState = {
   stompClient: null,
   socket: null,
@@ -120,6 +120,8 @@ const global = (state = initialState, action) => {
     case ACTION_TYPES.RECEIVED_PORTFOLIO_MONITOR_MESSAGE:
       var messageBody = JSON.parse(action.response.body).data;
       var accountStatus = messageBody.IsTradingBlocked ? "error" : "success";
+      var changePercentage = messageBody.Change / (messageBody.Portfolio - messageBody.Change);
+      var signal = messageBody.Change >= 0 ? '+' : '';
       var accountStatusMessage = messageBody.IsTradingBlocked
         ? "Trading is blocked in this account."
         : "Account is able to trade.";
@@ -128,7 +130,7 @@ const global = (state = initialState, action) => {
         portfolio: {
           value: messageBody.Portfolio,
           buyingPower: messageBody.BuyingPower,
-          withdrawableCash: messageBody.Cash
+          change: signal + parseMoney(messageBody.Change) + " (" + signal + parsePercentage(changePercentage) + ")"
         },
         systemStatus: {
           ...state.systemStatus,

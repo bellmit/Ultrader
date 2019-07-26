@@ -5,6 +5,7 @@ import com.ultrader.bot.model.Chart;
 import com.ultrader.bot.model.ChartResponse;
 import com.ultrader.bot.model.Position;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
+import com.ultrader.bot.util.ChartType;
 import com.ultrader.bot.util.TradingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +49,7 @@ public class ChartController {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startDate = now.minusSeconds(length * period);
         long offset = now.toEpochSecond(ZoneOffset.UTC) - new Date().getTime() / 1000;
-        List<Chart> charts = chartDao.getPortfolioByName(startDate, now, "Portfolio");
+        List<Chart> charts = chartDao.getDataByName(startDate, now, ChartType.Portfolio.name());
         ChartResponse response = new ChartResponse();
         response.setName("Portfolio");
         List<String> labels = new ArrayList<>();

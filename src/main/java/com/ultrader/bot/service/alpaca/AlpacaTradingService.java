@@ -1,5 +1,6 @@
 package com.ultrader.bot.service.alpaca;
 
+import com.ultrader.bot.dao.ChartDao;
 import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Account;
@@ -40,20 +41,23 @@ public class AlpacaTradingService implements TradingService {
     private final RestTemplate client;
     private WebSocketConnectionManager connectionManager;
     private final OrderDao orderDao;
+    private final ChartDao chartDao;
     private final SimpMessagingTemplate notifier;
     private final SettingDao settingDao;
 
     @Autowired
-    public AlpacaTradingService(final SettingDao settingDao, final RestTemplateBuilder restTemplateBuilder, final OrderDao orderDao, final SimpMessagingTemplate notifier) {
+    public AlpacaTradingService(final SettingDao settingDao, final RestTemplateBuilder restTemplateBuilder, final OrderDao orderDao, final SimpMessagingTemplate notifier, final ChartDao chartDao) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(orderDao, "orderDao is required");
+        Validate.notNull(chartDao, "chartDao is required");
         Validate.notNull(notifier, "notifier is required");
 
         this.settingDao = settingDao;
         this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(), "");
         this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_SECRET.getName(), "");
         this.orderDao = orderDao;
+        this.chartDao = chartDao;
         if(alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
@@ -61,7 +65,7 @@ public class AlpacaTradingService implements TradingService {
         client = restTemplateBuilder.rootUri("https://api.alpaca.markets/v1/").build();
         this.notifier = notifier;
         //Init Websocket
-        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notifier), "wss://api.alpaca.markets/stream");
+        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, chartDao, notifier), "wss://api.alpaca.markets/stream");
         connectionManager.start();
     }
 
@@ -88,7 +92,7 @@ public class AlpacaTradingService implements TradingService {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
         }
-        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notifier), "wss://paper-api.alpaca.markets/stream");
+        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
         connectionManager.start();
     }
 

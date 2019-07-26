@@ -1,5 +1,6 @@
 package com.ultrader.bot.controller;
 
+import com.ultrader.bot.dao.ChartDao;
 import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.model.websocket.DashboardDataMessage;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
@@ -28,6 +29,8 @@ public class NotificationController {
     @Autowired
     private OrderDao orderDao;
     @Autowired
+    private ChartDao chartDao;
+    @Autowired
     private SimpMessagingTemplate notifier;
 
     @RequestMapping(method = RequestMethod.GET, value = "/dashboard")
@@ -37,7 +40,7 @@ public class NotificationController {
         try {
             DashboardDataMessage message = new DashboardDataMessage();
             message.setData(new HashMap<>());
-            message.getData().putAll(NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount()).getData());
+            message.getData().putAll(NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount(), chartDao).getData());
             message.getData().putAll(NotificationUtil.generateTradesNotification(orderDao).getData());
             message.getData().putAll( NotificationUtil.generateProfitNotification(orderDao).getData());
             return message;
