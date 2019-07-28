@@ -10,6 +10,7 @@ import {
 } from "react-bootstrap";
 
 import Card from "components/Card/Card.jsx";
+import { tooltip } from "helpers/TooltipHelper";
 
 class Step1 extends React.Component {
   constructor(props) {
@@ -44,7 +45,7 @@ class Step1 extends React.Component {
                   <form>
                     <FormGroup>
                       <ControlLabel>
-                        Ultrader Bot Key <span className="star">*</span>
+                        Ultrader Bot Key <span className="star">*</span> {tooltip("Key registered to use this application")}
                       </ControlLabel>
                       <FormControl
                         id="KEY_ULTRADER_KEY"

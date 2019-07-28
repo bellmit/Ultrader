@@ -1,17 +1,35 @@
-.modal-90w{
-   width:90%;
+.modal-90w {
+	width: 90%;
 }
 
-.add_button{
-   float:right;
+.add_button {
+	float: right;
 }
 
 .tooltip .tooltip-inner {
-    background-color:#fff;
+	background-color: #fff;
 }
+
 .tooltip.bottom .tooltip-inner:after {
-    border-bottom-color:#fff;
+	border-bottom-color: #fff;
 }
+
 .tooltip .tooltip-arrow {
-    border-bottom-color:#fff;
+	border-bottom-color: #fff;
+}
+
+.tooltip.top .tooltip-inner:after {
+	border-top: 11px solid #fff;
+}
+
+.tooltip.bottom .tooltip-inner:after {
+	border-bottom: 11px solid #fff;
+}
+
+.tooltip.left .tooltip-inner:after {
+	border-left: 11px solid #fff;
+}
+
+.tooltip.right .tooltip-inner:after {
+	border-right: 11px solid #fff;
 }
