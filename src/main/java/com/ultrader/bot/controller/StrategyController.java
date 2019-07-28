@@ -2,13 +2,16 @@ package com.ultrader.bot.controller;
 
 import com.google.common.collect.Lists;
 import com.ultrader.bot.dao.RuleDao;
+import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.BackTestingResult;
+import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.model.Strategy;
 import com.ultrader.bot.model.StrategyBundle;
 import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.monitor.TradingStrategyMonitor;
 import com.ultrader.bot.service.TradingPlatform;
+import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +46,8 @@ public class StrategyController {
 
     @Autowired
     private RuleDao ruleDao;
-
+    @Autowired
+    private SettingDao settingDao;
     @Autowired
     private TradingPlatform tradingPlatform;
 
@@ -101,6 +105,20 @@ public class StrategyController {
         try {
             ruleDao.saveAll(bundle.getRules());
             strategyDao.saveAll(bundle.getStrategies());
+            //Apply the strategy;
+            for(Strategy strategy : strategyDao.findAll()) {
+                if(strategy.getType().equals("Buy")) {
+                    Setting buySetting = new Setting();
+                    buySetting.setName(SettingConstant.TRADE_BUY_STRATEGY.name());
+                    buySetting.setValue(String.valueOf(strategy.getId()));
+                    settingDao.save(buySetting);
+                } else {
+                    Setting sellSetting = new Setting();
+                    sellSetting.setName(SettingConstant.TRADE_SELL_STRATEGY.name());
+                    sellSetting.setValue(String.valueOf(strategy.getId()));
+                    settingDao.save(sellSetting);
+                }
+            }
             return true;
         } catch (Exception e) {
             LOGGER.error("Export strategies failed.", e);

@@ -79,8 +79,6 @@ class SettingsWizardComp extends Component {
     this.props.onAddSetting("TRADE_BUY_HOLDING_LIMIT", 20);
     this.props.onAddSetting("TRADE_SELL_ORDER_TYPE", "market");
     this.props.onAddSetting("TRADE_BUY_ORDER_TYPE", "market");
-    this.props.onAddSetting("TRADE_SELL_STRATEGY", 4);
-    this.props.onAddSetting("TRADE_BUY_STRATEGY", 5);
   }
 
   saveSettings() {
