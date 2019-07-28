@@ -6,13 +6,13 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 public enum StrategyTemplate {
     MACD("MACD", "基于MACD的高级策略", "<p>买入策略: 当前期小范围震荡且MACD出现V字型且MACD大于0.5 </p><p>卖出策略: （当MACD出现A字型且盈利3%）或者亏损5%</p>","{\n" +
             "\t\"strategies\": [{\n" +
-            "\t\t\"id\": 8,\n" +
+            "\t\t\"id\": 7,\n" +
             "\t\t\"name\": \"MACD买入策略\",\n" +
             "\t\t\"description\": \"基于MACD的高级买入策略\",\n" +
             "\t\t\"type\": \"Buy\",\n" +
-            "\t\t\"formula\": \"5&,7&,4\"\n" +
+            "\t\t\"formula\": \"5&,4\"\n" +
             "\t}, {\n" +
-            "\t\t\"id\": 9,\n" +
+            "\t\t\"id\": 8,\n" +
             "\t\t\"name\": \"MACD卖出策略\",\n" +
             "\t\t\"description\": \"基于MACD的高级卖出策略\",\n" +
             "\t\t\"type\": \"Sell\",\n" +
@@ -48,12 +48,6 @@ public enum StrategyTemplate {
             "\t\t\"description\": \"MACD 出现A型 在过去24个数据点中\",\n" +
             "\t\t\"type\": \"IsLowestRule\",\n" +
             "\t\t\"formula\": \"MACDIndicator:ClosePrice,Integer:24\"\n" +
-            "\t}, {\n" +
-            "\t\t\"id\": 7,\n" +
-            "\t\t\"name\": \"合理震荡\",\n" +
-            "\t\t\"description\": \"合理震荡\",\n" +
-            "\t\t\"type\": \"InSlopeRule\",\n" +
-            "\t\t\"formula\": \"MACDIndicator:ClosePrice,Integer:150,Number:-0.2,Number:0.2\"\n" +
             "\t}]\n" +
             "}");
 
