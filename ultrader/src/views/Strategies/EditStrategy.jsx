@@ -47,6 +47,7 @@ export default class EditStrategyComp extends React.Component {
     this.saveStrategy = this.saveStrategy.bind(this);
     this.addRule = this.addRule.bind(this);
     this.setSelectedValues = this.setSelectedValues.bind(this);
+    this.deleteRule = this.deleteRule.bind(this);
     this.state = {
       strategyName: this.props.strategy.name,
       strategyDescription: this.props.strategy.description,
@@ -58,6 +59,23 @@ export default class EditStrategyComp extends React.Component {
       strategyOperators: [""],
       ruleOptions: []
     };
+  }
+
+  deleteRule(index) {
+    var strategyRules = this.state.strategyRules;
+    var strategyRuleOptions = this.state.strategyRuleOptions;
+    var strategyOperators = this.state.strategyOperators;
+    var strategyOperatorOptions = this.state.strategyOperatorOptions;
+    strategyRules.splice(index, 1);
+    strategyRuleOptions.splice(index, 1);
+    strategyOperators.splice(index, 1);
+    strategyOperatorOptions.splice(index, 1);
+    this.setState({
+      strategyRules: strategyRules,
+      strategyRuleOptions: strategyRuleOptions,
+      strategyOperators: strategyOperators,
+      strategyOperatorOptions: strategyOperatorOptions
+    });
   }
 
   componentDidMount() {
@@ -192,7 +210,7 @@ export default class EditStrategyComp extends React.Component {
             <fieldset>
               <FormGroup>
                 <ControlLabel className="col-sm-2">Rule</ControlLabel>
-                <Col sm={8}>
+                <Col sm={7}>
                   <Select
                     placeholder={"rule" + (index + 1)}
                     name={"rule" + (index + 1)}
@@ -209,6 +227,18 @@ export default class EditStrategyComp extends React.Component {
                     options={operatorOptions}
                     onChange={option => this.setOperatorValue(option, index)}
                   />
+                </Col>
+                <Col sm={1}>
+                  <Button
+                    onClick={() => {
+                      this.deleteRule(index);
+                    }}
+                    bsStyle="danger"
+                    simple
+                    icon
+                  >
+                    <i className="fa fa-times" />
+                  </Button>
                 </Col>
               </FormGroup>
             </fieldset>
