@@ -20,8 +20,10 @@ public class BackTestingResult {
     private int tradingCount;
     private double profitTradesRatio;
     private double rewardRiskRatio;
-    private double vsBuyAndHold;
+    private double buyAndHold;
     private double totalProfit;
+    private double averageHoldingDays;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+
 }

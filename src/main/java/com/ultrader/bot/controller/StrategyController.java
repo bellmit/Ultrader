@@ -22,10 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.ta4j.core.*;
 import org.ta4j.core.analysis.CashFlow;
-import org.ta4j.core.analysis.criteria.AverageProfitableTradesCriterion;
-import org.ta4j.core.analysis.criteria.RewardRiskRatioCriterion;
-import org.ta4j.core.analysis.criteria.TotalProfitCriterion;
-import org.ta4j.core.analysis.criteria.VersusBuyAndHoldCriterion;
+import org.ta4j.core.analysis.criteria.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
@@ -106,8 +103,8 @@ public class StrategyController {
             ruleDao.saveAll(bundle.getRules());
             strategyDao.saveAll(bundle.getStrategies());
             //Apply the strategy;
-            for(Strategy strategy : strategyDao.findAll()) {
-                if(strategy.getType().equals("Buy")) {
+            for (Strategy strategy : strategyDao.findAll()) {
+                if (strategy.getType().equals("Buy")) {
                     Setting buySetting = new Setting();
                     buySetting.setName(SettingConstant.TRADE_BUY_STRATEGY.name());
                     buySetting.setValue(String.valueOf(strategy.getId()));
@@ -150,6 +147,7 @@ public class StrategyController {
             return false;
         }
     }
+
     @RequestMapping(method = RequestMethod.GET, value = "/backtestByDate")
     @ResponseBody
     public ResponseEntity<Iterable<BackTestingResult>> backTestByDate(
@@ -162,8 +160,8 @@ public class StrategyController {
         interval = interval * 1000;
         List<BackTestingResult> results = new ArrayList<>();
         List<TimeSeries> timeSeriesList = new ArrayList<>();
-        int trades = 0, tradeCount = 0, profitTradesRatioCount = 0, rewardRiskRatioCount = 0, vsBuyAndHoldCount = 0, totalProfitCount = 0;
-        double profitTradesRatio = 0.0, rewardRiskRatio = 0.0, vsBuyAndHold = 0.0, totalProfit = 0.0;
+        int trades = 0, rewardRiskRatioCount = 0;
+        double profitTradesRatio = 0.0, rewardRiskRatio = 0.0, vsBuyAndHold = 0.0, totalProfit = 0.0, averageHoldingDays = 0.0;
         for (String stock : stocks.split(",")) {
             TimeSeries timeSeries = new BaseTimeSeries(stock);
             timeSeriesList.add(timeSeries);
@@ -193,97 +191,18 @@ public class StrategyController {
                 continue;
             }
             trades += result.getTradingCount();
+            totalProfit += result.getTotalProfit();
+            vsBuyAndHold += result.getBuyAndHold();
             if (result.getTradingCount() > 0) {
-                tradeCount += 1;
                 profitTradesRatio += result.getProfitTradesRatio() * result.getTradingCount();
                 rewardRiskRatio += result.getRewardRiskRatio();
                 rewardRiskRatioCount += 1;
-                totalProfit += result.getTotalProfit();
-                vsBuyAndHold += result.getVsBuyAndHold();
-                vsBuyAndHoldCount += 1;
+                averageHoldingDays += result.getAverageHoldingDays();
             }
             results.add(result);
         }
-        //Add summary
-        results.add(new BackTestingResult(
-                "Aggregate Summary by trades",
-                trades,
-                profitTradesRatio / trades,
-                Double.NaN,
-                vsBuyAndHold,
-                totalProfit,
-                null,
-                null));
-        results.add(new BackTestingResult(
-                "Average Summary by trades",
-                trades == 0 ? 0 : trades / trades,
-                Double.NaN,
-                rewardRiskRatioCount == 0 ? 0 : rewardRiskRatio / rewardRiskRatioCount,
-                vsBuyAndHold / timeSeriesList.size(),
-                totalProfit / trades,
-                null,
-                null));
 
         return new ResponseEntity<Iterable<BackTestingResult>>(results, HttpStatus.OK);
-    }
-
-    @RequestMapping(method = RequestMethod.GET, value = "/backtest")
-    @ResponseBody
-    public Iterable<BackTestingResult> backTest(@RequestParam LocalDateTime startDate, @RequestParam LocalDateTime endDate, @RequestParam long interval, @RequestParam String stocks, @RequestParam int buyStrategyId, @RequestParam int sellStrategyId) {
-        List<BackTestingResult> results = new ArrayList<>();
-        List<TimeSeries> timeSeriesList = new ArrayList<>();
-        int trades = 0, tradeCount = 0, profitTradesRatioCount = 0, rewardRiskRatioCount = 0, vsBuyAndHoldCount = 0, totalProfitCount = 0;
-        double profitTradesRatio = 0.0, rewardRiskRatio = 0.0, vsBuyAndHold = 0.0, totalProfit = 0.0;
-        for (String stock : stocks.split(",")) {
-            TimeSeries timeSeries = new BaseTimeSeries(stock);
-            timeSeriesList.add(timeSeries);
-        }
-        try {
-            //Load market data
-            timeSeriesList = tradingPlatform.getMarketDataService().updateTimeSeries(timeSeriesList, interval);
-        } catch (Exception e) {
-            LOGGER.error("Load back test data failed.", e);
-        }
-
-        for (TimeSeries timeSeries : timeSeriesList) {
-
-            BackTestingResult result = backTest(timeSeries, buyStrategyId, sellStrategyId);
-            if (result == null) {
-                continue;
-            }
-            trades += result.getTradingCount();
-            if (result.getTradingCount() > 0) {
-                tradeCount += 1;
-                profitTradesRatio += result.getProfitTradesRatio() * result.getTradingCount();
-                rewardRiskRatio += result.getRewardRiskRatio();
-                rewardRiskRatioCount += 1;
-                totalProfit += result.getTotalProfit();
-                vsBuyAndHold += result.getVsBuyAndHold();
-                vsBuyAndHoldCount += 1;
-            }
-            results.add(result);
-        }
-        //Add summary
-        results.add(new BackTestingResult(
-                "Aggregate Summary by trades",
-                trades,
-                profitTradesRatio / trades,
-                Double.NaN,
-                vsBuyAndHold,
-                totalProfit,
-                null,
-                null));
-        results.add(new BackTestingResult(
-                "Average Summary by trades",
-                trades == 0 ? 0 : trades / trades,
-                Double.NaN,
-                rewardRiskRatioCount == 0 ? 0 : rewardRiskRatio / rewardRiskRatioCount,
-                vsBuyAndHold / timeSeriesList.size(),
-                totalProfit / trades,
-                null,
-                null));
-
-        return results;
     }
 
     private BackTestingResult backTest(TimeSeries series, int buyStrategyId, int sellStrategyId) {
@@ -307,17 +226,22 @@ public class StrategyController {
             // Total profit of our strategy
             TotalProfitCriterion totalProfitCriterion = new TotalProfitCriterion();
             double totalProfit = totalProfitCriterion.calculate(series, tradingRecord).doubleValue();
-            // vs total profit of a buy-and-hold strategy
-            AnalysisCriterion vsBuyAndHoldCriterion = new VersusBuyAndHoldCriterion(totalProfitCriterion);
-            double vsBuyAndHold = vsBuyAndHoldCriterion.calculate(series, tradingRecord).doubleValue();
-
+            // buy and hold profit
+            AnalysisCriterion vsBuyAndHoldCriterion = new BuyAndHoldCriterion();
+            double buyAndHold = vsBuyAndHoldCriterion.calculate(series, tradingRecord).doubleValue();
+            double holdingDays = 0.0;
+            for (Trade trade : tradingRecord.getTrades()) {
+                holdingDays += (series.getBar(trade.getExit().getIndex()).getEndTime().toEpochSecond()
+                        - series.getBar(trade.getEntry().getIndex()).getEndTime().toEpochSecond()) / 24 / 3600;
+            }
             return new BackTestingResult(
                     series.getName(),
                     tradingRecord.getTradeCount(),
                     profitTradesRatio,
                     rewardRiskRatio,
-                    vsBuyAndHold - 1,
+                    buyAndHold - 1,
                     totalProfit - 1,
+                    holdingDays / tradingRecord.getTrades().size(),
                     series.getBar(0).getBeginTime().toLocalDateTime(),
                     series.getLastBar().getEndTime().toLocalDateTime());
         } catch (Exception e) {
