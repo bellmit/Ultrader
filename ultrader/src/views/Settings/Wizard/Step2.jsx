@@ -11,7 +11,7 @@ import {
 import Select from "react-select";
 
 import Card from "components/Card/Card.jsx";
-
+import { tooltip } from "helpers/TooltipHelper";
 var tradingPlatformOptions = [
   { value: "Alpaca", label: "Alpaca v1" },
   { value: "AlpacaPaper", label: "Alpaca Paper" }
@@ -51,7 +51,7 @@ class Step2 extends React.Component {
                 content={
                   <form>
                     <FormGroup>
-                      <ControlLabel>Trading Platform</ControlLabel>
+                      <ControlLabel>Trading Platform {tooltip("TradingPlatform")}</ControlLabel>
                       <Select
                         placeholder="Trading Platform"
                         name="tradingPlatform"
@@ -64,7 +64,7 @@ class Step2 extends React.Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Market Data Platform</ControlLabel>
+                      <ControlLabel>Market Data Platform {tooltip("MarketDataPlatform")}</ControlLabel>
                       <Select
                         placeholder="Market Data Platform"
                         name="marketDataPlatform"
@@ -77,7 +77,7 @@ class Step2 extends React.Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Exchange List</ControlLabel>
+                      <ControlLabel>Trade Exchange List {tooltip("TradeExchangeList")}</ControlLabel>
                       <Select
                         isMulti
                         value={this.props.selectedExchangeOptions}

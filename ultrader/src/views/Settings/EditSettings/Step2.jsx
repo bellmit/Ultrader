@@ -11,7 +11,7 @@ import {
 import Select from "react-select";
 
 import Card from "components/Card/Card.jsx";
-
+import { tooltip } from "helpers/TooltipHelper";
 var tradingPlatformOptions = [
   { value: "Alpaca", label: "Alpaca" },
   { value: "AlpacaPaper", label: "Alpaca Paper" }
@@ -23,8 +23,8 @@ var marketDataPlatformOptions = [
 ];
 
 var booleanOptions = [
-  { value: "true", label: "true" },
-  { value: "false", label: "false" }
+  { value: "true", label: "Enable" },
+  { value: "false", label: "Disable" }
 ];
 
 class Step2 extends React.Component {
@@ -47,7 +47,7 @@ class Step2 extends React.Component {
                 content={
                   <form>
                     <FormGroup>
-                      <ControlLabel>Trading Platform</ControlLabel>
+                      <ControlLabel>Trading Platform {tooltip("TradingPlatform")}</ControlLabel>
                       <Select
                         placeholder="Trading Platform"
                         name="tradingPlatform"
@@ -60,7 +60,7 @@ class Step2 extends React.Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Market Data Platform</ControlLabel>
+                      <ControlLabel>Market Data Platform {tooltip("MarketDataPlatform")}</ControlLabel>
                       <Select
                         placeholder="Market Data Platform"
                         name="marketDataPlatform"
@@ -74,7 +74,7 @@ class Step2 extends React.Component {
                     </FormGroup>
                     <FormGroup>
                       <ControlLabel>
-                        Auto Trading Enabled (Default True)
+                        Auto Trading Enabled (Default Enable) {tooltip("AutoTradeEnabled")}
                       </ControlLabel>
                       <Select
                         placeholder="Market Data Platform"

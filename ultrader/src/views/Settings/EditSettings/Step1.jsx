@@ -45,7 +45,7 @@ class Step1 extends React.Component {
                   <form>
                     <FormGroup>
                       <ControlLabel>
-                        Ultrader Bot Key <span className="star">*</span> {tooltip("Key registered to use this application")}
+                        Ultrader Bot Key <span className="star">*</span> {tooltip("UltraderKey")}
                       </ControlLabel>
                       <FormControl
                         id="KEY_ULTRADER_KEY"
@@ -57,7 +57,7 @@ class Step1 extends React.Component {
                     </FormGroup>
                     <FormGroup>
                       <ControlLabel>
-                        Ultrader Bot Secret <span className="star">*</span>
+                        Ultrader Bot Secret <span className="star">*</span> {tooltip("UltraderSecret")}
                       </ControlLabel>
                       <FormControl
                         id="KEY_ULTRADER_SECRET"
@@ -69,7 +69,7 @@ class Step1 extends React.Component {
                     </FormGroup>
                     <FormGroup>
                       <ControlLabel>
-                        Alpaca Paper Trading Key <span className="star">*</span>
+                        Alpaca Paper Trading Key <span className="star">*</span> {tooltip("AlpacaPaperKey")}
                       </ControlLabel>
                       <FormControl
                         id="KEY_ALPACA_PAPER_KEY"
@@ -82,7 +82,7 @@ class Step1 extends React.Component {
                     <FormGroup>
                       <ControlLabel>
                         Alpaca Paper Trading Secret{" "}
-                        <span className="star">*</span>
+                        <span className="star">*</span> {tooltip("AlpacaPaperSecret")}
                       </ControlLabel>
                       <FormControl
                         id="KEY_ALPACA_PAPER_SECRET"
@@ -93,7 +93,7 @@ class Step1 extends React.Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Alpaca Live Trading Key</ControlLabel>
+                      <ControlLabel>Alpaca Live Trading Key {tooltip("AlpacaLiveKey")}</ControlLabel>
                       <FormControl
                         id="KEY_ALPACA_KEY"
                         value={this.props.settings["KEY_ALPACA_KEY"]}
@@ -103,7 +103,7 @@ class Step1 extends React.Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Alpaca Live Trading Secret</ControlLabel>
+                      <ControlLabel>Alpaca Live Trading Secret {tooltip("AlpacaLiveSecret")}</ControlLabel>
                       <FormControl
                         id="KEY_ALPACA_SECRET"
                         value={this.props.settings["KEY_ALPACA_SECRET"]}

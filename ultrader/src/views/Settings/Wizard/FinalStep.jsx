@@ -11,7 +11,7 @@ import {
 import Select from "react-select";
 
 import Card from "components/Card/Card.jsx";
-
+import { tooltip } from "helpers/TooltipHelper";
 import Button from "components/CustomButton/CustomButton.jsx";
 
 class FinalStep extends Component {
@@ -33,7 +33,7 @@ class FinalStep extends Component {
                 content={
                   <form>
                     <FormGroup>
-                      <ControlLabel>Strategy Template</ControlLabel>
+                      <ControlLabel>Strategy Template {tooltip("StrategyTemplate")}</ControlLabel>
                       <Select
                         placeholder="Strategy Templates"
                         name="strategyTemplate"

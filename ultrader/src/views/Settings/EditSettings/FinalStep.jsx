@@ -10,7 +10,7 @@ import {
 import Select from "react-select";
 
 import Card from "components/Card/Card.jsx";
-
+import { tooltip } from "helpers/TooltipHelper";
 import Button from "components/CustomButton/CustomButton.jsx";
 var exchangeOptions = [
   { value: "NASDAQ", label: "NASDAQ" },
@@ -20,7 +20,10 @@ var exchangeOptions = [
   { value: "NYSE", label: "NYSE" },
   { value: "NYSEARCA", label: "NYSEARCA" }
 ];
-
+var booleanOptions = [
+  { value: "true", label: "Enable" },
+  { value: "false", label: "Disable" }
+];
 var intervalOptions = [
   { value: "60", label: "1 Minute" },
   { value: "300", label: "5 Minutes" },
@@ -54,7 +57,7 @@ class FinalStep extends Component {
                 content={
                   <form>
                     <FormGroup>
-                      <ControlLabel>Trade Exchange List</ControlLabel>
+                      <ControlLabel>Trade Exchange List {tooltip("TradeExchangeList")}</ControlLabel>
                       <Select
                         isMulti
                         value={this.props.selectedExchangeOptions}
@@ -69,7 +72,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trading Period in Seconds</ControlLabel>
+                      <ControlLabel>Trading Period in Seconds {tooltip("TradePeriod")}</ControlLabel>
                       <Select
                         placeholder="Trading Period in Seconds"
                         name="tradeperiod"
@@ -80,7 +83,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Is Trading White List Enabled</ControlLabel>
+                      <ControlLabel>Is Trading White List Enabled {tooltip("WhiteListEnabled")}</ControlLabel>
                       <FormControl
                         id="TRADE_WHITE_LIST_ENABLE"
                         value={this.props.settings["TRADE_WHITE_LIST_ENABLE"]}
@@ -90,7 +93,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trading Stock List</ControlLabel>
+                      <ControlLabel>Trading Stock List {tooltip("StockList")}</ControlLabel>
                       <FormControl
                         id="TRADE_STOCK_LIST"
                         value={this.props.settings["TRADE_STOCK_LIST"]}
@@ -100,7 +103,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Price Limit Max</ControlLabel>
+                      <ControlLabel>Trade Price Limit Max {tooltip("TradePriceLimitMax")}</ControlLabel>
                       <FormControl
                         id="TRADE_PRICE_LIMIT_MAX"
                         value={this.props.settings["TRADE_PRICE_LIMIT_MAX"]}
@@ -110,7 +113,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Price Limit Min</ControlLabel>
+                      <ControlLabel>Trade Price Limit Min {tooltip("TradePriceLimitMin")}</ControlLabel>
                       <FormControl
                         id="TRADE_PRICE_LIMIT_MIN"
                         value={this.props.settings["TRADE_PRICE_LIMIT_MIN"]}
@@ -120,7 +123,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Volume Limit Max</ControlLabel>
+                      <ControlLabel>Trade Volume Limit Max {tooltip("TradeVolumeLimitMax")}</ControlLabel>
                       <FormControl
                         id="TRADE_VOLUME_LIMIT_MAX"
                         value={this.props.settings["TRADE_VOLUME_LIMIT_MAX"]}
@@ -130,7 +133,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Volume Limit Min</ControlLabel>
+                      <ControlLabel>Trade Volume Limit Min {tooltip("TradeVolumeLimitMin")}</ControlLabel>
                       <FormControl
                         id="TRADE_VOLUME_LIMIT_MIN"
                         value={this.props.settings["TRADE_VOLUME_LIMIT_MIN"]}
@@ -140,7 +143,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Buy Max Limit</ControlLabel>
+                      <ControlLabel>Trade Buy Max Limit {tooltip("TradeBuyLimitMax")}</ControlLabel>
                       <FormControl
                         id="TRADE_BUY_MAX_LIMIT"
                         value={this.props.settings["TRADE_BUY_MAX_LIMIT"]}
@@ -150,7 +153,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Buy Holding Limit</ControlLabel>
+                      <ControlLabel>Trade Buy Holding Limit {tooltip("TradeHoldLimitMax")}</ControlLabel>
                       <FormControl
                         id="TRADE_BUY_HOLDING_LIMIT"
                         value={this.props.settings["TRADE_BUY_HOLDING_LIMIT"]}
@@ -160,7 +163,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Buy Strategy</ControlLabel>
+                      <ControlLabel>Trade Buy Strategy {tooltip("BuyStrategy")}</ControlLabel>
                       <Select
                         placeholder="Trade Buy Strategy"
                         name="buyStrategy"
@@ -173,7 +176,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Sell Strategy</ControlLabel>
+                      <ControlLabel>Trade Sell Strategy {tooltip("SellStrategy")}</ControlLabel>
                       <Select
                         placeholder="Trade Sell Strategy"
                         name="sellStrategy"
@@ -186,7 +189,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Buy Order Type</ControlLabel>
+                      <ControlLabel>Trade Buy Order Type {tooltip("BuyOrderType")}</ControlLabel>
                       <Select
                         placeholder="Trade Buy Order Type"
                         name="marketDataPlatform"
@@ -199,7 +202,7 @@ class FinalStep extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Sell Order Type</ControlLabel>
+                      <ControlLabel>Trade Sell Order Type {tooltip("SellOrderType")}</ControlLabel>
                       <Select
                         placeholder="Trade Sell Order Type"
                         name="marketDataPlatform"
