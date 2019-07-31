@@ -95,6 +95,11 @@ public class AlpacaTradingService implements TradingService {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
         }
+        try {
+            connectionManager.stopInternal();
+        } catch (Exception e) {
+            LOGGER.error("Terminate Alpaca web socket", e);
+        }
         if (!alpacaKey.isEmpty()) {
             connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, chartDao, notifier), "wss://api.alpaca.markets/stream");
             connectionManager.start();
