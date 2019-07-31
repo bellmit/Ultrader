@@ -65,8 +65,11 @@ public class AlpacaTradingService implements TradingService {
         client = restTemplateBuilder.rootUri("https://api.alpaca.markets/v1/").build();
         this.notifier = notifier;
         //Init Websocket
-        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, chartDao, notifier), "wss://api.alpaca.markets/stream");
-        connectionManager.start();
+        if (!alpacaKey.isEmpty()) {
+            connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, chartDao, notifier), "wss://api.alpaca.markets/stream");
+            connectionManager.start();
+        }
+
     }
 
     private HttpHeaders generateHeader() {
@@ -86,14 +89,16 @@ public class AlpacaTradingService implements TradingService {
 
     @Override
     public void restart() {
-        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
-        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
+        this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(), "");
+        this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_SECRET.getName(), "");
         if(alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
         }
-        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
-        connectionManager.start();
+        if (!alpacaKey.isEmpty()) {
+            connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, chartDao, notifier), "wss://api.alpaca.markets/stream");
+            connectionManager.start();
+        }
     }
 
 
