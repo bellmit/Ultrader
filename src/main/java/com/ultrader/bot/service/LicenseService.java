@@ -24,7 +24,7 @@ import java.util.Date;
 public class LicenseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(LicenseService.class);
 
-    private static final String LICENSE_CLIENT_URI = "http://license.ultraderbot.com:8080/api/key";
+    private static final String LICENSE_CLIENT_URI = "http://license.ultraderbot.com/api/key";
 
     private RestTemplate client;
 
