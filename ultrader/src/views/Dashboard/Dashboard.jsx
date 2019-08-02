@@ -69,6 +69,9 @@ class DashboardComp extends Component {
         this.props.daily.netIncome = res.data.data.TotalProfit;
         this.props.daily.averageProfit = res.data.data.AverageProfit;
         this.props.daily.averageProfitRate = res.data.data.AverageProfitRatio;
+        this.props.positions.holds = res.data.data.Holds;
+        this.props.positions.profitStocks = res.data.data.ProfitableStock;
+        this.props.positions.profit = res.data.data.Profit;
       })
       .catch(error => {
         console.log(error);
@@ -220,16 +223,16 @@ class DashboardComp extends Component {
                       <div className="numbers">
                         <div>
                           <p>
-                            Performance :{" "}
-                            {parsePercentage(this.props.performance.portfolio)}
+                            Positions :{" "}
+                            {this.props.positions.holds}
                           </p>
                           <p>
-                            Market :{" "}
-                            {parsePercentage(this.props.performance.market)}
+                            Gain/Loss :{" "}
+                            {this.props.positions.profitStocks + "/" + (this.props.positions.holds - this.props.positions.profitStocks)}
                           </p>
                           <p>
-                            Comparison :{" "}
-                            {parsePercentage(this.props.performance.comparison)}
+                            Position Profit :{" "}
+                            {parseMoney(Number(this.props.positions.profit).toFixed(2))}
                           </p>
                         </div>
                       </div>

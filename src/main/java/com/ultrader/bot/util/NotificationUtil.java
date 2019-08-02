@@ -5,8 +5,10 @@ import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Chart;
 import com.ultrader.bot.model.Order;
+import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.websocket.DashboardDataMessage;
 import com.ultrader.bot.monitor.LicenseMonitor;
+import com.ultrader.bot.monitor.TradingAccountMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -110,6 +112,22 @@ public class NotificationUtil {
         map.put("AverageProfit", df.format( sellCount == 0 ? 0 : totalProfit / sellCount));
         map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : totalRatio / sellCount));
         LOGGER.info("Notify profit update {}", map);
+        return new DashboardDataMessage(map);
+    }
+
+    public static DashboardDataMessage generatePositionNotification() {
+        Map<String, String> map = new HashMap<>();
+        map.put("Holds", String.valueOf(TradingAccountMonitor.getPositions().size()));
+        int profitableStock = 0;
+        double profit = 0;
+        for (Position position : TradingAccountMonitor.getPositions().values()) {
+            if (position.getAverageCost() <= position.getCurrentPrice()) {
+                profitableStock++;
+            }
+            profit += (position.getCurrentPrice() - position.getAverageCost()) * position.getQuantity();
+        }
+        map.put("ProfitableStock", String.valueOf(profitableStock));
+        map.put("Profit", String.valueOf(profit));
         return new DashboardDataMessage(map);
     }
 }

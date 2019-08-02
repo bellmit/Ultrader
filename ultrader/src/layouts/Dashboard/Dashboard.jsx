@@ -41,6 +41,7 @@ class DashboardComp extends Component {
     this.processPortfolioMessage = this.processPortfolioMessage.bind(this);
     this.processTradesMessage = this.processTradesMessage.bind(this);
     this.processProfitMessage = this.processProfitMessage.bind(this);
+    this.processPositionMessage = this.processPositionMessage.bind(this);
 
     this.processNotification = this.processNotification.bind(this);
 
@@ -72,6 +73,10 @@ class DashboardComp extends Component {
 
   processProfitMessage(message) {
     this.props.onReceivedProfitMonitorMessage(message);
+  }
+
+  processPositionMessage(message) {
+      this.props.onReceivedPositionMonitorMessage(message);
   }
 
   processNotification(message) {
@@ -107,6 +112,10 @@ class DashboardComp extends Component {
           stompClient.subscribe(
             "/topic/dashboard/profit",
             this.processProfitMessage
+          );
+          stompClient.subscribe(
+            "/topic/dashboard/position",
+            this.processPositionMessage
           );
           stompClient.subscribe("/topic/order", this.processNotification);
           this.initData();

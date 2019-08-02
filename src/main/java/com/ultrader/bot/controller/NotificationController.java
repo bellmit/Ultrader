@@ -42,7 +42,8 @@ public class NotificationController {
             message.setData(new HashMap<>());
             message.getData().putAll(NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount(), chartDao).getData());
             message.getData().putAll(NotificationUtil.generateTradesNotification(orderDao).getData());
-            message.getData().putAll( NotificationUtil.generateProfitNotification(orderDao).getData());
+            message.getData().putAll(NotificationUtil.generateProfitNotification(orderDao).getData());
+            message.getData().putAll(NotificationUtil.generatePositionNotification().getData());
             return message;
         } catch (Exception e) {
             LOGGER.error("Populate notification failed.", e);

@@ -165,6 +165,7 @@ public class TradingAccountMonitor extends Monitor {
             notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(account, chartDao));
             notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
             notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
+            notifier.convertAndSend("/topic/dashboard/position", NotificationUtil.generatePositionNotification());
             //Publish status
             if (MarketDataMonitor.isMarketOpen()) {
                 notifier.convertAndSend("/topic/status/market", new StatusMessage("opened", "Market is open"));

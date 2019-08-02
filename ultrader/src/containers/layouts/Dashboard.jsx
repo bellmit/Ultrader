@@ -37,6 +37,9 @@ class Dashboard extends Component {
         onReceivedProfitMonitorMessage={
           this.props.onReceivedProfitMonitorMessage
         }
+        onReceivedPositionMonitorMessage={
+          this.props.onReceivedPositionMonitorMessage
+        }
         onReceivedNotificationMessage={
           this.props.onReceivedNotificationMessage
         }
@@ -120,7 +123,11 @@ const mapDispatchToProps = dispatch => {
         type: ACTION_TYPES.RECEIVED_PROFIT_MONITOR_MESSAGE,
         response: response
       }),
-
+    onReceivedPositionMonitorMessage: response =>
+      dispatch({
+        type: ACTION_TYPES.RECEIVED_POSITION_MONITOR_MESSAGE,
+        response: response
+      }),
     onReceivedNotificationMessage: response =>
       dispatch({
         type: ACTION_TYPES.RETRIEVED_NOTIFICATION_MESSAGE,

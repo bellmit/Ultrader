@@ -13,7 +13,7 @@ class Dashboard extends Component {
         portfolio={this.props.portfolio}
         trades={this.props.trades}
         daily={this.props.daily}
-        performance={this.props.performance}
+        positions={this.props.positions}
       />
     );
   }
@@ -24,7 +24,7 @@ const mapStateToProps = state => {
       portfolio: state.global.portfolio,
       trades: state.global.trades,
       daily: state.global.daily,
-      performance: state.global.performance
+      positions: state.global.positions
   };
 };
 

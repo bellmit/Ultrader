@@ -28,10 +28,10 @@ const initialState = {
     averageProfit: 0,
     averageProfitRate: 0
   },
-  performance: {
-    market: 0,
-    portfolio: 0,
-    comparison: 0
+  positions: {
+    holds: 0,
+    profitStocks: 0,
+    profit: 0
   },
   systemStatus: {
     data: {
@@ -161,6 +161,17 @@ const global = (state = initialState, action) => {
           averageProfitRate: messageBody.AverageProfitRatio
         }
       };
+    case ACTION_TYPES.RECEIVED_POSITION_MONITOR_MESSAGE:
+      var messageBody = JSON.parse(action.response.body).data;
+      return {
+        ...state,
+        positions: {
+          holds: messageBody.Holds,
+          profitStocks: messageBody.ProfitableStock,
+          profit: parseMoney(messageBody.Profit)
+        }
+      };
+
     case ACTION_TYPES.RETRIEVED_NOTIFICATION_MESSAGE:
       var messageBody = JSON.parse(action.response.body).content;
       return {
