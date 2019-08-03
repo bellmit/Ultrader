@@ -13,11 +13,18 @@ import {
 } from "react-bootstrap";
 
 import { logout } from "helpers/AuthHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
+import {
+  axiosGetWithAuth,
+  handleResponse,
+  getAuthHeader
+} from "helpers/UrlHelper";
 
 class HeaderLinks extends Component {
   constructor(props) {
     super(props);
     this.iconColor = this.iconColor.bind(this);
+    this.reboot = this.reboot.bind(this);
   }
 
   iconColor(status) {
@@ -35,6 +42,13 @@ class HeaderLinks extends Component {
     }
   }
 
+  reboot() {
+    axiosGetWithAuth("/api/setting/restart")
+      .then(res => {
+        alertSuccess("Reboot Ultrader Successfully!");
+      })
+      .catch(error => {});
+  }
   render() {
     return (
       <div>
@@ -148,16 +162,16 @@ class HeaderLinks extends Component {
             <MenuItem eventKey={4.1}>
               <i className="pe-7s-mail" /> Messages
             </MenuItem>
-            <MenuItem eventKey={4.2}>
-              <i className="pe-7s-help1" /> Help Center
-            </MenuItem>
-            <MenuItem eventKey={4.3}>
-              <i className="pe-7s-tools" /> Settings
-            </MenuItem>
+
             <MenuItem divider />
-            <MenuItem eventKey={4.5} onClick={logout}>
+            <MenuItem eventKey={4.3} onClick={this.reboot}>
               <div className="text-danger">
-                <i className="pe-7s-close-circle" /> Log out
+                <i className="pe-7s-refresh" /> Reboot
+              </div>
+            </MenuItem>
+            <MenuItem eventKey={4.4} onClick={logout}>
+              <div className="text-danger">
+                <i className="pe-7s-door-lock" /> Log out
               </div>
             </MenuItem>
           </NavDropdown>

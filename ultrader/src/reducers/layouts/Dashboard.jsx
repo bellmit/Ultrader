@@ -168,7 +168,7 @@ const global = (state = initialState, action) => {
         positions: {
           holds: messageBody.Holds,
           profitStocks: messageBody.ProfitableStock,
-          profit: parseMoney(messageBody.Profit)
+          profit: messageBody.Profit
         }
       };
 
