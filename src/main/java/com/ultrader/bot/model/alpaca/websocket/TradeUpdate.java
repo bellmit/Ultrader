@@ -1,5 +1,6 @@
 package com.ultrader.bot.model.alpaca.websocket;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.ultrader.bot.model.alpaca.Order;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -14,9 +15,10 @@ import java.util.Date;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class TradeUpdate {
     private String event;
-    private int qty;
+    private int position_qty;
     private double price;
     private Date timestamp;
     private Order order;
