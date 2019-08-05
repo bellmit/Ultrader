@@ -39,61 +39,56 @@ class Step2 extends React.Component {
   render() {
     const { exchangeInputValue, exchangeMenuOpen } = this.state;
     return (
-      <div className="wizard-step">
-        <Grid fluid>
-          <Row>
-            <Col md={12}>
-              <Card
-                content={
-                  <form>
-                    <FormGroup>
-                      <ControlLabel>Trading Platform {tooltip("TradingPlatform")}</ControlLabel>
-                      <Select
-                        placeholder="Trading Platform"
-                        name="tradingPlatform"
-                        options={tradingPlatformOptions}
-                        value={this.props.selectedTradingPlatformOption}
-                        id="GLOBAL_TRADING_PLATFORM"
-                        onChange={option =>
-                          this.props.selectTradingPlatformOption(option)
-                        }
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <ControlLabel>Market Data Platform {tooltip("MarketDataPlatform")}</ControlLabel>
-                      <Select
-                        placeholder="Market Data Platform"
-                        name="marketDataPlatform"
-                        options={marketDataPlatformOptions}
-                        value={this.props.selectedMarketDataPlatformOption}
-                        id="GLOBAL_MARKETDATA_PLATFORM"
-                        onChange={option =>
-                          this.props.selectMarketDataPlatformOption(option)
-                        }
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <ControlLabel>
-                        Auto Trading Enabled (Default Enable) {tooltip("AutoTradeEnabled")}
-                      </ControlLabel>
-                      <Select
-                        placeholder="Market Data Platform"
-                        name="marketDataPlatform"
-                        options={booleanOptions}
-                        value={this.props.selectedAutoTradingOption}
-                        id="GLOBAL_AUTO_TRADING_ENABLE"
-                        onChange={option =>
-                          this.props.selectAutoTradingOption(option)
-                        }
-                      />
-                    </FormGroup>
-                  </form>
+      <Card
+        content={
+          <form>
+            <FormGroup>
+              <ControlLabel>
+                Trading Platform {tooltip("TradingPlatform")}
+              </ControlLabel>
+              <Select
+                placeholder="Trading Platform"
+                name="tradingPlatform"
+                options={tradingPlatformOptions}
+                value={this.props.selectedTradingPlatformOption}
+                id="GLOBAL_TRADING_PLATFORM"
+                onChange={option =>
+                  this.props.selectTradingPlatformOption(option)
                 }
               />
-            </Col>
-          </Row>
-        </Grid>
-      </div>
+            </FormGroup>
+            <FormGroup>
+              <ControlLabel>
+                Market Data Platform {tooltip("MarketDataPlatform")}
+              </ControlLabel>
+              <Select
+                placeholder="Market Data Platform"
+                name="marketDataPlatform"
+                options={marketDataPlatformOptions}
+                value={this.props.selectedMarketDataPlatformOption}
+                id="GLOBAL_MARKETDATA_PLATFORM"
+                onChange={option =>
+                  this.props.selectMarketDataPlatformOption(option)
+                }
+              />
+            </FormGroup>
+            <FormGroup>
+              <ControlLabel>
+                Auto Trading Enabled (Default Enable){" "}
+                {tooltip("AutoTradeEnabled")}
+              </ControlLabel>
+              <Select
+                placeholder="Market Data Platform"
+                name="marketDataPlatform"
+                options={booleanOptions}
+                value={this.props.selectedAutoTradingOption}
+                id="GLOBAL_AUTO_TRADING_ENABLE"
+                onChange={option => this.props.selectAutoTradingOption(option)}
+              />
+            </FormGroup>
+          </form>
+        }
+      />
     );
   }
 }

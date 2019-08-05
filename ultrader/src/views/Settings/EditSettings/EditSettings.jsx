@@ -1,7 +1,8 @@
 import React, { Component } from "react";
 // react component that creates a form divided into multiple steps
 import StepZilla from "react-stepzilla";
-import { Grid, Row, Col } from "react-bootstrap";
+import { Row, Col, Nav, NavItem, Tab, Tabs } from "react-bootstrap";
+import Button from "components/CustomButton/CustomButton.jsx";
 
 import "./tabwidth.css";
 
@@ -164,9 +165,7 @@ class EditSettingsComp extends Component {
     var periodOption = intervalOptions.find(
       e => e.value == this.props.settings["TRADE_PERIOD_SECOND"]
     );
-    periodOption = periodOption
-      ? periodOption
-      : {};
+    periodOption = periodOption ? periodOption : {};
     this.setState({
       periodOption: periodOption
     });
@@ -382,14 +381,32 @@ class EditSettingsComp extends Component {
       }
     ];
     return (
-      <Grid fluid>
-        <StepZilla
-          steps={steps}
-          stepsNavigation={false}
-          nextButtonCls="btn btn-prev btn-info btn-fill pull-right btn-wd"
-          backButtonCls="btn btn-next btn-default btn-fill pull-left btn-wd"
-        />
-      </Grid>
+      <div className="main-content">
+        <Tabs defaultActiveKey={steps[0].name} animation={false}>
+          {steps.map(step => {
+            return (
+              <Tab
+                eventKey={step.name}
+                title={step.name}
+                style={{ padding: 0 }}
+              >
+                {step.component}
+              </Tab>
+            );
+          })}
+        </Tabs>
+        <div style={{ textAlign: "center" }}>
+          <Button
+            bsStyle="info"
+            fill
+            wd
+            onClick={this.props.saveSettings}
+            pullRight
+          >
+            Finish
+          </Button>
+        </div>
+      </div>
     );
   }
 }
