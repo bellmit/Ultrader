@@ -10,7 +10,7 @@ import StatsCard from "components/Card/StatsCard.jsx";
 import Tasks from "components/Tasks/Tasks.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
-import { parseMoney, parsePercentage } from "helpers/ParseHelper";
+import { parseMoney, parsePercentage, parseProfit } from "helpers/ParseHelper";
 import { axiosGetWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 
@@ -57,11 +57,9 @@ class DashboardComp extends Component {
   getCards() {
     axiosGetWithAuth("/api/notification/dashboard")
       .then(res => {
-        var changePercentage = res.data.data.Change / (res.data.data.Portfolio - res.data.data.Change);
-        var signal = res.data.data.Change >= 0 ? '+' : '';
         this.props.portfolio.value = res.data.data.Portfolio;
         this.props.portfolio.buyingPower = res.data.data.BuyingPower;
-        this.props.portfolio.change = signal + parseMoney(res.data.data.Change) + " (" + signal + parsePercentage(changePercentage) + ")";
+        this.props.portfolio.change = res.data.data.Change;
         this.props.trades.buyCount = res.data.data.BuyCount;
         this.props.trades.sellCount = res.data.data.SellCount;
         this.props.trades.buyAmount = res.data.data.BuyAmount;
@@ -99,7 +97,7 @@ class DashboardComp extends Component {
                   >
                     <div className="col-xs-2">
                       <div className="icon-big text-center icon-warning">
-                        <i className="pe-7s-note2 text-primary" />
+                        <i className="pe-7s-wallet text-primary" />
                       </div>
                     </div>
                     <div className="col-xs-10">
@@ -114,7 +112,7 @@ class DashboardComp extends Component {
                           </p>
                           <p>
                             24H Change :{" "}
-                            {this.props.portfolio.change}
+                            {parseProfit(this.props.portfolio.change, this.props.portfolio.value)}
                           </p>{" "}
                         </div>
                       </div>
@@ -136,7 +134,7 @@ class DashboardComp extends Component {
                   >
                     <div className="col-xs-2">
                       <div className="icon-big text-center icon-warning">
-                        <i className="pe-7s-wallet text-success" />
+                        <i className="pe-7s-note2 text-success" />
                       </div>
                     </div>
                     <div className="col-xs-10">
@@ -183,8 +181,8 @@ class DashboardComp extends Component {
                       <div className="numbers">
                         <div>
                           <p>
-                            Daily Profit :{" "}
-                            {parseMoney(this.props.daily.netIncome)}
+                            Daily Total Profit :{" "}
+                            {parseProfit(this.props.daily.netIncome, this.props.portfolio.value)}
                           </p>
                           <p>
                             Average Profit :{" "}
@@ -232,7 +230,7 @@ class DashboardComp extends Component {
                           </p>
                           <p>
                             Position Profit :{" "}
-                            {parseMoney(Number(this.props.positions.profit).toFixed(2))}
+                            {parseProfit(this.props.positions.profit, this.props.portfolio.value - this.props.portfolio.buyingPower)}
                           </p>
                         </div>
                       </div>

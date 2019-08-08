@@ -15,7 +15,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 
 import { axiosGetWithAuth } from "helpers/UrlHelper";
 
-import { parseMoney, parsePercentage } from "helpers/ParseHelper";
+import { parseMoney, parsePercentage, parseDate, parseProfit } from "helpers/ParseHelper";
 
 class HistoryOrdersComp extends Component {
   constructor(props) {
@@ -25,16 +25,13 @@ class HistoryOrdersComp extends Component {
     this.validate = this.validate.bind(this);
     this.search = this.search.bind(this);
     this.getHoldDays = this.getHoldDays.bind(this);
-    this.getProfit = this.getProfit.bind(this);
-
-    this.state = { days: 7 };
+    this.state = { days: 14 };
+    this.getHistoryOrders(14);
   }
 
   getHistoryOrders(days) {
-    console.log(days);
     axiosGetWithAuth("/api/order/getClosedOrders/" + days)
       .then(res => {
-        console.log(res);
         this.props.onGetHistoryOrdersSuccess(res);
       })
       .catch(error => {
@@ -61,12 +58,6 @@ class HistoryOrdersComp extends Component {
     return Math.round(
       (Date.parse(row.original.sellDate) - Date.parse(row.original.buyDate)) /
         (1000 * 60 * 60 * 24)
-    );
-  }
-
-  getProfit(row) {
-    return parseMoney(
-      row.original.qty * (row.original.sellPrice - row.original.buyPrice)
     );
   }
 
@@ -125,11 +116,13 @@ class HistoryOrdersComp extends Component {
                         },
                         {
                           Header: "Buy Date",
-                          accessor: "buyDate"
+                          accessor: "buyDate",
+                          Cell: row => parseDate(row.original.buyDate)
                         },
                         {
                           Header: "Sell Date",
-                          accessor: "sellDate"
+                          accessor: "sellDate",
+                          Cell: row => parseDate(row.original.sellDate)
                         },
                         {
                           Header: "Hold Days",
@@ -137,7 +130,7 @@ class HistoryOrdersComp extends Component {
                         },
                         {
                           Header: "Profit",
-                          Cell: row => this.getProfit(row)
+                          Cell: row => parseProfit(row.original.profit, row.original.buyPrice * row.original.qty)
                         }
                       ]}
                       defaultPageSize={10}
