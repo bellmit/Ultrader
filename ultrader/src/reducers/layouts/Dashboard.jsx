@@ -130,7 +130,7 @@ const global = (state = initialState, action) => {
         portfolio: {
           value: messageBody.Portfolio,
           buyingPower: messageBody.BuyingPower,
-          change: signal + parseMoney(messageBody.Change) + " (" + signal + parsePercentage(changePercentage) + ")"
+          change: messageBody.Change
         },
         systemStatus: {
           ...state.systemStatus,
