@@ -400,7 +400,7 @@ class EditSettingsComp extends Component {
             bsStyle="info"
             fill
             wd
-            onClick={this.props.saveSettings}
+            onClick={this.saveSettings}
             pullRight
           >
             Finish
