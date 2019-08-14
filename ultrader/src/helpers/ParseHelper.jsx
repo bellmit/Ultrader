@@ -1,7 +1,9 @@
 import moment from 'moment'
 import React, { Component } from "react";
+
 export function parseDate(date) {
-  return moment(date).format('YYYY/MM/DD HH:mm:ss');
+  var parsed = moment(date);
+  return parsed.isValid() ? parsed.format('YYYY/MM/DD HH:mm:ss') : date;
 }
 
 export function parsePercentage(num) {
