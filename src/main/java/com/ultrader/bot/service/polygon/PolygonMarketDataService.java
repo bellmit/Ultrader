@@ -65,7 +65,7 @@ public class PolygonMarketDataService implements MarketDataService {
         threadPoolTaskExecutor.setCorePoolSize(400);
         threadPoolTaskExecutor.setMaxPoolSize(1000);
         threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
-        threadPoolTaskExecutor.setQueueCapacity(5000);
+        threadPoolTaskExecutor.setQueueCapacity(10000);
         threadPoolTaskExecutor.initialize();
 
         if (RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX").equals("POLYGON")) {

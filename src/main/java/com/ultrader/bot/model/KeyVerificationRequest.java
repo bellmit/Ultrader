@@ -19,4 +19,5 @@ public class KeyVerificationRequest {
     private String platformName;
     private String token;
     private Long timestamp;
+    private String userId;
 }
