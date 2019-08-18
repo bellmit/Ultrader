@@ -179,6 +179,12 @@ public class MarketDataMonitor extends Monitor {
         firstRun = false;
     }
 
+    public Map<String, Set<String>> getAvailableStock() {
+        if (availableStocks == null) {
+            availableStocks = tradingService.getAvailableStocks();
+        }
+        return availableStocks;
+    }
     public static boolean isMarketOpen() {
         return marketOpen;
     }

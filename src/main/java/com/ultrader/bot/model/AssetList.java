@@ -20,6 +20,8 @@ public class AssetList {
     @Id
     @Column(name="ID", unique=true, updatable=false, nullable=false)
     private String name;
+    @Column(name="description")
+    private String description;
     @Column(name="symbols", nullable=false)
     private String symbols;
 }
