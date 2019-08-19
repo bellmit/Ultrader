@@ -61,6 +61,7 @@ class RegisterPageComp extends Component {
         })
       : this.setState({ passwordError: null });
   }
+
   handleCfPasswordChange(event) {
     this.setState({
       cfpassword: event.target.value
@@ -73,6 +74,7 @@ class RegisterPageComp extends Component {
         })
       : this.setState({ cfpasswordError: null });
   }
+
   handleRegisterSubmit() {
     !this.state.username
       ? this.setState({

@@ -110,6 +110,7 @@
         }
 
         a.logo-normal{
+            height: 40px;
             display: block;
             opacity: 1;
             @include transform-translate-x(0px);

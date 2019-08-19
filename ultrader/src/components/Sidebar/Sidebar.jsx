@@ -13,6 +13,7 @@ import image from "assets/img/blur-chart-data-159888.jpg";
 import avatar from "assets/img/default-avatar.png";
 // logo for sidebar
 import logo from "logo.svg";
+import logoText from "assets/img/logo.png";
 
 import dashboardRoutes from "routes/dashboard.jsx";
 
@@ -83,7 +84,7 @@ class Sidebar extends Component {
             href=""
             className="simple-text logo-normal"
           >
-            <span style={{color:'#cc1111'}}>Ul</span><span style={{color:'#dddd22'}}>tra</span><span style={{color:'#11cc11'}}>der</span>
+            <img style={{height:'40px'}} src={logoText}/>
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">

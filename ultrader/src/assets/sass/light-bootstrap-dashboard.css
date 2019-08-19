@@ -4833,6 +4833,7 @@ h1 .subtitle {
       margin-right: 15px;
       position: relative; }
     .sidebar .logo a.logo-normal {
+      height: 40px;
       display: block;
       opacity: 1;
       -webkit-transform: translate3d(0px, 0, 0);
