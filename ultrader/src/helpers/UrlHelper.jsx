@@ -9,20 +9,28 @@ const axiosInstance = axios.create({});
   again
 */
 
-axiosInstance.interceptors.response.use(undefined, err => {
-  const error = err.response;
-  // if error is 401
-  if (error.status === 401 || error.status === 403) {
-    // auto logout if 401 response returned from api
-    localStorage.removeItem("user");
-    window.location.reload(true);
-  }
 
-    // if error is 406 (for checking is keys are setup)
-    if (error.status === 406) {
-      window.location.href = '/#/setup/wizard';
+axiosInstance.interceptors.response.use(
+  res => {
+    return res;
+  },
+  err => {
+    const error = err.response;
+    // if error is 401
+    if (error.status === 401 || error.status === 403) {
+      // auto logout if 401 response returned from api
+      localStorage.removeItem("user");
+      window.location.reload(true);
+    } else if (error.status === 406) {
+      // if error is 406 (for checking is keys are setup)
+      window.location.href = "/#/setup/wizard";
+    } else {
+        return Promise.reject(err);
     }
-});
+
+  }
+);
+
 
 export function getAuthHeader() {
   // return authorization header with jwt token
