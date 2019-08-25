@@ -1,13 +1,7 @@
 package com.ultrader.bot.monitor;
 
-import com.ultrader.bot.dao.ChartDao;
-import com.ultrader.bot.dao.OrderDao;
-import com.ultrader.bot.dao.PositionDao;
-import com.ultrader.bot.dao.SettingDao;
-import com.ultrader.bot.model.Account;
-import com.ultrader.bot.model.Chart;
-import com.ultrader.bot.model.Order;
-import com.ultrader.bot.model.Position;
+import com.ultrader.bot.dao.*;
+import com.ultrader.bot.model.*;
 import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.NotificationUtil;
@@ -40,6 +34,7 @@ public class TradingAccountMonitor extends Monitor {
     private final SimpMessagingTemplate notifier;
     private final ChartDao chartDao;
     private final PositionDao positionDao;
+    private final NotificationDao notificationDao;
 
 
     private TradingAccountMonitor(long interval,
@@ -48,20 +43,23 @@ public class TradingAccountMonitor extends Monitor {
                                   final SimpMessagingTemplate notifier,
                                   final OrderDao orderDao,
                                   final ChartDao chartDao,
-                                  final PositionDao positionDao) {
+                                  final PositionDao positionDao,
+                                  final NotificationDao notificationDao) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(notifier, "notifier is required");
         Validate.notNull(orderDao, "orderDao is required");
         Validate.notNull(chartDao, "charDao is required");
-        Validate.notNull(chartDao, "positionDao is required");
+        Validate.notNull(positionDao, "positionDao is required");
+        Validate.notNull(notificationDao, "notificationDao is required");
         this.tradingService = tradingService;
         this.settingDao = settingDao;
         this.notifier = notifier;
         this.orderDao = orderDao;
         this.chartDao = chartDao;
         this.positionDao = positionDao;
+        this.notificationDao = notificationDao;
     }
 
     public static void init(long interval,
@@ -70,8 +68,16 @@ public class TradingAccountMonitor extends Monitor {
                             final SimpMessagingTemplate notifier,
                             final OrderDao orderDao,
                             final ChartDao chartDao,
-                            final PositionDao positionDao) {
-        singleton_instance = new TradingAccountMonitor(interval, tradingService, settingDao, notifier, orderDao, chartDao, positionDao);
+                            final PositionDao positionDao,
+                            final NotificationDao notificationDao) {
+        singleton_instance = new TradingAccountMonitor(interval,
+                tradingService,
+                settingDao,
+                notifier,
+                orderDao,
+                chartDao,
+                positionDao,
+                notificationDao);
     }
 
     public static TradingAccountMonitor getInstance() throws IllegalAccessException {
@@ -175,6 +181,12 @@ public class TradingAccountMonitor extends Monitor {
 
         } catch (Exception e) {
             LOGGER.error("Update trading account failed.", e);
+            NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
+                    UUID.randomUUID().toString(),
+                    "ERROR",
+                    "Cannot update your trading account, please check your account and reboot the bot.",
+                    "Account Update Failure",
+                    new Date()));
         }
     }
 

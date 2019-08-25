@@ -1,19 +1,17 @@
 package com.ultrader.bot.controller;
 
 import com.ultrader.bot.dao.ChartDao;
+import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.dao.OrderDao;
+import com.ultrader.bot.model.Notification;
 import com.ultrader.bot.model.websocket.DashboardDataMessage;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
 import com.ultrader.bot.util.NotificationUtil;
-import com.ultrader.bot.util.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,6 +30,8 @@ public class NotificationController {
     private ChartDao chartDao;
     @Autowired
     private SimpMessagingTemplate notifier;
+    @Autowired
+    private NotificationDao notificationDao;
 
     @RequestMapping(method = RequestMethod.GET, value = "/dashboard")
     @ResponseBody
@@ -47,6 +47,18 @@ public class NotificationController {
             return message;
         } catch (Exception e) {
             LOGGER.error("Populate notification failed.", e);
+            return  null;
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getNotifications")
+    @ResponseBody
+    public Iterable<Notification> getNotifications(@RequestParam int length) {
+        //Populate Dashboard Message
+        try {
+            return notificationDao.getLatestNotification(length);
+        } catch (Exception e) {
+            LOGGER.error("Get notification failed.", e);
             return  null;
         }
     }

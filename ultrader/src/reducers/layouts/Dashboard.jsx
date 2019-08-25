@@ -173,13 +173,37 @@ const global = (state = initialState, action) => {
       };
 
     case ACTION_TYPES.RETRIEVED_NOTIFICATION_MESSAGE:
-      var messageBody = JSON.parse(action.response.body).content;
+      var messageBody = JSON.parse(action.response.body);
+      var level = "info";
+      var icon = "pe-7s-info";
+          switch (messageBody.type) {
+                  case 'BUY':
+                  level = '#28a745';
+                  icon = 'pe-7s-plus';
+                  break;
+                  case 'SELL':
+                  level = '#28a745';
+                  icon = 'pe-7s-less';
+                  break;
+                  case 'WARN':
+                  level = '#ffc107';
+                  icon = 'pe-7s-speaker';
+                  break;
+                  case 'ERROR':
+                  level = '#dc3545';
+                  icon = 'pe-7s-speaker';
+                  break;
+                  default:
+                  break;
+          }
       return {
         ...state,
         notifications: [
           ...state.notifications,
           {
-            level: "success",
+            level: level,
+            icon: icon,
+            new: true,
             message: messageBody
           }
         ]

@@ -43,6 +43,8 @@ public class MonitorManager implements CommandLineRunner {
     private ChartDao chartDao;
     @Autowired
     private PositionDao positionDao;
+    @Autowired
+    private NotificationDao notificationDao;
 
     @Override
     public void run(String... args) throws Exception {
@@ -56,15 +58,15 @@ public class MonitorManager implements CommandLineRunner {
         threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
         threadPoolTaskExecutor.initialize();
         //Start License Monitor
-        LicenseMonitor.init(24 * 3600L * 1000, licenseService, settingDao);
+        LicenseMonitor.init(24 * 3600L * 1000, licenseService, settingDao, feedbackNotifier, notificationDao);
         threadPoolTaskExecutor.execute(LicenseMonitor.getInstance());
 
         //Trading account monitor
-        TradingAccountMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, feedbackNotifier, orderDao, chartDao, positionDao);
+        TradingAccountMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, feedbackNotifier, orderDao, chartDao, positionDao, notificationDao);
         threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
         //Start MarketDate Monitor
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")) * 1000;
-        MarketDataMonitor.init(interval, tradingPlatform.getTradingService(), tradingPlatform.getMarketDataService(), settingDao, feedbackNotifier);
+        MarketDataMonitor.init(interval, tradingPlatform.getTradingService(), tradingPlatform.getMarketDataService(), settingDao, feedbackNotifier, notificationDao);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
 
 

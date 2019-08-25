@@ -1,9 +1,12 @@
 package com.ultrader.bot.monitor;
 
+import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.model.Notification;
 import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.MarketDataService;
 import com.ultrader.bot.service.TradingService;
+import com.ultrader.bot.util.NotificationUtil;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.Validate;
@@ -30,26 +33,35 @@ public class MarketDataMonitor extends Monitor {
     private final MarketDataService marketDataService;
     private final SettingDao settingDao;
     private final SimpMessagingTemplate notifier;
+    private final NotificationDao notificationDao;
 
     private boolean firstRun = true;
     private Date lastUpdateDate;
     private Map<String, Set<String>> availableStocks = null;
     public static Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
     public static Object lock = new Object();
-    private MarketDataMonitor(final long interval, final TradingService tradingService, final MarketDataService marketDataService, final SettingDao settingDao, final SimpMessagingTemplate notifier) {
+    private MarketDataMonitor(final long interval,
+                              final TradingService tradingService,
+                              final MarketDataService marketDataService,
+                              final SettingDao settingDao,
+                              final SimpMessagingTemplate notifier,
+                              final NotificationDao notificationDao) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(marketDataService, "marketDataService is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(notifier, "notifier is required");
+        Validate.notNull(notificationDao, "notificationDao is required");
         this.settingDao = settingDao;
         this.marketDataService = marketDataService;
         this.tradingService = tradingService;
         this.notifier = notifier;
+        this.notificationDao = notificationDao;
     }
 
     @Override
     void scan() {
+        long start = System.currentTimeMillis();
         try {
             String platform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX");
             LOGGER.info(String.format("Update market data, platform: %s", platform));
@@ -175,8 +187,25 @@ public class MarketDataMonitor extends Monitor {
             lastUpdateDate = new Date();
         } catch (Exception e) {
             LOGGER.error("Update market data failed. Your trading will be impacted", e);
+            NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
+                    UUID.randomUUID().toString(),
+                    "WARN",
+                    "Market data updated failed. Try to reboot your bot or check the log.",
+                    "Update Failure",
+                    new Date()));
         }
         firstRun = false;
+        long end = System.currentTimeMillis();
+        if (end - start > getInterval()) {
+            //Cannot update all asset in limit time
+            LOGGER.error("Cannot update market data in time. Please reduce the monitoring assets number or increase trading period.");
+            NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
+                    UUID.randomUUID().toString(),
+                    "ERROR",
+                    "The bot cannot update all the stocks in one trading period. Try to reduce the stocks you want to monitor or increase the trading period.",
+                    "Insufficient Computing Resource",
+                    new Date()));
+        }
     }
 
     public Map<String, Set<String>> getAvailableStock() {
@@ -189,8 +218,19 @@ public class MarketDataMonitor extends Monitor {
         return marketOpen;
     }
 
-    public static void init(long interval, TradingService tradingService, MarketDataService marketDataService, SettingDao settingDao, SimpMessagingTemplate notifier) {
-        singleton_instance = new MarketDataMonitor(interval, tradingService, marketDataService, settingDao, notifier);
+    public static void init(long interval,
+                            TradingService tradingService,
+                            MarketDataService marketDataService,
+                            SettingDao settingDao,
+                            SimpMessagingTemplate notifier,
+                            NotificationDao notificationDao) {
+        singleton_instance = new MarketDataMonitor(
+                interval,
+                tradingService,
+                marketDataService,
+                settingDao,
+                notifier,
+                notificationDao);
     }
 
     public static MarketDataMonitor getInstance() throws IllegalAccessException {

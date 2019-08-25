@@ -20,6 +20,7 @@ import { withRouter } from "react-router";
 import SockJS from "sockjs-client";
 import Stomp from "stompjs";
 import axios from "axios";
+import { parseDate, parseProfit } from "helpers/ParseHelper";
 
 import {
   axiosGetWithAuth,
@@ -80,7 +81,7 @@ class DashboardComp extends Component {
   }
 
   processNotification(message) {
-    this.handleNotification(message, "success", "tr");
+    this.handleNotification(message);
     this.props.onReceivedNotificationMessage(message);
   }
 
@@ -117,7 +118,7 @@ class DashboardComp extends Component {
             "/topic/dashboard/position",
             this.processPositionMessage
           );
-          stompClient.subscribe("/topic/order", this.processNotification);
+          stompClient.subscribe("/topic/notification", this.processNotification);
           this.initData();
         });
     }
@@ -203,11 +204,7 @@ class DashboardComp extends Component {
   }
 
   componentDidUpdate(e) {
-    if (navigator.platform.indexOf("Win") > -1) {
-      setTimeout(() => {
-        ps.update();
-      }, 350);
-    }
+
     if (e.history.action === "PUSH") {
       document.documentElement.scrollTop = 0;
       document.scrollingElement.scrollTop = 0;
@@ -229,14 +226,39 @@ class DashboardComp extends Component {
   }
 
   // function that shows/hides notifications - it was put here, because the wrapper div has to be outside the main-panel class div
-  handleNotification(message, level, position) {
-    var messageBody = JSON.parse(message.body).content;
+  handleNotification(message) {
+
+    var notification = JSON.parse(message.body);
+    var level = "info";
+    var icon = "pe-7s-info";
+    switch (notification.type) {
+            case 'BUY':
+            level = 'success';
+            icon = 'pe-7s-plus';
+            break;
+            case 'SELL':
+            level = 'success';
+            icon = 'pe-7s-less';
+            break;
+            case 'WARN':
+            level = 'warning';
+            icon = 'pe-7s-speaker';
+            break;
+            case 'ERROR':
+            level = 'error';
+            icon = 'pe-7s-speaker';
+            break;
+            default:
+            break;
+    }
+
     if (this.state._notificationSystem) {
+      console.log(this.props.notifications);
       this.state._notificationSystem.addNotification({
-        title: <span data-notify="icon" className="pe-7s-gift" />,
-        message: <div>{messageBody}</div>,
+        title: <span data-notify="icon" className={icon}>{notification.title} &nbsp; - &nbsp;{parseDate(notification.date)}</span> ,
+        message: notification.content,
         level: level,
-        position: position,
+        position: "tr",
         autoDismiss: 15
       });
     }
@@ -245,7 +267,7 @@ class DashboardComp extends Component {
   render() {
     return (
       <div className="wrapper">
-        <NotificationSystem ref="notificationSystem" style={style} />
+        <NotificationSystem ref="notificationSystem" />
         <Sidebar {...this.props} />
         <div
           className={

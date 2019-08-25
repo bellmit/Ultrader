@@ -11,22 +11,73 @@ import {
   OverlayTrigger,
   Tooltip
 } from "react-bootstrap";
-
+import Card from "components/Card/Card.jsx";
 import { logout } from "helpers/AuthHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
+import { parseDate, parseProfit } from "helpers/ParseHelper";
+import PerfectScrollbar from "perfect-scrollbar";
+import "perfect-scrollbar/css/perfect-scrollbar.css";
 import {
   axiosGetWithAuth,
   handleResponse,
   getAuthHeader
 } from "helpers/UrlHelper";
-
+  var ps;
 class HeaderLinks extends Component {
   constructor(props) {
     super(props);
     this.iconColor = this.iconColor.bind(this);
     this.reboot = this.reboot.bind(this);
+    this.isNewNotification = this.isNewNotification.bind(this);
+    this.readNotification = this.readNotification.bind(this);
+    this.getNotification = this.getNotification.bind(this);
+    this.getNotification();
   }
 
+  getNotification() {
+    axiosGetWithAuth("/api/notification/getNotifications?length=10")
+      .then(res => {
+      console.log(res);
+        for (var i in res.data) {
+            var notification = {};
+            var messageBody = res.data[i];
+            var level = "info";
+            var icon = "pe-7s-info";
+            switch (messageBody.type) {
+                              case 'BUY':
+                              level = '#28a745';
+                              icon = 'pe-7s-plus';
+                              break;
+                              case 'SELL':
+                              level = '#28a745';
+                              icon = 'pe-7s-less';
+                              break;
+                              case 'WARN':
+                              level = '#ffc107';
+                              icon = 'pe-7s-speaker';
+                              break;
+                              case 'ERROR':
+                              level = '#dc3545';
+                              icon = 'pe-7s-speaker';
+                              break;
+                              default:
+                              break;
+            }
+            notification.level = level;
+            notification.icon = icon;
+            notification.message = messageBody;
+            notification.new = false;
+            this.props.notifications.push(notification);
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
+  }
+  isNewNotification(notification) {
+    return notification.new;
+  }
   iconColor(status) {
     switch (status) {
       case "error":
@@ -41,7 +92,16 @@ class HeaderLinks extends Component {
         return;
     }
   }
-
+  readNotification() {
+    for(var i in this.props.notifications) {
+      this.props.notifications[i].new = false;
+    }
+  }
+  componentDidMount() {
+    if (navigator.platform.indexOf("Win") > -1) {
+      ps = new PerfectScrollbar('.dropdown-menu');
+    }
+  }
   reboot() {
     axiosGetWithAuth("/api/setting/restart")
       .then(res => {
@@ -127,7 +187,7 @@ class HeaderLinks extends Component {
               <div>
                 <i className="fa fa-bell-o" />
                 <span className="notification">
-                  {this.props.notifications.length}
+                  {this.props.notifications.filter(this.isNewNotification).length}
                 </span>
                 <p className="hidden-md hidden-lg">
                   Notifications
@@ -136,11 +196,17 @@ class HeaderLinks extends Component {
               </div>
             }
             noCaret
-            id="basic-nav-dropdown-2"
-          >
+            onClick={this.readNotification}
+            id="basic-nav-dropdown-2">
             {this.props.notifications.map((notification, i) => (
               <MenuItem eventKey={"3." + i} key={"3." + i}>
-                {notification.message}
+              <div className="card" style={{color:'white', backgroundColor:notification.level, marginBottom:'5px'}}>
+                <div className="content">
+                  <p> <i className={notification.icon}></i>&nbsp;{notification.message.content}</p>
+                </div>
+                <div className="footer"><hr/><div className="stats" style={{color:'white'}}><div><i className="fa fa-clock-o"></i> {parseDate(notification.message.date)} <span style={{float:'right'}}>{notification.new?"New":""}</span></div></div></div>
+              </div>
+
               </MenuItem>
             ))}
           </NavDropdown>

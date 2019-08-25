@@ -1,16 +1,15 @@
 package com.ultrader.bot.util;
 
 import com.ultrader.bot.dao.ChartDao;
+import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.dao.OrderDao;
-import com.ultrader.bot.model.Account;
-import com.ultrader.bot.model.Chart;
-import com.ultrader.bot.model.Order;
-import com.ultrader.bot.model.Position;
+import com.ultrader.bot.model.*;
 import com.ultrader.bot.model.websocket.DashboardDataMessage;
 import com.ultrader.bot.monitor.LicenseMonitor;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.text.DecimalFormat;
 import java.time.LocalDate;
@@ -129,5 +128,14 @@ public class NotificationUtil {
         map.put("ProfitableStock", String.valueOf(profitableStock));
         map.put("Profit", String.valueOf(profit));
         return new DashboardDataMessage(map);
+    }
+
+    public static void sendNotification(SimpMessagingTemplate notifier, NotificationDao dao, Notification notification) {
+        try {
+            dao.save(notification);
+            notifier.convertAndSend("/topic/notification", notification);
+        } catch (Exception e) {
+            LOGGER.error("Send notification {} failed.", notification);
+        }
     }
 }

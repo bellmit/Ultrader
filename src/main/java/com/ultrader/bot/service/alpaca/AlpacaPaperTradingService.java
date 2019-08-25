@@ -1,6 +1,7 @@
 package com.ultrader.bot.service.alpaca;
 
 import com.ultrader.bot.dao.ChartDao;
+import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Account;
@@ -11,6 +12,7 @@ import com.ultrader.bot.model.alpaca.Clock;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,18 +46,26 @@ public class AlpacaPaperTradingService implements TradingService {
     private final ChartDao chartDao;
     private final SimpMessagingTemplate notifier;
     private final SettingDao settingDao;
+    private final NotificationDao notificationDao;
 
     @Autowired
-    public AlpacaPaperTradingService(final SettingDao settingDao, final RestTemplateBuilder restTemplateBuilder, final OrderDao orderDao, final ChartDao chartDao, final SimpMessagingTemplate notifier) {
+    public AlpacaPaperTradingService(final SettingDao settingDao,
+                                     final RestTemplateBuilder restTemplateBuilder,
+                                     final OrderDao orderDao,
+                                     final ChartDao chartDao,
+                                     final SimpMessagingTemplate notifier,
+                                     final NotificationDao notificationDao) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(orderDao, "orderDao is required");
         Validate.notNull(chartDao, "chartDao is required");
+        Validate.notNull(notificationDao, "notificationDao is required");
         this.settingDao = settingDao;
         this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
         this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
         this.orderDao = orderDao;
         this.chartDao = chartDao;
+        this.notificationDao = notificationDao;
         if(alpacaKey.equals("") || alpacaSecret.equals("")) {
             //It can be the first time setup
             LOGGER.warn("Cannot find Alpaca API key, please check our config");
@@ -63,7 +73,7 @@ public class AlpacaPaperTradingService implements TradingService {
         this.notifier = notifier;
         client = restTemplateBuilder.rootUri("https://paper-api.alpaca.markets/v1/").build();
         //Init Websocket
-        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
+        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notificationDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
         connectionManager.start();
     }
 
@@ -95,7 +105,7 @@ public class AlpacaPaperTradingService implements TradingService {
         } catch (Exception e) {
             LOGGER.error("Terminate Alpaca web socket", e);
         }
-        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
+        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notificationDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
         connectionManager.start();
     }
 
