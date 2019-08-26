@@ -8,6 +8,7 @@ import Rules from "containers/Rules/Rules.jsx";
 import AddStrategy from "containers/Strategies/AddStrategy.jsx";
 import Strategies from "containers/Strategies/Strategies.jsx";
 import Positions from "containers/Positions/Positions.jsx";
+import AssetLists from "containers/AssetLists/AssetLists.jsx";
 import Backtest from "containers/Backtest/Backtest.jsx";
 import PendingOrders from "containers/Orders/PendingOrders.jsx";
 import HistoryOrders from "containers/Orders/HistoryOrders.jsx";
@@ -42,6 +43,12 @@ var dashboardRoutes = [
     name: "Positions",
     icon: "pe-7s-portfolio",
     component: Positions
+  },
+  {
+    path: "/assetLists",
+    name: "Asset Lists",
+    icon: "pe-7s-cash",
+    component: AssetLists
   },
   {
     collapse: true,

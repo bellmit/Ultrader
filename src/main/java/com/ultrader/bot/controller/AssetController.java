@@ -7,7 +7,6 @@ import com.ultrader.bot.monitor.MarketDataMonitor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -47,7 +46,17 @@ public class AssetController {
         }
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/getAllAsset")
+    @RequestMapping(method = RequestMethod.DELETE, value = "/deleteAssetList/{id}")
+    @ResponseBody
+    public void deleteAssetList(@PathVariable String id) {
+        try {
+            assetListDao.deleteById(id);
+        } catch (Exception e) {
+            LOGGER.error("Delete Asset List failed.", e);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getAllAssets")
     @ResponseBody
     public Iterable<Asset> getPortfolio() {
         try {
@@ -60,6 +69,18 @@ public class AssetController {
             return assets;
         } catch (Exception e) {
             LOGGER.error("Get asset list failed.", e);
+            return null;
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getAssetLists")
+    @ResponseBody
+    public Iterable<AssetList> getAssetLists() {
+        try {
+            Iterable<AssetList> assetLists = assetListDao.findAll();
+            return assetLists;
+        } catch (Exception e) {
+            LOGGER.error("Get asset lists failed.", e);
             return null;
         }
     }

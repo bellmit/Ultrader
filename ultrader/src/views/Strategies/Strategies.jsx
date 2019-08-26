@@ -19,6 +19,23 @@ var operators = ["&", "|", "^"];
 class StrategiesComp extends Component {
   constructor(props) {
     super(props);
+
+    this.handleShowAdd = this.handleShowAdd.bind(this);
+    this.handleCloseAdd = this.handleCloseAdd.bind(this);
+    this.handleShowEdit = this.handleShowEdit.bind(this);
+    this.handleCloseEdit = this.handleCloseEdit.bind(this);
+    this.deleteStrategy = this.deleteStrategy.bind(this);
+    this.editStrategy = this.editStrategy.bind(this);
+
+    this.state = {
+      showAdd: false,
+      showEdit: false,
+      selectedStrategy: {},
+      selectedStrategyIndex: -1
+    };
+  }
+
+  componentDidMount() {
     axiosGetWithAuth("/api/strategy/getStrategies")
       .then(res => {
         this.props.onGetStrategiesSuccess(res);
@@ -36,19 +53,6 @@ class StrategiesComp extends Component {
         console.log(error);
         alertError(error);
       });
-    this.handleShowAdd = this.handleShowAdd.bind(this);
-    this.handleCloseAdd = this.handleCloseAdd.bind(this);
-    this.handleShowEdit = this.handleShowEdit.bind(this);
-    this.handleCloseEdit = this.handleCloseEdit.bind(this);
-    this.deleteStrategy = this.deleteStrategy.bind(this);
-    this.editStrategy = this.editStrategy.bind(this);
-
-    this.state = {
-      showAdd: false,
-      showEdit: false,
-      selectedStrategy: {},
-      selectedStrategyIndex: -1
-    };
   }
 
   handleCloseAdd() {

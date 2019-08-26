@@ -6,6 +6,7 @@ import rules from './Rules/Rules';
 import settings from './Settings/Settings';
 import strategies from './Strategies/Strategies';
 import positions from './Positions/Positions';
+import assetLists from './AssetLists/AssetLists';
 import orders from './Orders/Orders';
 import dashboard from './Dashboard/Dashboard';
 import backtest from './Backtest/Backtest';
@@ -17,6 +18,7 @@ export default combineReducers({
   rules,
   strategies,
   positions,
+  assetLists,
   orders,
   greetingMonitor,
   settings,

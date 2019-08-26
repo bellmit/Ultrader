@@ -15,7 +15,6 @@ export function parseMoney(num) {
 }
 
 export function parseProfit(value, base) {
-console.log(value + " " + base);
  value = Number(value);
  base = Number(base);
  var color = value >= 0 ? "green" : "red";

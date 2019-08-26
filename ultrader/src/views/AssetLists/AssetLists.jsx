@@ -7,13 +7,13 @@ import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 import axios from "axios";
 
-import AddRule from "containers/Rules/AddRule.jsx";
-import EditRule from "containers/Rules/EditRule.jsx";
+import AddAssetList from "containers/AssetLists/AddAssetList.jsx";
+import EditAssetList from "containers/AssetLists/EditAssetList.jsx";
 
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 
-class RulesComp extends Component {
+class AssetListsComp extends Component {
   constructor(props) {
     super(props);
 
@@ -21,21 +21,29 @@ class RulesComp extends Component {
     this.handleCloseAdd = this.handleCloseAdd.bind(this);
     this.handleShowEdit = this.handleShowEdit.bind(this);
     this.handleCloseEdit = this.handleCloseEdit.bind(this);
-    this.deleteRule = this.deleteRule.bind(this);
-    this.editRule = this.editRule.bind(this);
+    this.deleteAssetList = this.deleteAssetList.bind(this);
+    this.editAssetList = this.editAssetList.bind(this);
 
     this.state = {
       showAdd: false,
       showEdit: false,
-      selectedRule: {},
-      selectedRuleIndex: -1
+      selectedAssetList: {},
+      selectedAssetListIndex: -1
     };
   }
 
   componentDidMount() {
-    axiosGetWithAuth("/api/rule/getRules")
+    axiosGetWithAuth("/api/asset/getAssetLists")
       .then(res => {
-        this.props.onGetRulesSuccess(res);
+        this.props.onGetAssetListsSuccess(res);
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
+    axiosGetWithAuth("/api/asset/getAllAssets")
+      .then(res => {
+        this.props.onGetAllAssetsSuccess(res);
       })
       .catch(error => {
         console.log(error);
@@ -59,23 +67,23 @@ class RulesComp extends Component {
     this.setState({ showEdit: true });
   }
 
-  editRule(row) {
+  editAssetList(row) {
     let id = row.original.id;
     let index = row.index;
     this.setState({
-      selectedRule: row.original,
-      selectedRuleIndex: index,
+      selectedAssetList: row.original,
+      selectedAssetListIndex: index,
       showEdit: true
     });
   }
 
-  deleteRule(row) {
+  deleteAssetList(row) {
     let id = row.original.id;
     let index = row.index;
-    axiosDeleteWithAuth("/api/rule/deleteRule/" + id)
+    axiosDeleteWithAuth("/api/asset/deleteAssetList/" + id)
       .then(res => {
-        alertSuccess("Deleted rule successfully.");
-        this.props.onDeleteRuleSuccess(index);
+        alertSuccess("Deleted assetList successfully.");
+        this.props.onDeleteAssetListSuccess(index);
       })
       .catch(error => {
         alertError(error);
@@ -91,13 +99,13 @@ class RulesComp extends Component {
               <Card
                 title={
                   <div>
-                    Rules
+                    Asset Lists
                     <Button
                       className="add_button"
                       variant="primary"
                       onClick={this.handleShowAdd}
                     >
-                      Add Rule
+                      Add AssetList
                     </Button>
                   </div>
                 }
@@ -110,7 +118,7 @@ class RulesComp extends Component {
                     >
                       <Modal.Header closeButton />
                       <Modal.Body>
-                        <AddRule />
+                        <AddAssetList />
                       </Modal.Body>
                     </Modal>
                     <Modal
@@ -120,14 +128,14 @@ class RulesComp extends Component {
                     >
                       <Modal.Header closeButton />
                       <Modal.Body>
-                        <EditRule
-                          rule={this.state.selectedRule}
-                          index={this.state.selectedRuleIndex}
+                        <EditAssetList
+                          assetList={this.state.selectedAssetList}
+                          index={this.state.selectedAssetListIndex}
                         />
                       </Modal.Body>
                     </Modal>
                     <ReactTable
-                      data={this.props.rules}
+                      data={this.props.assetLists}
                       filterable
                       columns={[
                         {
@@ -139,12 +147,8 @@ class RulesComp extends Component {
                           accessor: "description"
                         },
                         {
-                          Header: "Type",
-                          accessor: "type"
-                        },
-                        {
-                          Header: "Formula",
-                          accessor: "formula"
+                          Header: "Symbols",
+                          accessor: "symbols"
                         },
                         {
                           Header: "Actions",
@@ -156,7 +160,7 @@ class RulesComp extends Component {
                             <div>
                               <Button
                                 onClick={() => {
-                                  this.editRule(row);
+                                  this.editAssetList(row);
                                 }}
                                 bsStyle="danger"
                                 simple
@@ -166,7 +170,7 @@ class RulesComp extends Component {
                               </Button>
                               <Button
                                 onClick={() => {
-                                  this.deleteRule(row);
+                                  this.deleteAssetList(row);
                                 }}
                                 bsStyle="danger"
                                 simple
@@ -196,4 +200,4 @@ class RulesComp extends Component {
   }
 }
 
-export default RulesComp;
+export default AssetListsComp;
