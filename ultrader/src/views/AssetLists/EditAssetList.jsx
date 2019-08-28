@@ -11,7 +11,7 @@ import {
   HelpBlock,
   Form
 } from "react-bootstrap";
-import Select from "react-select";
+import WindowedSelect, { createFilter } from "react-windowed-select";
 
 import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
@@ -144,11 +144,12 @@ export default class EditAssetListComp extends React.Component {
                           AssetList Type
                         </ControlLabel>
                         <Col sm={10}>
-                          <Select
+                          <WindowedSelect
                             isMulti
-                            value={this.state.selectedAssetsOptions}
+                            value={this.props.selectedAssetsOptions}
                             isClearable
                             isSearchable
+                            filterOption={createFilter({ignoreAccents: false})}
                             inputValue={assetsInputValue}
                             onChange={this.onAssetsInputChange}
                             name="assets"
