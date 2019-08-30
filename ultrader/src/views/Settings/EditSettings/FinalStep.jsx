@@ -98,12 +98,13 @@ class FinalStep extends Component {
               <ControlLabel>
                 Trading Stock List {tooltip("StockList")}
               </ControlLabel>
-              <FormControl
-                id="TRADE_STOCK_LIST"
-                value={this.props.settings["TRADE_STOCK_LIST"]}
-                onChange={this.textOnChange}
-                type="text"
+              <Select
                 placeholder="Trading Stock List"
+                name="tradingStockList"
+                options={this.props.assetListOptions}
+                value={this.props.selectedAssetListOption}
+                id="TRADE_STOCK_LIST"
+                onChange={option => this.props.selectAssetListOption(option)}
               />
             </FormGroup>
             <FormGroup>

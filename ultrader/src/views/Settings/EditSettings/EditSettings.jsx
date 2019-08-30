@@ -72,6 +72,7 @@ class EditSettingsComp extends Component {
     this.selectBuyOrderTypeOption = this.selectBuyOrderTypeOption.bind(this);
     this.selectSellOrderTypeOption = this.selectSellOrderTypeOption.bind(this);
     this.selectPeriodOption = this.selectPeriodOption.bind(this);
+    this.selectAssetListOption = this.selectAssetListOption.bind(this);
 
     this.onExchangeInputChange = this.onExchangeInputChange.bind(this);
 
@@ -81,6 +82,7 @@ class EditSettingsComp extends Component {
     );
 
     this.state = {
+      assetListOptions: [],
       buyStrategyOptions: [],
       sellStrategyOptions: [],
       selectedTradingPlatformOption: {},
@@ -102,6 +104,7 @@ class EditSettingsComp extends Component {
     var promises = [];
     promises.push(axiosGetWithAuth("/api/setting/getSettings"));
     promises.push(axiosGetWithAuth("/api/strategy/getStrategies"));
+    promises.push(axiosGetWithAuth("/api/asset/getAssetLists"));
 
     Promise.all(promises)
       .then(responses => {
@@ -127,12 +130,26 @@ class EditSettingsComp extends Component {
           sellStrategyOptions: sellStrategyOptions
         });
 
+        var assetLists = responses[2].data;
+        var assetListOptions = assetLists.map(assetList => {
+          return { label: assetList.name, value: assetList.name };
+        });
+
+        this.setState({
+          assetListOptions: assetListOptions
+        });
+
         this.props.onGetSettingsSuccess(responses[0]);
         this.setSelectedOptions();
         this.setStrategiesSelectedOptions(
           buyStrategyOptions,
           sellStrategyOptions
         );
+        this.setAssetListsSelectedOptions(assetListOptions);
+
+        this.setState({
+          assetListOptions: assetListOptions
+        });
       })
       .catch(error => {
         alertError(error);
@@ -158,6 +175,17 @@ class EditSettingsComp extends Component {
       : {};
     this.setState({
       selectedSellStrategyOption: selectedSellStrategyOption
+    });
+  }
+
+  setAssetListsSelectedOptions(assetListOptions) {
+    /*****************************************************************************/
+    var assetListOption = assetListOptions.find(
+      e => e.value == this.props.settings["TRADE_STOCK_LIST"]
+    );
+    let selectedAssetListOption = assetListOption ? assetListOption : {};
+    this.setState({
+      selectedAssetListOption: selectedAssetListOption
     });
   }
 
@@ -231,6 +259,7 @@ class EditSettingsComp extends Component {
       selectedSellOrderTypeOption: selectedSellOrderTypeOption
     });
   }
+
   selectPeriodOption(option) {
     let periodOption = option ? option : {};
     this.setState({
@@ -238,6 +267,7 @@ class EditSettingsComp extends Component {
     });
     this.props.onAddSetting("TRADE_PERIOD_SECOND", option.value);
   }
+
   selectTradingPlatformOption(option) {
     let selectedTradingPlatformOption = option ? option : {};
     this.setState({
@@ -299,6 +329,14 @@ class EditSettingsComp extends Component {
       selectedSellOrderTypeOption: selectedSellOrderTypeOption
     });
     this.props.onAddSetting("TRADE_SELL_ORDER_TYPE", option.value);
+  }
+
+  selectAssetListOption(option) {
+    let selectedAssetListOption = option ? option : {};
+    this.setState({
+      selectedAssetListOption: selectedAssetListOption
+    });
+    this.props.onAddSetting("TRADE_STOCK_LIST", option.value);
   }
 
   onExchangeInputChange(option) {
@@ -373,9 +411,12 @@ class EditSettingsComp extends Component {
             selectSellStrategyOption={this.selectSellStrategyOption}
             selectedBuyOrderTypeOption={this.state.selectedBuyOrderTypeOption}
             selectedSellOrderTypeOption={this.state.selectedSellOrderTypeOption}
+            selectedAssetListOption={this.state.selectedAssetListOption}
             selectBuyOrderTypeOption={this.selectBuyOrderTypeOption}
             selectSellOrderTypeOption={this.selectSellOrderTypeOption}
+            selectAssetListOption={this.selectAssetListOption}
             orderTypeOptions={orderTypeOptions}
+            assetListOptions={this.state.assetListOptions}
           />
         )
       }
@@ -396,13 +437,7 @@ class EditSettingsComp extends Component {
           })}
         </Tabs>
         <div style={{ textAlign: "center" }}>
-          <Button
-            bsStyle="info"
-            fill
-            wd
-            onClick={this.saveSettings}
-            pullRight
-          >
+          <Button bsStyle="info" fill wd onClick={this.saveSettings} pullRight>
             Finish
           </Button>
         </div>

@@ -78,9 +78,9 @@ class AssetListsComp extends Component {
   }
 
   deleteAssetList(row) {
-    let id = row.original.id;
+    let name = row.original.name;
     let index = row.index;
-    axiosDeleteWithAuth("/api/asset/deleteAssetList/" + id)
+    axiosDeleteWithAuth("/api/asset/deleteAssetList/" + name)
       .then(res => {
         alertSuccess("Deleted assetList successfully.");
         this.props.onDeleteAssetListSuccess(index);
