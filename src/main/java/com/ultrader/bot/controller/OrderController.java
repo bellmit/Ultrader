@@ -1,8 +1,11 @@
 package com.ultrader.bot.controller;
 
 import com.ultrader.bot.dao.OrderDao;
+import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Order;
+import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.Trade;
+import com.ultrader.bot.monitor.TradingAccountMonitor;
 import com.ultrader.bot.monitor.TradingStrategyMonitor;
 import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.util.TradingUtil;
@@ -50,6 +53,24 @@ public class OrderController {
             orderDao.saveAll(tradingPlatform.getTradingService().getHistoryOrders(null, null));
         } catch (Exception e) {
             LOGGER.error("Load orders failed.", e);
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.POST, value = "/liquid")
+    @ResponseBody
+    public void liquid(@RequestParam String assets) {
+        try {
+            Account account = TradingAccountMonitor.getAccount();
+            for (String asset : assets.split(",")) {
+                //sell strategy satisfy & has position
+                Position position = TradingAccountMonitor.getPositions().get(asset);
+                if (tradingPlatform.getTradingService().postOrder(new com.ultrader.bot.model.Order("", asset, "sell", "market", position.getQuantity(), position.getCurrentPrice(), "", null)) != null) {
+                    account.setBuyingPower(account.getBuyingPower() + position.getQuantity() * position.getQuantity());
+                    LOGGER.info(String.format("Sell %s %d shares at price %f.", asset, position.getQuantity(), position.getCurrentPrice()));
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.error("Liquid assets failed.", e);
         }
     }
 

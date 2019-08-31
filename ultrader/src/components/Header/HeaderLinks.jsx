@@ -38,9 +38,10 @@ class HeaderLinks extends Component {
     axiosGetWithAuth("/api/notification/getNotifications?length=10")
       .then(res => {
       console.log(res);
-        for (var i in res.data) {
+        var notifications = res.data.reverse();
+        for (var i in notifications) {
             var notification = {};
-            var messageBody = res.data[i];
+            var messageBody = notifications[i];
             var level = "info";
             var icon = "pe-7s-info";
             switch (messageBody.type) {
@@ -198,7 +199,7 @@ class HeaderLinks extends Component {
             noCaret
             onClick={this.readNotification}
             id="basic-nav-dropdown-2">
-            {this.props.notifications.map((notification, i) => (
+            {this.props.notifications.reverse().map((notification, i) => (
               <MenuItem eventKey={"3." + i} key={"3." + i}>
               <div className="card" style={{color:'white', backgroundColor:notification.level, marginBottom:'5px'}}>
                 <div className="content">

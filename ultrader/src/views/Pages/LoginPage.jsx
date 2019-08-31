@@ -44,7 +44,6 @@ class LoginPageComp extends Component {
       password: password
     })
       .then(user => {
-        console.log(user);
         if(!user) {
           alertError("Invalid Username or Password!");
         } else {

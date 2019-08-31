@@ -253,7 +253,6 @@ class DashboardComp extends Component {
     }
 
     if (this.state._notificationSystem) {
-      console.log(this.props.notifications);
       this.state._notificationSystem.addNotification({
         title: <span data-notify="icon" className={icon}>{notification.title} &nbsp; - &nbsp;{parseDate(notification.date)}</span> ,
         message: notification.content,
