@@ -99,7 +99,7 @@ class FinalStep extends Component {
                 Trading Stock List {tooltip("StockList")}
               </ControlLabel>
               <Select
-                placeholder="Trading Stock List"
+                placeholder="Choose a created Asset List"
                 name="tradingStockList"
                 options={this.props.assetListOptions}
                 value={this.props.selectedAssetListOption}

@@ -138,9 +138,6 @@ public class StrategyController {
     @ResponseBody
     public boolean reload() {
         try {
-            synchronized (TradingStrategyMonitor.getLock()) {
-                TradingStrategyMonitor.getStrategies().clear();
-            }
             return true;
         } catch (Exception e) {
             LOGGER.error("Reload strategy failed.", e);
@@ -253,15 +250,4 @@ public class StrategyController {
 
     }
 
-    private List<String> pickNStocks(int n) {
-        Random random = new Random(System.currentTimeMillis());
-        n = n > TradingStrategyMonitor.getStrategies().size() ? TradingStrategyMonitor.getStrategies().size() : n;
-        List<String> stocks = new ArrayList<>();
-        List<String> allStock = new ArrayList<>(TradingStrategyMonitor.getStrategies().keySet());
-        for (int i = 0; i < n; i++) {
-            int index = random.nextInt(TradingStrategyMonitor.getStrategies().size());
-            stocks.add(allStock.get(index));
-        }
-        return stocks;
-    }
 }

@@ -114,7 +114,7 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
                 notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
                 notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
                 Notification notification = new Notification(UUID.randomUUID().toString(),
-                        order.getSide().equalsIgnoreCase("buy") ? NotificationType.BUY.name() : NotificationType.SELL.name(),
+                        order.getSide().equalsIgnoreCase(com.ultrader.bot.model.alpaca.Order.BUY) ? NotificationType.BUY.name() : NotificationType.SELL.name(),
                         String.format("%s stock %s at %s, quantity %s",
                                 order.getSide(),
                                 order.getSymbol(),

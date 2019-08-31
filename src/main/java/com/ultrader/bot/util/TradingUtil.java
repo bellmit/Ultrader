@@ -36,6 +36,15 @@ public class TradingUtil {
     public static final String DOUBLE = "Double";
     public static final String NUM_INDICATOR = "NumIndicator";
     public static final String BOOLEAN_INDICATOR = "BooleanIndicator";
+
+    /**
+     * Generate trading strategy
+     * @param strategyDao
+     * @param ruleDao
+     * @param strategyId
+     * @param stock
+     * @return
+     */
     public static org.ta4j.core.Rule generateTradingStrategy(StrategyDao strategyDao, RuleDao ruleDao, long strategyId, TimeSeries stock) {
         try{
             Validate.notNull(strategyDao, "strategyDao is required");
@@ -78,6 +87,35 @@ public class TradingUtil {
         }
     }
 
+    /**
+     * Get trading rule class
+     * @param type
+     * @return
+     */
+    public static Class<?> getRuleClass(String type) throws ClassNotFoundException {
+        try {
+            Class<?> rule = Class.forName("org.ta4j.core.trading.rules." + type);
+            return rule;
+        } catch (ClassNotFoundException e) {
+            //Not original rule, check if it's Ultrader rule
+            try {
+                Class<?> rule = Class.forName("com.ultrader.bot.rule." + type);
+                return rule;
+            } catch (ClassNotFoundException e1) {
+                LOGGER.error("Cannot recognize rule type {}", type);
+                throw e1;
+            }
+        }
+    }
+
+    /**
+     * Generate trading rule
+     * @param ruleDao
+     * @param rid
+     * @param stock
+     * @return
+     * @throws Exception
+     */
     public static Rule generateTradingRule(RuleDao ruleDao , Long rid, TimeSeries stock) throws Exception {
         String ruleExp = ruleDao.findById(rid).map(r -> r.getFormula()).orElse(null);
         String ruleType = ruleDao.findById(rid).map(r -> r.getType()).orElse(null);
@@ -85,7 +123,7 @@ public class TradingUtil {
         String[] args = ruleExp.split(",");
         //Generate rule
         try {
-            Class<?> rule = Class.forName("org.ta4j.core.trading.rules." + ruleType);
+            Class<?> rule = getRuleClass(ruleType);
             Constructor<?> constructor = rule.getConstructor(getArgClasses(args));
             return (Rule) constructor.newInstance(getArgs(args, stock));
         } catch (Exception e) {
@@ -94,6 +132,12 @@ public class TradingUtil {
         }
     }
 
+    /**
+     * Create rule based on inputs
+     * @param args
+     * @return
+     * @throws ClassNotFoundException
+     */
     public static Class<?>[] getArgClasses(String[] args) throws ClassNotFoundException {
         Class<?>[] classes = new Class<?>[args.length];
         for (int i=0; i < args.length; i++) {
@@ -136,6 +180,13 @@ public class TradingUtil {
         return classes;
     }
 
+    /**
+     * Create indicators based on inputs
+     * @param args
+     * @param stock
+     * @return
+     * @throws Exception
+     */
     public static Object[] getArgs(String[] args, TimeSeries stock) throws Exception {
         Object[] values = new Object[args.length];
         for (int i = 0; i < values.length; i++) {
@@ -205,45 +256,7 @@ public class TradingUtil {
         }
         return values;
     }
-    /**
-     * Update trading strategies for each stock
-     * This method must be used in synchronous block (TradingStrategyMonitor.lock)
-     * @param strategyDao
-     * @param ruleDao
-     * @param settingDao
-     * @return
-     */
-    public static void updateStrategies(StrategyDao strategyDao, RuleDao ruleDao, SettingDao settingDao) {
-        Validate.notNull(strategyDao, "strategyDao is required");
-        Validate.notNull(ruleDao, "ruleDao is required");
-        Validate.notNull(settingDao, "settingDao is  required");
 
-        try {
-            //update trading strategy
-            Long buyStrategyId = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_STRATEGY.getName(), "-1"));
-            Long sellStrategyId = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_SELL_STRATEGY.getName(), "-1"));
-            Map<String, Strategy> strategyMap = new HashMap<>();
-            for(String stock : MarketDataMonitor.timeSeriesMap.keySet()) {
-                if(!TradingStrategyMonitor.getStrategies().containsKey(stock) && MarketDataMonitor.timeSeriesMap.get(stock) != null) {
-                    //Add strategy for new stock
-                    Rule buyRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, MarketDataMonitor.timeSeriesMap.get(stock));
-                    Rule sellRules = TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, MarketDataMonitor.timeSeriesMap.get(stock));
-                    if(buyRules != null && sellRules != null) {
-                        strategyMap.put(stock, new BaseStrategy(stock, buyRules, sellRules));
-                    } else {
-                        LOGGER.error("Missing trading rules.");
-                    }
-                } else {
-                    //Use the exist strategy
-                    strategyMap.put(stock, TradingStrategyMonitor.getStrategies().get(stock));
-                }
-            }
-            TradingStrategyMonitor.setStrategies(strategyMap);
-        } catch (Exception e) {
-            LOGGER.error("Update trading strategies failed.", e);
-        }
-
-    }
 
     /**
      * Translate args to string

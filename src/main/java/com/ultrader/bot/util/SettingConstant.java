@@ -29,6 +29,10 @@ public enum SettingConstant {
     WHITE_LIST_ENABLE("TRADE_WHITE_LIST_ENABLE"),
     //User customized stock list
     TRADE_STOCK_LIST("TRADE_STOCK_LIST"),
+    //White list
+    TRADE_WHITE_LIST("TRADE_WHITE_LIST"),
+    //Black list
+    TRADE_BLACK_LIST("TRADE_BLACK_LIST"),
     //Stock exchanges that need to be considered
     TRADE_EXCHANGE("TRADE_EXCHANGE_LIST"),
     //The max stock price filter

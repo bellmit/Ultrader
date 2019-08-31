@@ -32,7 +32,6 @@ import java.util.Map;
 public class TradingStrategyMonitor extends Monitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(TradingStrategyMonitor.class);
     private static TradingStrategyMonitor singleton_instance = null;
-    private static Map<String, Strategy> strategies = new HashMap<>();
     private static Map<String, com.ultrader.bot.model.Order> openOrders = new HashMap<>();
     private static Object lock = new Object();
     private final SettingDao settingDao;
@@ -102,46 +101,46 @@ public class TradingStrategyMonitor extends Monitor {
             int noTimeSeries = 0;
             int notLongEnough = 0;
             int notNewEnough = 0;
-            TradingUtil.updateStrategies(strategyDao, ruleDao, settingDao);
-            LOGGER.info(String.format("Updated trading strategies for %d stocks", strategies.size()));
-            for (Map.Entry<String, Strategy> entry : strategies.entrySet()) {
+            //update trading strategy
+            Long buyStrategyId = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_STRATEGY.getName(), "-1"));
+            Long sellStrategyId = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_SELL_STRATEGY.getName(), "-1"));
+            for (Map.Entry<String, TimeSeries> entry : MarketDataMonitor.timeSeriesMap.entrySet()) {
                 String stock = entry.getKey();
+                TimeSeries timeSeries = entry.getValue();
                 //Don't trade stock if it has an open order
                 if (openOrders.containsKey(stock)) {
                     LOGGER.debug("Skip {} trading strategy since there is an open order", stock);
                     continue;
                 }
-                //Don't trade stock if the time series is missing
-                if (!MarketDataMonitor.timeSeriesMap.containsKey(stock)) {
-                    LOGGER.debug("Skip {} trading strategy since no time series", stock);
-                    noTimeSeries++;
-                    continue;
-                }
+
                 //Don't trade if time series is not long enough
-                if (MarketDataMonitor.timeSeriesMap.get(stock).getBarCount() < minLength) {
+                if (timeSeries.getBarCount() < minLength) {
                     LOGGER.debug("Skip {} trading strategy since time series is not long enough", stock);
                     notLongEnough++;
                     continue;
                 }
                 //Don't trade if the last update time is too far
-                if (ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).toEpochSecond() - MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond() > tradeInterval * 3) {
-                    LOGGER.debug("Skip {} trading strategy since time series is not update to date {} {}", stock, new Date().getTime(), MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getEndTime().toEpochSecond());
+                if (ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).toEpochSecond() - timeSeries.getLastBar().getEndTime().toEpochSecond() > tradeInterval * 3) {
+                    LOGGER.debug("Skip {} trading strategy since time series is not update to date {} {}", stock, new Date().getTime(), timeSeries.getLastBar().getEndTime().toEpochSecond());
                     notNewEnough++;
                     continue;
                 }
                 vailidCount++;
-
                 //Check if buy satisfied
                 if (MarketDataMonitor.isMarketOpen()) {
+                    //Generate strategy
+                    Strategy strategy = new BaseStrategy(stock,
+                            TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, timeSeries),
+                            TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, timeSeries));
                     TradingRecord tradingRecord = new BaseTradingRecord();
-                    Double currentPrice = MarketDataMonitor.timeSeriesMap.get(stock).getLastBar().getClosePrice().doubleValue();
+                    Double currentPrice = timeSeries.getLastBar().getClosePrice().doubleValue();
                     if (positions.containsKey(stock)) {
                         //The buy timing is incorrect, don't use for anything
                         tradingRecord.enter(1, PrecisionNum.valueOf(positions.get(stock).getAverageCost()), PrecisionNum.valueOf(positions.get(stock).getQuantity()));
                     }
 
                     try {
-                        if (entry.getValue().shouldEnter(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex())
+                        if (strategy.shouldEnter(timeSeries.getEndIndex())
                                 && !positions.containsKey(stock)
                                 && !openOrders.containsKey(stock)
                                 && positionNum + buyOpenOrder < holdLimit) {
@@ -154,7 +153,7 @@ public class TradingStrategyMonitor extends Monitor {
                                     LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
                                 }
                             }
-                        } else if (entry.getValue().shouldExit(MarketDataMonitor.timeSeriesMap.get(stock).getEndIndex(), tradingRecord) //Check if sell satisfied
+                        } else if (strategy.shouldExit(timeSeries.getEndIndex(), tradingRecord) //Check if sell satisfied
                                 && positions.containsKey(stock)
 
                                 && positions.get(stock).getQuantity() > 0) {
@@ -176,9 +175,9 @@ public class TradingStrategyMonitor extends Monitor {
             }
             LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
                     vailidCount, noTimeSeries, notLongEnough, notNewEnough);
-            if (strategies.size() * 0.1 > vailidCount) {
+            if (MarketDataMonitor.timeSeriesMap.size() * 0.1 > vailidCount) {
                 notifier.convertAndSend("/topic/status/data", new StatusMessage("error", "Most stocks don't have latest data"));
-            } else if (strategies.size() * 0.5 > vailidCount) {
+            } else if (MarketDataMonitor.timeSeriesMap.size() * 0.5 > vailidCount) {
                 notifier.convertAndSend("/topic/status/data", new StatusMessage("warning", "Some stocks don't have latest data"));
             } else {
                 notifier.convertAndSend("/topic/status/data", new StatusMessage("normal", "Most stocks have latest data"));
@@ -188,15 +187,6 @@ public class TradingStrategyMonitor extends Monitor {
         } catch (Exception e) {
             LOGGER.error("Failed to execute trading strategy.", e);
         }
-    }
-
-
-    public static Map<String, Strategy> getStrategies() {
-        return strategies;
-    }
-
-    public static void setStrategies(Map<String, Strategy> strategies) {
-        TradingStrategyMonitor.strategies = strategies;
     }
 
     public static Map<String, com.ultrader.bot.model.Order> getOpenOrders() {

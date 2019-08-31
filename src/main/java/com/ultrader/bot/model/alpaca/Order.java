@@ -16,6 +16,8 @@ import java.util.Date;
 @NoArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Order {
+    public static final String SELL = "sell";
+    public static final String BUY = "buy";
     private String id;
     private String client_order_id;
     private Date created_at;

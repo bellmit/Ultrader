@@ -337,7 +337,7 @@ class BacktestComp extends Component {
                     <FormGroup>
                       <ControlLabel>Stocks</ControlLabel>
                       <Select
-                        placeholder="AAPL,AMZN,etc."
+                        placeholder="Choose a created Asset List"
                         name="tradingStockList"
                         options={this.state.assetListOptions}
                         value={this.state.selectedAssetListOption}

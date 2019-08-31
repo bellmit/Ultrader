@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>com.ultrader</groupId>
 	<artifactId>Ultrader</artifactId>
-	<version>0.7.3-SNAPSHOT</version>
+	<version>0.7.4-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>bot</name>
 	<description>Bot of Ultrader</description>
@@ -175,6 +175,7 @@
 						<option>-keep public class com.ultrader.bot.model.** { *; } </option>
 						<option>-keep class com.ultrader.bot.service.polygon.PolygonMarketDataService$GetStockBarsTask { *; } </option>
 						<option>-keep public class com.ultrader.bot.config.** { *; }</option>
+						<option>-keep public class com.ultrader.bot.rule.** { *; }</option>
 						<option>-keep public class com.ultrader.bot.payload.** { *; }</option>
 						<option>-keep public interface com.ultrader.bot.dao.** { *; }</option>
 						<option>-keep abstract class com.ultrader.bot.** { *; }</option>

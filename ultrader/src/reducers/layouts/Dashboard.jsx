@@ -235,7 +235,9 @@ const global = (state = initialState, action) => {
         return {
           value: ruleType.args,
           label: ruleType.name,
-          classz: ruleType.classz
+          classz: ruleType.classz,
+          descriptions: ruleType.descriptions,
+          argName: ruleType.argName
         };
       });
 

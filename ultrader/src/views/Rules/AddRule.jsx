@@ -17,7 +17,7 @@ import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
-
+import { tooltip } from "helpers/TooltipHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 var booleanOptions = [
@@ -136,10 +136,11 @@ export default class AddRuleComp extends React.Component {
 
   selectRuleType(option) {
     let ruleFieldTypes = option ? option.value : [];
-
+    let index = -1;
     let ruleFieldTypeOptions = option
       ? option.value.map(ruleFieldType => {
-          return { label: ruleFieldType, value: ruleFieldType };
+          index++;
+          return { label: option.argName[index], value: ruleFieldType, description: option.descriptions[index] };
         })
       : [];
     let selectedRuleFieldTypeOption =
@@ -227,9 +228,8 @@ export default class AddRuleComp extends React.Component {
       this.state.selectedRuleFieldTypeOption &&
       this.state.selectedRuleFieldTypeOption.value
     ) {
-      let ruleFieldNames = this.state.selectedRuleFieldTypeOption.value.split(
-        "|"
-      );
+      let ruleFieldNames = this.state.selectedRuleFieldTypeOption.label.split("|");
+      let ruleFieldType = this.state.selectedRuleFieldTypeOption.value.split("|");
       return (
         <div>
           {ruleFieldNames.map((ruleFieldName, index) => (
@@ -238,7 +238,7 @@ export default class AddRuleComp extends React.Component {
                 <ControlLabel className="col-sm-2">
                   {ruleFieldName}
                 </ControlLabel>
-                <Col sm={10}>{this.ruleField(ruleFieldName, index)}</Col>
+                <Col sm={10}>{this.ruleField(ruleFieldType[index], index)}</Col>
               </FormGroup>
             </fieldset>
           ))}
@@ -550,7 +550,7 @@ export default class AddRuleComp extends React.Component {
                       <fieldset>
                         <FormGroup>
                           <ControlLabel className="col-sm-2">
-                            Input Type
+                            Input Type {tooltip(this.state.selectedRuleFieldTypeOption.description)}
                           </ControlLabel>
                           <Col sm={10}>
                             <Select

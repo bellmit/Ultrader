@@ -28,11 +28,21 @@ var dictionary = {
     "StrategyTemplate": "A good start point to build your own strategy."
 }
 export function tooltip(term) {
-  return (
-    <OverlayTrigger placement="top" overlay={<Tooltip>{dictionary[term]}</Tooltip>}>
-      <Button bsStyle="secondary" simple type="button" bsSize="xs">
-        <i class="fa fa-info-circle" color="secondary"></i>
-      </Button>
-    </OverlayTrigger>
-  );
+  if(term in dictionary) {
+    return (
+      <OverlayTrigger placement="top" overlay={<Tooltip>{dictionary[term]}</Tooltip>}>
+        <Button bsStyle="secondary" simple type="button" bsSize="xs">
+          <i class="fa fa-info-circle" color="secondary"></i>
+        </Button>
+      </OverlayTrigger>
+    );
+  } else {
+    return (
+      <OverlayTrigger placement="top" overlay={<Tooltip>{term}</Tooltip>}>
+        <Button bsStyle="secondary" simple type="button" bsSize="xs">
+          <i class="fa fa-info-circle" color="secondary"></i>
+        </Button>
+      </OverlayTrigger>
+    );
+  }
 }

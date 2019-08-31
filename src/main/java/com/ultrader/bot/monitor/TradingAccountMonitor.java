@@ -111,11 +111,12 @@ public class TradingAccountMonitor extends Monitor {
                 deleteCount++;
             }
         }
+
         for (Position position : positionMap.values()) {
             if(!existedStock.contains(position.getSymbol())) {
                 //Add New stocks
                 List<Order> orders =orderDao.findLastTradeBySymbol(position.getSymbol());
-                if (orders.size() > 0) {
+                if (orders.size() > 0 && orders.get(0).getSide().equals(com.ultrader.bot.model.alpaca.Order.BUY)) {
                     position.setBuyDate(orders.get(0).getCloseDate());
                 } else {
                     position.setBuyDate(new Date());

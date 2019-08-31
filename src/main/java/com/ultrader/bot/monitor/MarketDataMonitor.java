@@ -202,7 +202,7 @@ public class MarketDataMonitor extends Monitor {
             NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
                     UUID.randomUUID().toString(),
                     "ERROR",
-                    "The bot cannot update all the stocks in one trading period. Try to reduce the stocks you want to monitor or increase the trading period.",
+                    "The bot cannot update all the stocks in one trading period. Try to reduce the stocks you want to monitor or increase the trade period",
                     "Insufficient Computing Resource",
                     new Date()));
         }
