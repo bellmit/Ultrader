@@ -167,7 +167,7 @@ public class TradingStrategyMonitor extends Monitor {
                         }
                     } catch (Exception e) {
                         //Delete time series when it failed
-                        LOGGER.error("Check {} failed, remove it to reload, {}", stock, e.getMessage());
+                        LOGGER.error("Check {} failed, remove it to reload, {}", stock, e);
                         MarketDataMonitor.timeSeriesMap.remove(stock);
                     }
 

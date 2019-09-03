@@ -23,6 +23,9 @@ public class StopHoldRule extends AbstractRule {
 
     @Override
     public boolean isSatisfied(int index, TradingRecord tradingRecord) {
+        if(!TradingAccountMonitor.getPositions().containsKey(symbol)) {
+            return false;
+        }
         Date buyDate =TradingAccountMonitor.getPositions().get(symbol).getBuyDate();
         return (new Date().getTime() - buyDate.getTime()) / 1000 >= limitInSeconds;
     }
