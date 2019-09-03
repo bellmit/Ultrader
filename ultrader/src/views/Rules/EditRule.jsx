@@ -141,11 +141,11 @@ export default class EditRuleComp extends React.Component {
     let ruleFieldTypeOptions = ruleType
       ? ruleType.value.map(ruleFieldType => {
           index++;
-           return { label: ruleType.argName[index], value: ruleFieldType, description: ruleType.descriptions[index] };
+           return { label: ruleType.argName[index], args:ruleType.value[index],  value:ruleFieldType, description: ruleType.descriptions[index] };
         })
       : [];
     var selectedRuleFieldTypeOption = ruleFieldTypeOptions.find(
-      e => e.label === ruleFieldTypeValue
+      e => e.args === ruleFieldTypeValue
     );
     if (!selectedRuleFieldTypeOption) {
       selectedRuleFieldTypeOption =
@@ -180,16 +180,28 @@ export default class EditRuleComp extends React.Component {
           ruleFieldValue.value = {
             indicatorArgs: this.generateIndicatorArgs(argsValues)
           };
+          //Infer name for indicator args
+          var argTypes = ruleFieldValue.value.indicatorArgs.map(a => a.label).join("|");
+          var argOption = this.props.indicatorSelectOptions["NumIndicator"].find(e => (e.value.args === argTypes) && (e.value.label === ruleFieldValue.label));
+          //Set correct indicator label
+          ruleFieldValue.name = argOption.label;
+          //Set correct arg label
+          var argName = argOption.value.argName.split("|");
+          ruleFieldValue.value.indicatorArgs.forEach(function(arg, index) {
+            arg.name = argName[index];
+          })
         } else {
           ruleFieldValue.value = {
             value: formulaPart.substr(formulaPart.indexOf(":") + 1)
           };
+          ruleFieldValue.name = ruleFieldValue.label;
         }
 
         ruleFieldValues[i] = ruleFieldValue;
       } else {
         var ruleFieldValue = {};
         ruleFieldValue.label = formulaPart;
+        ruleFieldValue.name = formulaPart;
         ruleFieldValue.ruleFieldName = formulaPart;
         ruleFieldValue.value = {
           value: "N/A"
@@ -347,12 +359,13 @@ export default class EditRuleComp extends React.Component {
     switch (ruleFieldName) {
       case "NumIndicator":
         if (ruleFieldValue && ruleFieldValue.args) {
-          let indicatorName = ruleFieldValue.label;
+          let indicatorName = ruleFieldValue.name;
           let indicatorArgs = ruleFieldValue.args.split("|");
-          let indicatorArgInputs = indicatorArgs.map(indicatorArg => {
+          let indicatorArgName = ruleFieldValue.argName.split("|");
+          let indicatorArgInputs = indicatorArgs.map((indicatorArg, i) => {
             switch (indicatorArg) {
               default:
-                return { label: indicatorArg, value: "" };
+                return { label: indicatorArg, value: "", name:indicatorArgName[i] };
             }
           });
 
@@ -360,6 +373,7 @@ export default class EditRuleComp extends React.Component {
           ruleFieldValues[index] = {
             label: indicatorName,
             ruleFieldName: ruleFieldName,
+            description: ruleFieldValue.description,
             value: {
               indicatorArgs: indicatorArgInputs
             }
@@ -424,7 +438,7 @@ export default class EditRuleComp extends React.Component {
             <fieldset>
               <FormGroup>
                 <ControlLabel className="col-sm-2">
-                  {ruleFieldName}
+                  {ruleFieldName} {tooltip(this.state.ruleFieldValues[index].description)}
                 </ControlLabel>
                 <Col sm={10}>{this.ruleField(ruleFieldType[index], index)}</Col>
               </FormGroup>
@@ -490,7 +504,7 @@ export default class EditRuleComp extends React.Component {
                         <fieldset>
                           <FormGroup>
                             <ControlLabel className="col-sm-2">
-                              {indicatorArg.label}
+                              {indicatorArg.name}
                             </ControlLabel>
                             <Col sm={10}>
                               <FormControl
@@ -508,7 +522,7 @@ export default class EditRuleComp extends React.Component {
                         <fieldset>
                           <FormGroup>
                             <ControlLabel className="col-sm-2">
-                              {indicatorArg.label}
+                              {indicatorArg.name}
                             </ControlLabel>
                             <Col sm={10}>
                               <FormControl
@@ -543,7 +557,7 @@ export default class EditRuleComp extends React.Component {
                         <fieldset>
                           <FormGroup>
                             <ControlLabel className="col-sm-2">
-                              {indicatorArg.label}
+                              {indicatorArg.name}
                             </ControlLabel>
                             <Col sm={10}>
                               <FormControl
@@ -576,7 +590,7 @@ export default class EditRuleComp extends React.Component {
                         <fieldset>
                           <FormGroup>
                             <ControlLabel className="col-sm-2">
-                              {indicatorArg.label}
+                              {indicatorArg.name}
                             </ControlLabel>
                             <Col sm={10}>
                               <FormControl

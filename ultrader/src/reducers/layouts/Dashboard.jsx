@@ -248,12 +248,12 @@ const global = (state = initialState, action) => {
           let indicatorSelectOptionsForProp = [];
           for (var categoryIndicator of categoryIndicatorMap[property]) {
             let indicatorWithTypes = indicatorTypes.find(
-              el => el.name == categoryIndicator
+              el => el.classz == categoryIndicator
             );
-            let indicatorWithEachType = _.map(indicatorWithTypes.args, args => {
+            let indicatorWithEachType = _.map(indicatorWithTypes.args, (args, index) => {
               return {
-                value: { label: categoryIndicator, args: args },
-                label: categoryIndicator + "(" + args + ")"
+                value: { label: categoryIndicator, args: args, argName:indicatorWithTypes.argName[index], description:indicatorWithTypes.descriptions[index] },
+                label: categoryIndicator + " (" + indicatorWithTypes.argName[index] + ")"
               };
             });
             indicatorSelectOptionsForProp = indicatorSelectOptionsForProp.concat(

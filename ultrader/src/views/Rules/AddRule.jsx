@@ -136,10 +136,8 @@ export default class AddRuleComp extends React.Component {
 
   selectRuleType(option) {
     let ruleFieldTypes = option ? option.value : [];
-    let index = -1;
     let ruleFieldTypeOptions = option
-      ? option.value.map(ruleFieldType => {
-          index++;
+      ? option.value.map((ruleFieldType,index) => {
           return { label: option.argName[index], value: ruleFieldType, description: option.descriptions[index] };
         })
       : [];
@@ -192,10 +190,11 @@ export default class AddRuleComp extends React.Component {
         if (ruleFieldValue && ruleFieldValue.args) {
           let indicatorName = ruleFieldValue.label;
           let indicatorArgs = ruleFieldValue.args.split("|");
-          let indicatorArgInputs = indicatorArgs.map(indicatorArg => {
+          let indicatorArgName = ruleFieldValue.argName.split("|");
+          let indicatorArgInputs = indicatorArgs.map((indicatorArg, i) => {
             switch (indicatorArg) {
               default:
-                return { label: indicatorArg, value: "" };
+                return { label: indicatorArg, value: "", name:indicatorArgName[i] };
             }
           });
 
@@ -203,6 +202,7 @@ export default class AddRuleComp extends React.Component {
           ruleFieldValues[index] = {
             label: indicatorName,
             ruleFieldName: ruleFieldName,
+            description: ruleFieldValue.description,
             value: {
               indicatorArgs: indicatorArgInputs
             }
@@ -236,7 +236,7 @@ export default class AddRuleComp extends React.Component {
             <fieldset>
               <FormGroup>
                 <ControlLabel className="col-sm-2">
-                  {ruleFieldName}
+                  {ruleFieldName} {tooltip(this.state.ruleFieldValues[index].description)}
                 </ControlLabel>
                 <Col sm={10}>{this.ruleField(ruleFieldType[index], index)}</Col>
               </FormGroup>
@@ -302,7 +302,7 @@ export default class AddRuleComp extends React.Component {
                         <fieldset>
                           <FormGroup>
                             <ControlLabel className="col-sm-2">
-                              {indicatorArg.label}
+                              {indicatorArg.name}
                             </ControlLabel>
                             <Col sm={10}>
                               <FormControl
@@ -320,7 +320,7 @@ export default class AddRuleComp extends React.Component {
                         <fieldset>
                           <FormGroup>
                             <ControlLabel className="col-sm-2">
-                              {indicatorArg.label}
+                              {indicatorArg.name}
                             </ControlLabel>
                             <Col sm={10}>
                               <FormControl
@@ -355,7 +355,7 @@ export default class AddRuleComp extends React.Component {
                         <fieldset>
                           <FormGroup>
                             <ControlLabel className="col-sm-2">
-                              {indicatorArg.label}
+                              {indicatorArg.name}
                             </ControlLabel>
                             <Col sm={10}>
                               <FormControl
@@ -388,7 +388,7 @@ export default class AddRuleComp extends React.Component {
                         <fieldset>
                           <FormGroup>
                             <ControlLabel className="col-sm-2">
-                              {indicatorArg.label}
+                              {indicatorArg.name}
                             </ControlLabel>
                             <Col sm={10}>
                               <FormControl
