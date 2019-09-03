@@ -91,10 +91,6 @@ fieldset{
    float:right;
  }
 
- .main-content {
-    padding: 30px 15px;
-    padding-top: 100px !important;
-    min-height: calc(100vh - 136px); }
 .modal-90w{
    width:90%;
 }

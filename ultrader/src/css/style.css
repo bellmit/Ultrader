@@ -33,7 +33,3 @@
 .tooltip.right .tooltip-inner:after {
 	border-right: 11px solid #fff;
 }
- .main-content {
-    padding: 30px 15px;
-    padding-top: 100px;
-    min-height: calc(100vh - 136px); }

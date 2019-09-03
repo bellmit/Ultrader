@@ -50,7 +50,7 @@ class Header extends Component {
   }
   render() {
     return (
-      <Navbar fluid className="navbar-fixed">
+      <Navbar fluid>
         <div className="navbar-minimize">
           <button
             id="minimizeSidebar"

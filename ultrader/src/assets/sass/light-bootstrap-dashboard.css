@@ -5120,7 +5120,6 @@ h1 .subtitle {
   min-height: 100%; }
   .main-panel .main-content {
     padding: 30px 15px;
-    padding-top: 100px;
     min-height: calc(100vh - 136px); }
   .main-panel > .content-no-padding {
     padding: 0; }
@@ -8309,8 +8308,7 @@ form label.radio, form label.checkbox {
     width: 100%; }
     .main-panel > .main-content,
     .wrapper-full-page > .main-content {
-      padding: 15px 0px;
-      padding-top: 100px; }
+      padding: 15px 0px; }
     .main-panel .card,
     .wrapper-full-page .card {
       margin-bottom: 15px; }
