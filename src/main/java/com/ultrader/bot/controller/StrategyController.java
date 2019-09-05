@@ -4,10 +4,8 @@ import com.google.common.collect.Lists;
 import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.StrategyDao;
-import com.ultrader.bot.model.BackTestingResult;
-import com.ultrader.bot.model.Setting;
+import com.ultrader.bot.model.*;
 import com.ultrader.bot.model.Strategy;
-import com.ultrader.bot.model.StrategyBundle;
 import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.monitor.TradingStrategyMonitor;
 import com.ultrader.bot.service.TradingPlatform;
@@ -19,8 +17,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.ta4j.core.*;
+import org.ta4j.core.Trade;
 import org.ta4j.core.analysis.CashFlow;
 import org.ta4j.core.analysis.criteria.*;
 
@@ -47,6 +47,8 @@ public class StrategyController {
     private SettingDao settingDao;
     @Autowired
     private TradingPlatform tradingPlatform;
+    @Autowired
+    private SimpMessagingTemplate notifier;
 
     @RequestMapping(method = RequestMethod.POST, value = "/addStrategy")
     @ResponseBody
@@ -166,8 +168,10 @@ public class StrategyController {
         try {
             //Load market data
             tradingPlatform.getMarketDataService().getTimeSeries(timeSeriesList, interval, startDate, endDate);
+            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("InProgress", "Loading history market data",50));
         } catch (Exception e) {
             LOGGER.error("Load back test data failed.", e);
+            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("Error", "Loading history market data failed",50));
             return new ResponseEntity<Iterable<BackTestingResult>>(HttpStatus.FAILED_DEPENDENCY);
         }
         //Check time series
@@ -181,8 +185,9 @@ public class StrategyController {
             LOGGER.error("Cannot load history data for {}", stocks);
             return new ResponseEntity<Iterable<BackTestingResult>>(HttpStatus.FAILED_DEPENDENCY);
         }
+        int count = 0;
         for (TimeSeries timeSeries : timeSeriesList) {
-
+            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("InProgress", "Back test " + timeSeries.getName(),50 + 50 * count / timeSeriesList.size()));
             BackTestingResult result = backTest(timeSeries, buyStrategyId, sellStrategyId);
             if (result == null) {
                 continue;
@@ -197,8 +202,9 @@ public class StrategyController {
                 averageHoldingDays += result.getAverageHoldingDays();
             }
             results.add(result);
+            count++;
         }
-
+        notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("Completed", "",100));
         return new ResponseEntity<Iterable<BackTestingResult>>(results, HttpStatus.OK);
     }
 

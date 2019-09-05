@@ -12,7 +12,7 @@ import "react-confirm-alert/src/react-confirm-alert.css"; // Import css
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { parseDate, parseProfit } from "helpers/ParseHelper";
-
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 class PositionsComp extends Component {
   constructor(props) {
     super(props);
@@ -50,22 +50,19 @@ class PositionsComp extends Component {
         })
         .join(",");
       confirmAlert({
-        title: "Confirm to sell",
-        message: "Are you sure to want to sell the selected assets: " + symbols,
+        title: "",
+        message: "Confirm to sell: " + symbols,
         buttons: [
           {
             label: "Yes",
             onClick: () => {
-              /*
-                                           axiosPostWithAuth("/api/order/liquid?assets=" + symbols)
-                                                 .then(res => {
-                                                   alertSuccess("Successfully sent the request to sell the selected assets: " + symbols);
-                                                   this.loadData();
-                                                 })
-                                                 .catch(error => {
-                                                   alertError(error);
-                                                 });
-                                           */
+              axiosPostWithAuth("/api/order/liquid?assets=" + symbols)
+                .then(res => {
+                      alertSuccess("Successfully sent the request to sell the selected assets: " + symbols);
+                      this.loadData();
+                       })
+                .catch(error => { alertError(error);});
+
             }
           },
           {
@@ -115,7 +112,7 @@ class PositionsComp extends Component {
                       variant="primary"
                       onClick={this.manualSell}
                     >
-                      Manually Sell Selected Assets
+                      Liquid Selected Assets
                     </Button>
                   </div>
                 }
