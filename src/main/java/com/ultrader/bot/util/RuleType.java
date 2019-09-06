@@ -77,8 +77,8 @@ public enum RuleType {
                     TradingUtil.translateToString(NUM_INDICATOR, INTEGER),
                     TradingUtil.translateToString(NUM_INDICATOR, INTEGER, NUMBER)},
             new String[]{
-                    "Satisfied when ALL the values of the indicator are decreasing within a number of data points.)",
-                    "Satisfied when there are a Percentage (0 to 1) of values of the indicator are decreasing within a number of data points."},
+                    "Satisfied when ALL the values of the indicator are decreasing within a number of data points.",
+                    "Satisfied when there are a Percentage of values of the indicator are decreasing within a number of data points."},
             new String[]{
                     "Indicator|Number of data points (Integer)",
                     "Indicator|Number of data points (Integer)|Percentage (0 to 1)"}),

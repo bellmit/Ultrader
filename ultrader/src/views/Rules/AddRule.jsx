@@ -236,7 +236,7 @@ export default class AddRuleComp extends React.Component {
             <fieldset>
               <FormGroup>
                 <ControlLabel className="col-sm-2">
-                  {ruleFieldName} {tooltip(this.state.ruleFieldValues[index].description)}
+                  {ruleFieldName} {ruleFieldType[index]==="NumIndicator"?tooltip(this.state.ruleFieldValues[index].description):""}
                 </ControlLabel>
                 <Col sm={10}>{this.ruleField(ruleFieldType[index], index)}</Col>
               </FormGroup>
@@ -254,6 +254,7 @@ export default class AddRuleComp extends React.Component {
     ruleFieldValues[index] = {
       label: ruleFieldName,
       ruleFieldName: ruleFieldName,
+      description: ruleFieldValue.description,
       value: {
         value: ruleFieldValue
       }

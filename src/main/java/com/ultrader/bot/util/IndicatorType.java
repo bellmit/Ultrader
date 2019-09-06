@@ -50,13 +50,23 @@ public enum IndicatorType {
             new String[]{"Commodity Channel Index (CCI) indicator, Google for more details."},
             new String[]{"Current Price|Bar count (Integer)"}),
     ChandelierExitLongIndicator("ChandelierExitLongIndicator", "Chandelier Exit Long",
-            new String[]{TIME_SERIES, TradingUtil.translateToString(TIME_SERIES, INTEGER, DOUBLE)},
-            new String[]{"The Chandelier Exit (long) Indicator, Google for more details. Usually, bar count = 22, K = 3.0."},
-            new String[]{"Current Price|Bar count (Integer)|ATR K Multiplier"}),
+            new String[]{
+                    TIME_SERIES,
+                    TradingUtil.translateToString(TIME_SERIES, INTEGER, DOUBLE)},
+            new String[]{
+                    "The Chandelier Exit (long) Indicator, Google for more details. Bar count = 22, K = 3.0.",
+                    "The Chandelier Exit (long) Indicator, Google for more details. Usually, bar count = 22, K = 3.0."},
+            new String[]{
+                    "Current Price",
+                    "Current Price|Bar count (Integer)|ATR K Multiplier"}),
     ChandelierExitShortIndicator("ChandelierExitShortIndicator", "Chandelier Exit Short",
             new String[]{TIME_SERIES, TradingUtil.translateToString(TIME_SERIES, INTEGER, DOUBLE)},
-            new String[]{"The Chandelier Exit (short) Indicator, Google for more details. Usually, bar count = 22, K = 3.0."},
-            new String[]{"Current Price|Bar count (Integer)|ATR K Multiplier"}),
+            new String[]{
+                    "The Chandelier Exit (short) Indicator, Google for more details. Bar count = 22, K = 3.0.",
+                    "The Chandelier Exit (short) Indicator, Google for more details. Usually, bar count = 22, K = 3.0."},
+            new String[]{
+                    "Current Price",
+                    "Current Price|Bar count (Integer)|ATR K Multiplier"}),
     ChopIndicator("ChopIndicator", "Chop",
             new String[]{TradingUtil.translateToString(TIME_SERIES, INTEGER, INTEGER)},
             new String[]{"The \"CHOP\" index is used to indicate side-ways markets, Google for more details. Usually, bar count = 14, normalization = 1 or 100"},
@@ -66,7 +76,7 @@ public enum IndicatorType {
             new String[]{"Chande Momentum Oscillator indicator, Google for more details."},
             new String[]{"Current Price|Bar count (Integer)"}),
     CoppockCurveIndicator("CoppockCurveIndicator", "Coppock Curve",
-            new String[]{CLOSE_PRICE, TradingUtil.translateToString(CLOSE_PRICE, INTEGER, INTEGER, INTEGER)},
+            new String[]{TradingUtil.translateToString(CLOSE_PRICE, INTEGER, INTEGER, INTEGER)},
             new String[]{"Coppock Curve indicator, Google for more details. Usually long term RoC bar count = 14, short term RoC bar count = 11, WMA bar count = 10"},
             new String[]{"Current Price|Long term RoC bar count|Short term RoC bar count|WMA bar count"}),
     DoubleEMAIndicator("DoubleEMAIndicator", "Double EMA",
@@ -102,9 +112,13 @@ public enum IndicatorType {
             new String[]{
                     "The Kaufman's Adaptive Moving Average (KAMA) Indicator, Google for more details. Effective ratio bar count = 10, Fast bar count = 2, Slow bar count = 30.",
                     "The Kaufman's Adaptive Moving Average (KAMA) Indicator, Google for more details. Usually, Effective ratio bar count = 10, Fast bar count = 2, Slow bar count = 30."},
-            new String[]{"Current Price", "Current Price|Effective ratio bar count|Fast bar count|Slow bar count"}),
+            new String[]{
+                    "Current Price",
+                    "Current Price|Effective ratio bar count|Fast bar count|Slow bar count"}),
     MACDIndicator("MACDIndicator", "Moving Average Convergence Divergence",
-            new String[]{CLOSE_PRICE, TradingUtil.translateToString(CLOSE_PRICE, INTEGER, INTEGER)},
+            new String[]{
+                    CLOSE_PRICE,
+                    TradingUtil.translateToString(CLOSE_PRICE, INTEGER, INTEGER)},
             new String[]{
                     "Moving average convergence divergence (MACDIndicator) indicator. Aka. MACD Absolute Price Oscillator (APO). Short term bar count = 12, Long term bar count = 26.",
                     "Moving average convergence divergence (MACDIndicator) indicator. Aka. MACD Absolute Price Oscillator (APO). Usually, Short term bar count = 12, Long term bar count = 26."},
@@ -124,7 +138,9 @@ public enum IndicatorType {
             new String[]{"Parabolic SAR indicator, Google for more details. Usually, Acceleration factor = 0.02, Maximum acceleration = 0.2, Increment step = 0.02"},
             new String[]{"Current Price|Acceleration factor|Maximum acceleration|Increment step"}),
     PPOIndicator("PPOIndicator", "Percentage Price Oscillator",
-            new String[]{CLOSE_PRICE, TradingUtil.translateToString(CLOSE_PRICE, INTEGER, INTEGER)},
+            new String[]{
+                    CLOSE_PRICE,
+                    TradingUtil.translateToString(CLOSE_PRICE, INTEGER, INTEGER)},
             new String[]{
                     "Percentage price oscillator (PPO) indicator. Aka. MACD Percentage Price Oscillator (MACD-PPO). Short term bar count = 12, Long term bar count = 26.",
                     "Percentage price oscillator (PPO) indicator. Aka. MACD Percentage Price Oscillator (MACD-PPO). Usually, Short term bar count = 12, Long term bar count = 26."},
