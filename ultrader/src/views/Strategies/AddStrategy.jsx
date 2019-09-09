@@ -24,6 +24,11 @@ var strategyTypeOptions = [
   { label: "Sell", value: "Sell" }
 ];
 
+var componentTypeOptions = [
+  { label: "Rule", value: "Rule" },
+  { label: "Strategy", value: "Strategy" }
+];
+
 var operatorOptions = [
   { label: "and", value: "&" },
   { label: "or", value: "|" },
@@ -37,41 +42,80 @@ export default class AddStrategyComp extends React.Component {
     this.saveStrategy = this.saveStrategy.bind(this);
     this.addRule = this.addRule.bind(this);
     this.deleteRule = this.deleteRule.bind(this);
+    this.loadData = this.loadData.bind(this);
+    this.generateComponentValueSelect = this.generateComponentValueSelect.bind(
+      this
+    );
     this.state = {
       strategyName: "",
       strategyDescription: "",
       selectedStrategyTypeOption: {},
-      strategyRuleOptions: [],
       strategyOperatorOptions: [],
       selectedStrategyType: "",
-      strategyRules: [""],
+      strategyComponents: [
+        {
+          selectedType: componentTypeOptions[0].value,
+          selectedComponentValue: "",
+          selectedTypeOption: componentTypeOptions[0],
+          selectedComponentValueOption: {}
+        }
+      ],
       strategyOperators: [""],
-      ruleOptions: []
+      ruleOptions: [],
+      buyStrategyOptions: [],
+      sellStrategyOptions: []
     };
+  }
 
-    axiosGetWithAuth("/api/rule/getRules")
-      .then(res => {
-        this.props.onGetRulesSuccess(res);
+  loadData() {
+    var promises = [];
+    promises.push(axiosGetWithAuth("/api/rule/getRules"));
+    promises.push(axiosGetWithAuth("/api/strategy/getStrategies"));
+
+    Promise.all(promises)
+      .then(responses => {
+        this.props.onGetRulesSuccess(responses[0]);
+
+        var strategies = responses[1].data;
+        var buyStrategyOptions = strategies
+          .filter(strategy => {
+            return strategy.type === "Buy";
+          })
+          .map(strategy => {
+            return { label: strategy.name, value: strategy.id };
+          });
+        this.setState({
+          buyStrategyOptions: buyStrategyOptions
+        });
+        var sellStrategyOptions = strategies
+          .filter(strategy => {
+            return strategy.type === "Sell";
+          })
+          .map(strategy => {
+            return { label: strategy.name, value: strategy.id };
+          });
+        this.setState({
+          sellStrategyOptions: sellStrategyOptions
+        });
       })
       .catch(error => {
         alertError(error);
       });
   }
 
-  componentDidMount() {}
+  componentDidMount() {
+    this.loadData();
+  }
 
   deleteRule(index) {
-    var strategyRules = this.state.strategyRules;
-    var strategyRuleOptions = this.state.strategyRuleOptions;
+    var strategyComponents = this.state.strategyComponents;
     var strategyOperators = this.state.strategyOperators;
     var strategyOperatorOptions = this.state.strategyOperatorOptions;
-    strategyRules.splice(index, 1);
-    strategyRuleOptions.splice(index, 1);
+    strategyComponents.splice(index, 1);
     strategyOperators.splice(index, 1);
     strategyOperatorOptions.splice(index, 1);
     this.setState({
-      strategyRules: strategyRules,
-      strategyRuleOptions: strategyRuleOptions,
+      strategyComponents: strategyComponents,
       strategyOperators: strategyOperators,
       strategyOperatorOptions: strategyOperatorOptions
     });
@@ -89,10 +133,20 @@ export default class AddStrategyComp extends React.Component {
       this.state.strategyName &&
       this.state.strategyDescription &&
       this.state.selectedStrategyType &&
-      this.state.strategyRules &&
+      this.state.strategyComponents &&
       this.state.strategyOperators &&
-      Object.values(this.state.strategyRules).length ===
-        this.state.strategyRules.length
+      this.state.strategyComponents.every(strategyComponent => {
+        return Object.values(strategyComponent).every(x => {
+          return x !== null && x !== "";
+        });
+      }) &&
+      this.state.strategyOperators.every((strategyOperator, index) => {
+        //last item in array, always true
+        return (
+          this.state.strategyOperators.length - 1 == index ||
+          (strategyOperator !== null && strategyOperator !== "")
+        );
+      })
     ) {
       return true;
     } else {
@@ -103,11 +157,23 @@ export default class AddStrategyComp extends React.Component {
   saveStrategy() {
     if (this.validate()) {
       let formula = "";
-      for (var i = 0; i < this.state.strategyRules.length - 1; i++) {
+      for (var i = 0; i < this.state.strategyComponents.length - 1; i++) {
         formula +=
-          this.state.strategyRules[i] + this.state.strategyOperators[i] + ",";
+          (this.state.strategyComponents[i].selectedType == "Strategy"
+            ? "S"
+            : "") +
+          this.state.strategyComponents[i].selectedComponentValue +
+          this.state.strategyOperators[i] +
+          ",";
       }
-      formula += this.state.strategyRules[this.state.strategyRules.length - 1];
+      formula +=
+        (this.state.strategyComponents[this.state.strategyComponents.length - 1]
+          .selectedType == "Strategy"
+          ? "S"
+          : "") +
+        this.state.strategyComponents[this.state.strategyComponents.length - 1]
+          .selectedComponentValue;
+
       let strategy = {
         name: this.state.strategyName,
         description: this.state.strategyDescription,
@@ -127,14 +193,29 @@ export default class AddStrategyComp extends React.Component {
     }
   }
 
-  setRuleValue(option, index) {
-    let strategyRules = this.state.strategyRules;
-    let strategyRuleOptions = this.state.strategyRuleOptions;
-    strategyRules[index] = option ? option.value : "";
-    strategyRuleOptions[index] = option ? option : "";
+  setComponentValue(option, index) {
+    let strategyComponents = this.state.strategyComponents;
+    let newStrategyComponent = strategyComponents[index];
+    newStrategyComponent.selectedComponentValue = option ? option.value : "";
+    newStrategyComponent.selectedComponentValueOption = option ? option : {};
+    strategyComponents[index] = newStrategyComponent;
     this.setState({
-      strategyRules: strategyRules,
-      strategyRuleOptions: strategyRuleOptions
+      strategyComponents: strategyComponents
+    });
+  }
+
+  setComponentType(option, index) {
+    let strategyComponents = this.state.strategyComponents;
+    strategyComponents[index] = option
+      ? {
+          selectedType: option.value,
+          selectedComponentValue: "",
+          selectedTypeOption: option,
+          selectedComponentValueOption: {}
+        }
+      : "";
+    this.setState({
+      strategyComponents: strategyComponents
     });
   }
 
@@ -152,27 +233,37 @@ export default class AddStrategyComp extends React.Component {
   setStrategyType(option) {
     this.setState({
       selectedStrategyTypeOption: option,
-      selectedStrategyType: option.value
+      selectedStrategyType: option.value,
+      strategyComponents: [
+        {
+          selectedType: componentTypeOptions[0].value,
+          selectedComponentValue: "",
+          selectedTypeOption: componentTypeOptions[0],
+          selectedComponentValueOption: {}
+        }
+      ]
     });
   }
 
   ruleFields() {
     return (
       <div>
-        {this.state.strategyRules.map((item, index) => {
+        {this.state.strategyComponents.map((item, index) => {
           return (
             <fieldset>
               <FormGroup>
-                <ControlLabel className="col-sm-2">Rule</ControlLabel>
-                <Col sm={7}>
+                <Col sm={2}>
                   <Select
-                    placeholder={"rule" + (index + 1)}
-                    name={"rule" + (index + 1)}
-                    value={this.state.strategyRuleOptions[index]}
-                    options={this.state.ruleOptions}
-                    onChange={option => this.setRuleValue(option, index)}
+                    placeholder={"type"}
+                    name={"type" + (index + 1)}
+                    value={
+                      this.state.strategyComponents[index].selectedTypeOption
+                    }
+                    options={componentTypeOptions}
+                    onChange={option => this.setComponentType(option, index)}
                   />
                 </Col>
+                {this.generateComponentValueSelect(index)}
                 <Col sm={2}>
                   <Select
                     placeholder={"operator" + (index + 1)}
@@ -198,24 +289,83 @@ export default class AddStrategyComp extends React.Component {
             </fieldset>
           );
         })}
+
+        <fieldset>
+          <FormGroup>
+            <ControlLabel className="col-sm-2" />
+            <Col sm={10}>
+              <Button bsStyle="info" fill onClick={this.addRule}>
+                Add Rule
+              </Button>
+            </Col>
+          </FormGroup>
+        </fieldset>
+        <hr />
       </div>
     );
   }
 
+  generateComponentValueSelect(index) {
+    return this.state.strategyComponents[index].selectedType == "Rule" ? (
+      <Col sm={7}>
+        <Select
+          placeholder={"rule" + (index + 1)}
+          name={"rule" + (index + 1)}
+          value={
+            this.state.strategyComponents[index].selectedComponentValueOption
+          }
+          options={this.state.ruleOptions}
+          onChange={option => this.setComponentValue(option, index)}
+        />
+      </Col>
+    ) : this.state.selectedStrategyType == "Buy" ? (
+      <Col sm={7}>
+        <Select
+          placeholder={"strategy" + (index + 1)}
+          name={"strategy" + (index + 1)}
+          value={
+            this.state.strategyComponents[index].selectedComponentValueOption
+          }
+          options={this.state.buyStrategyOptions}
+          onChange={option => this.setComponentValue(option, index)}
+        />
+      </Col>
+    ) : (
+      <Col sm={7}>
+        <Select
+          placeholder={"strategy" + (index + 1)}
+          name={"strategy" + (index + 1)}
+          value={
+            this.state.strategyComponents[index].selectedComponentValueOption
+          }
+          options={this.state.sellStrategyOptions}
+          onChange={option => this.setComponentValue(option, index)}
+        />
+      </Col>
+    );
+  }
+
   addRule() {
-    let strategyRules = [...this.state.strategyRules, ""];
+    let strategyComponents = [
+      ...this.state.strategyComponents,
+      {
+        selectedType: componentTypeOptions[0].value,
+        selectedComponentValue: "",
+        selectedTypeOption: componentTypeOptions[0],
+        selectedComponentValueOption: {}
+      }
+    ];
     let strategyOperators = [...this.state.strategyOperators, ""];
-    let strategyRuleOptions = [...this.state.strategyRuleOptions, {}];
     let strategyOperatorOptions = [...this.state.strategyOperatorOptions, {}];
     this.setState({
-      strategyRules: strategyRules,
+      strategyComponents: strategyComponents,
       strategyOperators: strategyOperators,
-      strategyRuleOptions: strategyRuleOptions,
       strategyOperatorOptions: strategyOperatorOptions
     });
   }
 
   render() {
+    console.log(this.state);
     return (
       <div className="main-content">
         <Grid fluid>
@@ -277,19 +427,8 @@ export default class AddStrategyComp extends React.Component {
                       </FormGroup>
                     </fieldset>
                     <hr />
-                    {this.ruleFields()}
+                    {this.state.selectedStrategyType ? this.ruleFields() : ""}
 
-                    <fieldset>
-                      <FormGroup>
-                        <ControlLabel className="col-sm-2" />
-                        <Col sm={10}>
-                          <Button bsStyle="info" fill onClick={this.addRule}>
-                            Add Rule
-                          </Button>
-                        </Col>
-                      </FormGroup>
-                    </fieldset>
-                    <hr />
                     <Button bsStyle="info" fill onClick={this.saveStrategy}>
                       Submit
                     </Button>

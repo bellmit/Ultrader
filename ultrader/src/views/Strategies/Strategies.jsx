@@ -92,6 +92,14 @@ class StrategiesComp extends Component {
       let parsed = tokens.map(token => {
         if (operatorMap[token]) {
           return operatorMap[token];
+        } else if (token.includes("S")) {
+          let foundStrategy = this.props.strategies.filter(strategy => {
+            return strategy.id == parseInt(token.replace("S", ""));
+          });
+
+          return foundStrategy.length > 0
+            ? "(" + foundStrategy[0].name + ")"
+            : "(Unknown Strategy)";
         } else {
           let foundRule = this.props.rules.filter(rule => {
             return rule.id == parseInt(token);
