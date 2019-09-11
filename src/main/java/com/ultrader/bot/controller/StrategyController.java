@@ -9,6 +9,7 @@ import com.ultrader.bot.model.Strategy;
 import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.monitor.TradingStrategyMonitor;
 import com.ultrader.bot.service.TradingPlatform;
+import com.ultrader.bot.util.GradientDescentOptimizer;
 import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingUtil;
 import org.slf4j.Logger;
@@ -26,6 +27,8 @@ import org.ta4j.core.analysis.criteria.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
+
+import static com.ultrader.bot.util.TradingUtil.backTest;
 
 /**
  * Strategy Controller
@@ -68,6 +71,17 @@ public class StrategyController {
         try {
             Optional<Strategy> strategy = strategyDao.findById(id);
             return strategy.get();
+        } catch (Exception e) {
+            LOGGER.error("Get strategy failed.", e);
+            return null;
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getStrategyParameters")
+    @ResponseBody
+    public List<Double> getStrategyParameters(@RequestParam long buyStrategyId, @RequestParam long sellStrategyId) {
+        try {
+            return TradingUtil.extractParameters(strategyDao, ruleDao, buyStrategyId, sellStrategyId);
         } catch (Exception e) {
             LOGGER.error("Get strategy failed.", e);
             return null;
@@ -159,8 +173,6 @@ public class StrategyController {
         interval = interval * 1000;
         List<BackTestingResult> results = new ArrayList<>();
         List<TimeSeries> timeSeriesList = new ArrayList<>();
-        int trades = 0, rewardRiskRatioCount = 0;
-        double profitTradesRatio = 0.0, rewardRiskRatio = 0.0, vsBuyAndHold = 0.0, totalProfit = 0.0, averageHoldingDays = 0.0;
         for (String stock : stocks.split(",")) {
             TimeSeries timeSeries = new BaseTimeSeries(stock);
             timeSeriesList.add(timeSeries);
@@ -188,18 +200,9 @@ public class StrategyController {
         int count = 0;
         for (TimeSeries timeSeries : timeSeriesList) {
             notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("InProgress", "Back test " + timeSeries.getName(),50 + 50 * count / timeSeriesList.size()));
-            BackTestingResult result = backTest(timeSeries, buyStrategyId, sellStrategyId);
+            BackTestingResult result = backTest(timeSeries, buyStrategyId, sellStrategyId, strategyDao, ruleDao, null);
             if (result == null) {
                 continue;
-            }
-            trades += result.getTradingCount();
-            totalProfit += result.getTotalProfit();
-            vsBuyAndHold += result.getBuyAndHold();
-            if (result.getTradingCount() > 0) {
-                profitTradesRatio += result.getProfitTradesRatio() * result.getTradingCount();
-                rewardRiskRatio += result.getRewardRiskRatio();
-                rewardRiskRatioCount += 1;
-                averageHoldingDays += result.getAverageHoldingDays();
             }
             results.add(result);
             count++;
@@ -208,52 +211,65 @@ public class StrategyController {
         return new ResponseEntity<Iterable<BackTestingResult>>(results, HttpStatus.OK);
     }
 
-    private BackTestingResult backTest(TimeSeries series, int buyStrategyId, int sellStrategyId) {
+    @RequestMapping(method = RequestMethod.GET, value = "/optimizeStrategyByDate")
+    @ResponseBody
+    public ResponseEntity<OptimizationResult> optimizeStrategyByDate(
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate,
+            @RequestParam long interval,
+            @RequestParam String stocks,
+            @RequestParam int buyStrategyId,
+            @RequestParam int sellStrategyId,
+            @RequestParam double probeValue,
+            @RequestParam double learningRate,
+            @RequestParam double convergeThreshold,
+            @RequestParam int maxIteration) {
+        interval = interval * 1000;
+        List<BackTestingResult> results = new ArrayList<>();
+        List<TimeSeries> timeSeriesList = new ArrayList<>();
+        int trades = 0, rewardRiskRatioCount = 0;
+        double profitTradesRatio = 0.0, rewardRiskRatio = 0.0, vsBuyAndHold = 0.0, totalProfit = 0.0, averageHoldingDays = 0.0;
+        for (String stock : stocks.split(",")) {
+            TimeSeries timeSeries = new BaseTimeSeries(stock);
+            timeSeriesList.add(timeSeries);
+        }
         try {
-            TimeSeriesManager manager = new TimeSeriesManager(series);
-            //Get strategy
-            org.ta4j.core.Strategy strategy = new BaseStrategy(series.getName(),
-                    TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, series),
-                    TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, series));
-
-            TradingRecord tradingRecord = manager.run(strategy);
-            // Getting the cash flow of the resulting trades
-            CashFlow cashFlow = new CashFlow(series, tradingRecord);
-            // Getting the profitable trades ratio
-            AnalysisCriterion profitTradesRatioCriterion = new AverageProfitableTradesCriterion();
-            double profitTradesRatio = profitTradesRatioCriterion.calculate(series, tradingRecord).doubleValue();
-
-            // Getting the reward-risk ratio
-            AnalysisCriterion rewardRiskRatioCriterion = new RewardRiskRatioCriterion();
-            double rewardRiskRatio = rewardRiskRatioCriterion.calculate(series, tradingRecord).doubleValue();
-            // Total profit of our strategy
-            TotalProfitCriterion totalProfitCriterion = new TotalProfitCriterion();
-            double totalProfit = totalProfitCriterion.calculate(series, tradingRecord).doubleValue();
-            // buy and hold profit
-            AnalysisCriterion vsBuyAndHoldCriterion = new BuyAndHoldCriterion();
-            double buyAndHold = vsBuyAndHoldCriterion.calculate(series, tradingRecord).doubleValue();
-            double holdingDays = 0.0;
-            for (Trade trade : tradingRecord.getTrades()) {
-                holdingDays += (series.getBar(trade.getExit().getIndex()).getEndTime().toEpochSecond()
-                        - series.getBar(trade.getEntry().getIndex()).getEndTime().toEpochSecond()) / 24 / 3600;
-            }
-            return new BackTestingResult(
-                    series.getName(),
-                    tradingRecord.getTradeCount(),
-                    profitTradesRatio,
-                    rewardRiskRatio,
-                    buyAndHold - 1,
-                    totalProfit - 1,
-                    holdingDays / tradingRecord.getTrades().size(),
-                    series.getBar(0).getBeginTime().toLocalDateTime(),
-                    series.getLastBar().getEndTime().toLocalDateTime());
+            //Load market data
+            tradingPlatform.getMarketDataService().getTimeSeries(timeSeriesList, interval, startDate, endDate);
+            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("InProgress", "Loading history market data",50));
         } catch (Exception e) {
-            LOGGER.error("Back test {} failed.",
-                    series.getName(),
-                    e);
-            return null;
+            LOGGER.error("Load back test data failed.", e);
+            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("Error", "Loading history market data failed",50));
+            return new ResponseEntity<OptimizationResult>(HttpStatus.FAILED_DEPENDENCY);
+        }
+        //Check time series
+        boolean hasResponse = false;
+        for (TimeSeries timeSeries : timeSeriesList) {
+            if (timeSeries.getBarCount() > 0) {
+                hasResponse = true;
+            }
+        }
+        if (!hasResponse) {
+            LOGGER.error("Cannot load history data for {}", stocks);
+            return new ResponseEntity<OptimizationResult>(HttpStatus.FAILED_DEPENDENCY);
         }
 
+        GradientDescentOptimizer optimizer = new GradientDescentOptimizer(
+                strategyDao,
+                ruleDao,
+                timeSeriesList,
+                TradingUtil.extractParameters(
+                        strategyDao,
+                        ruleDao,
+                        buyStrategyId,
+                        sellStrategyId),
+                buyStrategyId,
+                sellStrategyId,
+                probeValue,
+                learningRate,
+                convergeThreshold,
+                maxIteration);
+        return new ResponseEntity<OptimizationResult>(optimizer.optimize(), HttpStatus.OK);
     }
 
 }

@@ -3,6 +3,7 @@ package com.ultrader.bot.util;
 import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.StrategyDao;
+import com.ultrader.bot.model.BackTestingResult;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.monitor.TradingStrategyMonitor;
@@ -10,14 +11,20 @@ import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ta4j.core.*;
+import org.ta4j.core.analysis.CashFlow;
+import org.ta4j.core.analysis.criteria.AverageProfitableTradesCriterion;
+import org.ta4j.core.analysis.criteria.BuyAndHoldCriterion;
+import org.ta4j.core.analysis.criteria.RewardRiskRatioCriterion;
+import org.ta4j.core.analysis.criteria.TotalProfitCriterion;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.Num;
 import org.ta4j.core.num.PrecisionNum;
 
 
 import java.lang.reflect.Constructor;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.stream.Collectors;
 
 /**
  * Strategy & Rule Util
@@ -43,9 +50,17 @@ public class TradingUtil {
      * @param ruleDao
      * @param strategyId
      * @param stock
+     * @param parameters parameter overrides
+     * @param backfill fill the stored parameters to the "parameters"
      * @return
      */
-    public static org.ta4j.core.Rule generateTradingStrategy(StrategyDao strategyDao, RuleDao ruleDao, long strategyId, TimeSeries stock) {
+    public static org.ta4j.core.Rule generateTradingStrategy(
+            StrategyDao strategyDao,
+            RuleDao ruleDao,
+            long strategyId,
+            TimeSeries stock,
+            PriorityQueue<Double> parameters,
+            boolean backfill) {
         try{
             Validate.notNull(strategyDao, "strategyDao is required");
             Validate.notNull(ruleDao, "ruleDao is required");
@@ -56,9 +71,18 @@ public class TradingUtil {
             String logicOperator = "";
             String[] ruleStr = strategyExp.split(SettingConstant.DELIMITER);
             for(String str : ruleStr) {
-                long ruleId =Long.parseLong(str.replaceAll("\\D+",""));
+                Rule newRule = null;
+                if (str.indexOf("S") == 0) {
+                    //This is a sub strategy, generate it recursively
+                    long subStrategyId = Long.parseLong(str.replaceAll("\\D+",""));
+                    newRule = generateTradingStrategy(strategyDao, ruleDao, subStrategyId, stock, parameters, backfill);
+                } else {
+                    long ruleId = Long.parseLong(str.replaceAll("\\D+",""));
+                    newRule = generateTradingRule(ruleDao, ruleId, stock, parameters, backfill);
+                }
+
                 if(rules == null) {
-                    rules = generateTradingRule(ruleDao, ruleId, stock);
+                    rules = newRule;
                     logicOperator = str.substring(str.length()-1);
                 } else {
                     if(!logicOperator.equals("&") && !logicOperator.equals("|") && !logicOperator.equals("^")) {
@@ -67,13 +91,13 @@ public class TradingUtil {
                     } else {
                         switch (logicOperator) {
                             case "&":
-                                rules = rules.and(generateTradingRule(ruleDao, ruleId, stock));
+                                rules = rules.and(newRule);
                                 break;
                             case "|":
-                                rules = rules.or(generateTradingRule(ruleDao, ruleId, stock));
+                                rules = rules.or(newRule);
                                 break;
                             case "^":
-                                rules = rules.xor(generateTradingRule(ruleDao,  ruleId, stock));
+                                rules = rules.xor(newRule);
                                 break;
                         }
                         logicOperator = str.substring(str.length()-1);
@@ -116,7 +140,7 @@ public class TradingUtil {
      * @return
      * @throws Exception
      */
-    public static Rule generateTradingRule(RuleDao ruleDao , Long rid, TimeSeries stock) throws Exception {
+    public static Rule generateTradingRule(RuleDao ruleDao , Long rid, TimeSeries stock, PriorityQueue<Double> parameters, boolean backfill) throws Exception {
         String ruleExp = ruleDao.findById(rid).map(r -> r.getFormula()).orElse(null);
         String ruleType = ruleDao.findById(rid).map(r -> r.getType()).orElse(null);
         Validate.notEmpty(ruleExp, "Cannot find ruleExp for rule id " + rid);
@@ -125,7 +149,7 @@ public class TradingUtil {
         try {
             Class<?> rule = getRuleClass(ruleType);
             Constructor<?> constructor = rule.getConstructor(getArgClasses(args));
-            return (Rule) constructor.newInstance(getArgs(args, stock));
+            return (Rule) constructor.newInstance(getArgs(args, stock, parameters, backfill));
         } catch (Exception e) {
             LOGGER.error(String.format("Generate rule %s, type %s failed", ruleExp, ruleType), e);
             throw e;
@@ -187,7 +211,7 @@ public class TradingUtil {
      * @return
      * @throws Exception
      */
-    public static Object[] getArgs(String[] args, TimeSeries stock) throws Exception {
+    public static Object[] getArgs(String[] args, TimeSeries stock, PriorityQueue<Double> parameters, boolean backfill) throws Exception {
         Object[] values = new Object[args.length];
         for (int i = 0; i < values.length; i++) {
             try {
@@ -227,7 +251,19 @@ public class TradingUtil {
                             }
                             argValues[j-1] = new  ClosePriceIndicator(stock);
                         } else if (argStr[j].indexOf(".") >= 0) {
-                            argValues[j-1] = Double.parseDouble(argStr[j]);
+                            if (parameters != null) {
+                                if (backfill) {
+                                    argValues[j-1] = Double.parseDouble(argStr[j]);
+                                    parameters.offer(Double.parseDouble(argStr[j]));
+                                } else {
+                                    //Use input parameters
+                                    LOGGER.debug("Pop {}", parameters.peek());
+                                    argValues[j-1] = parameters.poll();
+                                }
+                            } else {
+                                //Use saved parameters
+                                argValues[j-1] = Double.parseDouble(argStr[j]);
+                            }
                         } else {
                             //Indicator value is an integer
                             argValues[j-1] = Integer.parseInt(argStr[j]);
@@ -236,7 +272,20 @@ public class TradingUtil {
                     values[i] = constructor.newInstance(argValues);
                 } else if (argType.equals(NUMBER)) {
                     //Arg is a number
-                    values[i] = PrecisionNum.valueOf(argStr[1]);
+                    if (parameters != null) {
+                        if (backfill) {
+                            //Use saved parameters
+                            values[i] = PrecisionNum.valueOf(argStr[1]);
+                            parameters.offer(Double.valueOf(argStr[1]));
+                        } else {
+                            //Use input parameters
+                            LOGGER.debug("Pop {}", parameters.peek());
+                            values[i] = PrecisionNum.valueOf(parameters.poll());
+                        }
+                    } else {
+                        //Use saved parameters
+                        values[i] = PrecisionNum.valueOf(argStr[1]);
+                    }
                 } else if (argType.equals(INTEGER)) {
                     values[i] = Integer.parseInt(argStr[1]);
                 } else if (argType.equals(BOOLEAN)) {
@@ -275,4 +324,89 @@ public class TradingUtil {
         return sb.toString();
     }
 
+    /**
+     * Back test an asset
+     * @param series
+     * @param buyStrategyId
+     * @param sellStrategyId
+     * @param strategyDao
+     * @param ruleDao
+     * @return
+     */
+    public static BackTestingResult backTest(TimeSeries series, int buyStrategyId, int sellStrategyId, StrategyDao strategyDao, RuleDao ruleDao, List<Double> parameters) {
+        try {
+            PriorityQueue<Double> parameterQueue = null;
+            if (parameters != null) {
+                PriorityQueue<Double> queue = new PriorityQueue<>();
+                parameters.stream().forEach(p -> queue.offer(p));
+                parameterQueue = queue;
+            }
+
+            TimeSeriesManager manager = new TimeSeriesManager(series);
+            //Get strategy
+            org.ta4j.core.Strategy strategy = new BaseStrategy(series.getName(),
+                    TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, series, parameterQueue, false),
+                    TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, series, parameterQueue, false));
+
+            TradingRecord tradingRecord = manager.run(strategy);
+            // Getting the cash flow of the resulting trades
+            CashFlow cashFlow = new CashFlow(series, tradingRecord);
+            // Getting the profitable trades ratio
+            AnalysisCriterion profitTradesRatioCriterion = new AverageProfitableTradesCriterion();
+            double profitTradesRatio = profitTradesRatioCriterion.calculate(series, tradingRecord).doubleValue();
+
+            // Getting the reward-risk ratio
+            AnalysisCriterion rewardRiskRatioCriterion = new RewardRiskRatioCriterion();
+            double rewardRiskRatio = rewardRiskRatioCriterion.calculate(series, tradingRecord).doubleValue();
+            // Total profit of our strategy
+            TotalProfitCriterion totalProfitCriterion = new TotalProfitCriterion();
+            double totalProfit = totalProfitCriterion.calculate(series, tradingRecord).doubleValue();
+            // buy and hold profit
+            AnalysisCriterion vsBuyAndHoldCriterion = new BuyAndHoldCriterion();
+            double buyAndHold = vsBuyAndHoldCriterion.calculate(series, tradingRecord).doubleValue();
+            double holdingDays = 0.0;
+            for (Trade trade : tradingRecord.getTrades()) {
+                holdingDays += (series.getBar(trade.getExit().getIndex()).getEndTime().toEpochSecond()
+                        - series.getBar(trade.getEntry().getIndex()).getEndTime().toEpochSecond()) / 24 / 3600;
+            }
+            return new BackTestingResult(
+                    series.getName(),
+                    tradingRecord.getTradeCount(),
+                    profitTradesRatio,
+                    rewardRiskRatio,
+                    buyAndHold - 1,
+                    totalProfit - 1,
+                    holdingDays / tradingRecord.getTrades().size(),
+                    series.getBar(0).getBeginTime().toLocalDateTime(),
+                    series.getLastBar().getEndTime().toLocalDateTime());
+        } catch (Exception e) {
+            LOGGER.error("Back test {} failed.",
+                    series.getName(),
+                    e);
+            return null;
+        }
+    }
+
+    /**
+     * Extract float parameters from trading strategy
+     * @param strategyDao
+     * @param ruleDao
+     * @param buyStrategyId
+     * @param sellStrategyId
+     * @return
+     */
+    public static List<Double> extractParameters(StrategyDao strategyDao, RuleDao ruleDao, long buyStrategyId, long sellStrategyId) {
+        PriorityQueue<Double> parameterQueue = new PriorityQueue<Double>();
+        //Extract parameters from buy strategy first, the order does matter.
+        generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, new BaseTimeSeries(), parameterQueue, true);
+        generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, new BaseTimeSeries(), parameterQueue, true);
+        List<Double> parameters = new ArrayList<>();
+        StringBuilder stringBuilder = new StringBuilder(String.format("Find parameters in strategy %d, %d:", buyStrategyId, sellStrategyId));
+        while (!parameterQueue.isEmpty()) {
+            parameters.add(parameterQueue.poll());
+            stringBuilder.append(" " + parameters.get(parameters.size()-1));
+        }
+        LOGGER.debug(stringBuilder.toString());
+        return parameters;
+    }
 }

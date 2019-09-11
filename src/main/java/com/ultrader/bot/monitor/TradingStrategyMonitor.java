@@ -130,8 +130,8 @@ public class TradingStrategyMonitor extends Monitor {
                 if (MarketDataMonitor.isMarketOpen()) {
                     //Generate strategy
                     Strategy strategy = new BaseStrategy(stock,
-                            TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, timeSeries),
-                            TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, timeSeries));
+                            TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, timeSeries, null, false),
+                            TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, timeSeries, null, false));
                     TradingRecord tradingRecord = new BaseTradingRecord();
                     Double currentPrice = timeSeries.getLastBar().getClosePrice().doubleValue();
                     if (positions.containsKey(stock)) {
