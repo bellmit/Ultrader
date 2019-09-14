@@ -214,7 +214,7 @@ public class TradingAccountMonitor extends Monitor {
      */
     public void syncAccount() throws RuntimeException {
         account = tradingService.getAccountInfo();
-        LOGGER.debug("Account {}", account);
+        LOGGER.info("Account {}", account);
         if (account == null) {
             throw new RuntimeException("Cannot get account info, skip executing trading strategies");
         }

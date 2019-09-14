@@ -58,7 +58,7 @@ public class AssetController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/getAllAssets")
     @ResponseBody
-    public Iterable<Asset> getPortfolio() {
+    public Iterable<Asset> getAllAssets() {
         try {
             List<Asset> assets = new ArrayList<>();
             for (Map.Entry<String, Set<String>> entry : MarketDataMonitor.getInstance().getAvailableStock().entrySet()) {

@@ -72,9 +72,12 @@ public class AlpacaPaperTradingService implements TradingService {
         }
         this.notifier = notifier;
         client = restTemplateBuilder.rootUri("https://paper-api.alpaca.markets/v1/").build();
-        //Init Websocket
-        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notificationDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
-        connectionManager.start();
+        if (!alpacaKey.isEmpty() && !alpacaSecret.isEmpty()) {
+            //Init Websocket
+            connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notificationDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
+            connectionManager.start();
+        }
+
     }
 
     private HttpHeaders generateHeader() {
@@ -105,8 +108,12 @@ public class AlpacaPaperTradingService implements TradingService {
         } catch (Exception e) {
             LOGGER.error("Terminate Alpaca web socket", e);
         }
-        connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notificationDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
-        connectionManager.start();
+        if (!alpacaKey.isEmpty() && !alpacaSecret.isEmpty()) {
+            //Init Websocket
+            connectionManager = new WebSocketConnectionManager(new StandardWebSocketClient(), new AlpacaWebSocketHandler(alpacaKey, alpacaSecret, orderDao, notificationDao, chartDao, notifier), "wss://paper-api.alpaca.markets/stream");
+            connectionManager.start();
+        }
+
     }
 
     public boolean isMarketOpen() {

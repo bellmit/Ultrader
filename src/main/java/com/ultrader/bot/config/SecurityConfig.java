@@ -72,18 +72,42 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // websockets
                 .antMatchers(
                         "/ws/**/**",
-                        "/ws/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                // api's
-                .antMatchers("/api/auth").permitAll()
-                .antMatchers("/api/metadata/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                        "/ws/**").permitAll()
+                //Auth Controller
+                .antMatchers("/api/auth/**").permitAll()
+                //Metadata Controller
+                .antMatchers("/api/metadata/**").permitAll()
+                //Rule Controller
+                .antMatchers("/api/rule/getRule/**").permitAll()
+                .antMatchers("/api/rule/getRules/**").permitAll()
                 .antMatchers("/api/rule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                //Asset Controller
+                .antMatchers("/api/asset/getAssetLists/**").permitAll()
+                .antMatchers("/api/asset/getAllAssets/**").permitAll()
+                .antMatchers("/api/asset/getAssetList/**").permitAll()
+                .antMatchers("/api/asset/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                //Order Controller
+                .antMatchers("/api/order/getOpenOrders/**").permitAll()
+                .antMatchers("/api/order/getClosedOrders/**").permitAll()
                 .antMatchers("/api/order/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                .antMatchers("/api/position/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())//1 for Admin, 2 for User
-                .antMatchers("/api/user/addRootUser").permitAll()
-                .antMatchers("/api/user/getUserType").permitAll()
-                .antMatchers("/api/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                .antMatchers("/api/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                //Chart Controller
+                .antMatchers("/api/chart/**").permitAll()
+                //Position Controller
+                .antMatchers("/api/position/**").permitAll()
+                //Notification Controller
+                .antMatchers("/api/notification/**").permitAll()
+                //User Controller
+                .antMatchers("/api/user/addRootUser/**").permitAll()
+                .antMatchers("/api/user/getUserType/**").permitAll()
                 .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString())
+                //Strategy Controller
+                .antMatchers("/api/strategy/getStrategy/**").permitAll()
+                .antMatchers("/api/strategy/getStrategies/**").permitAll()
+                .antMatchers("/api/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                //Setting Controller
+                .antMatchers("/api/setting/check/**").permitAll()
+                .antMatchers("/api/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+
                 .antMatchers("/admin/**").hasAuthority(UserType.ADMIN.getId().toString())
                 // database console
                 .antMatchers("/h2-console/**").permitAll()

@@ -171,19 +171,21 @@ public class PolygonMarketDataService implements MarketDataService {
             LOGGER.error("Cannot find Alpaca key, please set up and reboot.");
         }
         threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().clear();
-        //Init Websocket
-        try {
-            Options options = new Options.Builder()
-                    .server("nats1.polygon.io:31101")
-                    .server("nats2.polygon.io:31102")
-                    .server("nats3.polygon.io:31103")
-                    .token(polygonKey)
-                    .maxReconnects(-1).build();
-            Connection connection = Nats.connect(options);
-            LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
-            dispatcher = connection.createDispatcher(new PolygonMessageHandler(this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"))));
-        } catch (Exception e) {
-            LOGGER.error("Failed to connect to Polygon.", e);
+        if (RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX").equals("POLYGON")) {
+            //Init Websocket
+            try {
+                Options options = new Options.Builder()
+                        .server("nats1.polygon.io:31101")
+                        .server("nats2.polygon.io:31102")
+                        .server("nats3.polygon.io:31103")
+                        .token(polygonKey)
+                        .maxReconnects(-1).build();
+                Connection connection = Nats.connect(options);
+                LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
+                dispatcher = connection.createDispatcher(new PolygonMessageHandler(this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"))));
+            } catch (Exception e) {
+                LOGGER.error("Failed to connect to Polygon.", e);
+            }
         }
     }
 
