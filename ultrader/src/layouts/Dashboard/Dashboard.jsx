@@ -43,6 +43,9 @@ class DashboardComp extends Component {
     this.processTradesMessage = this.processTradesMessage.bind(this);
     this.processProfitMessage = this.processProfitMessage.bind(this);
     this.processPositionMessage = this.processPositionMessage.bind(this);
+    this.processBacktestProgressMessage = this.processBacktestProgressMessage.bind(
+      this
+    );
 
     this.processNotification = this.processNotification.bind(this);
 
@@ -77,7 +80,11 @@ class DashboardComp extends Component {
   }
 
   processPositionMessage(message) {
-      this.props.onReceivedPositionMonitorMessage(message);
+    this.props.onReceivedPositionMonitorMessage(message);
+  }
+
+  processBacktestProgressMessage(message) {
+    this.props.onReceivedBacktestProgressMessage(message);
   }
 
   processNotification(message) {
@@ -91,38 +98,41 @@ class DashboardComp extends Component {
     stompClient.debug = () => {};
 
     let authHeader = getAuthHeader();
-    if(!this.props.stompClient||!this.props.socket){
-        stompClient.connect(authHeader, frame => {
-          this.props.onConnectedToMonitor(socket, stompClient);
-          stompClient.subscribe(
-            "/topic/status/data",
-            this.processDataStatusMessage
-          );
-          stompClient.subscribe(
-            "/topic/status/market",
-            this.processMarketStatusMessage
-          );
-          stompClient.subscribe(
-            "/topic/dashboard/account",
-            this.processPortfolioMessage
-          );
-          stompClient.subscribe(
-            "/topic/dashboard/trades",
-            this.processTradesMessage
-          );
-          stompClient.subscribe(
-            "/topic/dashboard/profit",
-            this.processProfitMessage
-          );
-          stompClient.subscribe(
-            "/topic/dashboard/position",
-            this.processPositionMessage
-          );
-          stompClient.subscribe("/topic/notification", this.processNotification);
-          this.initData();
-        });
+    if (!this.props.stompClient || !this.props.socket) {
+      stompClient.connect(authHeader, frame => {
+        this.props.onConnectedToMonitor(socket, stompClient);
+        stompClient.subscribe(
+          "/topic/status/data",
+          this.processDataStatusMessage
+        );
+        stompClient.subscribe(
+          "/topic/status/market",
+          this.processMarketStatusMessage
+        );
+        stompClient.subscribe(
+          "/topic/dashboard/account",
+          this.processPortfolioMessage
+        );
+        stompClient.subscribe(
+          "/topic/dashboard/trades",
+          this.processTradesMessage
+        );
+        stompClient.subscribe(
+          "/topic/dashboard/profit",
+          this.processProfitMessage
+        );
+        stompClient.subscribe(
+          "/topic/dashboard/position",
+          this.processPositionMessage
+        );
+        stompClient.subscribe(
+          "/topic/progress/backtest",
+          this.processBacktestProgressMessage
+        );
+        stompClient.subscribe("/topic/notification", this.processNotification);
+        this.initData();
+      });
     }
-
   }
 
   initData() {
@@ -142,11 +152,11 @@ class DashboardComp extends Component {
       })
       .catch(error => {});
 
-        axiosGetWithAuth("/api/metadata/getStrategyTemplate")
-          .then(res => {
-            this.props.onRetrievedStrategyTemplate(res);
-          })
-          .catch(error => {});
+    axiosGetWithAuth("/api/metadata/getStrategyTemplate")
+      .then(res => {
+        this.props.onRetrievedStrategyTemplate(res);
+      })
+      .catch(error => {});
 
     axiosGetWithAuth("/api/strategy/getStrategies")
       .then(handleResponse)
@@ -204,7 +214,6 @@ class DashboardComp extends Component {
   }
 
   componentDidUpdate(e) {
-
     if (e.history.action === "PUSH") {
       document.documentElement.scrollTop = 0;
       document.scrollingElement.scrollTop = 0;
@@ -227,34 +236,37 @@ class DashboardComp extends Component {
 
   // function that shows/hides notifications - it was put here, because the wrapper div has to be outside the main-panel class div
   handleNotification(message) {
-
     var notification = JSON.parse(message.body);
     var level = "info";
     var icon = "pe-7s-info";
     switch (notification.type) {
-            case 'BUY':
-            level = 'success';
-            icon = 'pe-7s-plus';
-            break;
-            case 'SELL':
-            level = 'success';
-            icon = 'pe-7s-less';
-            break;
-            case 'WARN':
-            level = 'warning';
-            icon = 'pe-7s-speaker';
-            break;
-            case 'ERROR':
-            level = 'error';
-            icon = 'pe-7s-speaker';
-            break;
-            default:
-            break;
+      case "BUY":
+        level = "success";
+        icon = "pe-7s-plus";
+        break;
+      case "SELL":
+        level = "success";
+        icon = "pe-7s-less";
+        break;
+      case "WARN":
+        level = "warning";
+        icon = "pe-7s-speaker";
+        break;
+      case "ERROR":
+        level = "error";
+        icon = "pe-7s-speaker";
+        break;
+      default:
+        break;
     }
 
     if (this.state._notificationSystem) {
       this.state._notificationSystem.addNotification({
-        title: <span data-notify="icon" className={icon}>{notification.title} &nbsp; - &nbsp;{parseDate(notification.date)}</span> ,
+        title: (
+          <span data-notify="icon" className={icon}>
+            {notification.title} &nbsp; - &nbsp;{parseDate(notification.date)}
+          </span>
+        ),
         message: notification.content,
         level: level,
         position: "tr",

@@ -5,6 +5,7 @@ import { connect } from "react-redux";
 import * as ACTION_TYPES from "actions/layouts/DashboardActions";
 import * as RULES_ACTION_TYPES from "actions/Rules/RulesActions";
 import * as STRATEGIES_ACTION_TYPES from "actions/Strategies/StrategiesActions";
+import * as BACKTEST_ACTION_TYPES from "actions/Backtest/BacktestActions";
 
 import DashboardComp from "layouts/Dashboard/Dashboard";
 
@@ -40,10 +41,10 @@ class Dashboard extends Component {
         onReceivedPositionMonitorMessage={
           this.props.onReceivedPositionMonitorMessage
         }
-        onReceivedNotificationMessage={
-          this.props.onReceivedNotificationMessage
+        onReceivedNotificationMessage={this.props.onReceivedNotificationMessage}
+        onReceivedBacktestProgressMessage={
+          this.props.onReceivedBacktestProgressMessage
         }
-
         onRetrievedRuleTypes={this.props.onRetrievedRuleTypes}
         onRetrievedIndicatorTypes={this.props.onRetrievedIndicatorTypes}
         onRetrievedIndicatorCategories={
@@ -153,6 +154,13 @@ const mapDispatchToProps = dispatch => {
     onGetRulesSuccess: response =>
       dispatch({
         type: RULES_ACTION_TYPES.GET_RULES_SUCCESS,
+        response: response
+      }),
+
+    // ---------------------- progress ----------------------
+    onReceivedBacktestProgressMessage: response =>
+      dispatch({
+        type: BACKTEST_ACTION_TYPES.RECEIVED_BACKTEST_PROGRESS_MESSAGE,
         response: response
       }),
 

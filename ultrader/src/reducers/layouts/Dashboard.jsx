@@ -171,7 +171,6 @@ const global = (state = initialState, action) => {
           profit: messageBody.Profit
         }
       };
-
     case ACTION_TYPES.RETRIEVED_NOTIFICATION_MESSAGE:
       var messageBody = JSON.parse(action.response.body);
       var level = "info";

@@ -8,7 +8,9 @@ import {
   ControlLabel,
   FormControl,
   FormGroup,
-  Collapse
+  Collapse,
+  Modal,
+  ProgressBar
 } from "react-bootstrap";
 
 import Select from "react-select";
@@ -236,6 +238,8 @@ class BacktestComp extends Component {
   }
 
   getBacktest() {
+    this.props.onBacktestStarted();
+
     axiosGetWithAuth(
       "/api/strategy/backtestByDate?" +
         "startDate=" +
@@ -297,6 +301,15 @@ class BacktestComp extends Component {
   render() {
     return (
       <div className="main-content">
+        <Modal show={this.state.inTesting} dialogClassName="modal-90w">
+          <Modal.Header>
+            <Modal.Title>Backtest: {this.props.progress.status}</Modal.Title>
+          </Modal.Header>
+          <Modal.Body>
+            <p>{this.props.progress.message}</p>
+            <ProgressBar now={this.props.progress.progress} />
+          </Modal.Body>
+        </Modal>
         <Grid fluid>
           <Card
             content={
