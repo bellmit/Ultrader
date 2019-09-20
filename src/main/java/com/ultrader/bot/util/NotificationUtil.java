@@ -58,9 +58,11 @@ public class NotificationUtil {
         Map<String, String> map = new HashMap<>();
         LocalTime midnight = LocalTime.MIDNIGHT;
         LocalDate today = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE));
-        LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
-        LOGGER.info("Aggregate trades from {}", todayMidnight);
-        List<Order> orders = orderDao.findAllOrdersByDate(todayMidnight, LocalDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)));
+        LocalDateTime eastCoastMidnight = LocalDateTime.of(today, midnight);
+        //Convert US east coast midnight to local time
+        LocalDateTime localMidnight = eastCoastMidnight.atZone(ZoneId.of(TradingUtil.TIME_ZONE)).withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        LOGGER.debug("Aggregate trades from {}", localMidnight);
+        List<Order> orders = orderDao.findAllOrdersByDate(localMidnight, LocalDateTime.now());
         double sell = 0, buy = 0;
         int sellCount = 0, buyCount = 0;
         for (Order order : orders) {
@@ -90,9 +92,11 @@ public class NotificationUtil {
         Map<String, String> map = new HashMap<>();
         LocalTime midnight = LocalTime.MIDNIGHT;
         LocalDate today = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE));
-        LocalDateTime todayMidnight = LocalDateTime.of(today, midnight);
-        LOGGER.debug("Aggregate trades from {}", todayMidnight);
-        List<Order> orders = orderDao.findAllOrdersByDate(todayMidnight, LocalDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)));
+        LocalDateTime eastCoastMidnight = LocalDateTime.of(today, midnight);
+        //Convert US east coast midnight to local time
+        LocalDateTime localMidnight = eastCoastMidnight.atZone(ZoneId.of(TradingUtil.TIME_ZONE)).withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+        LOGGER.debug("Aggregate trades from {}", localMidnight);
+        List<Order> orders = orderDao.findAllOrdersByDate(localMidnight, LocalDateTime.now());
         double totalProfit = 0, totalRatio = 0;
         int sellCount = 0;
         for (Order order : orders) {
