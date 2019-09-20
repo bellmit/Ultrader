@@ -5,16 +5,17 @@ import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.BackTestingResult;
 import com.ultrader.bot.model.OptimizationResult;
 
+import com.ultrader.bot.model.ProgressMessage;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.ta4j.core.TimeSeries;
 
-import javax.swing.*;
 import java.util.ArrayList;
-import java.util.Date;
+
 import java.util.List;
 
 import java.util.stream.Collectors;
@@ -29,7 +30,14 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class GradientDescentOptimizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradientDescentOptimizer.class);
+    /**
+     * Apply on step, make the step smaller
+     */
     private static final double SUPPRESSOR = 0.6;
+    /**
+     * Max Inertia steps
+     */
+    private static final double MAX_INERTIA_STEPS = 10;
     private StrategyDao strategyDao;
     private RuleDao ruleDao;
     private List<TimeSeries> timeSeries;
@@ -41,6 +49,17 @@ public class GradientDescentOptimizer {
     private double step;
     private double convergeThreshold;
     private int iteration;
+    /**
+     * Optimization Goal
+     * AVG_PROFIT - Maximize profit per trade
+     * COMPOUND_PROFIT - profit considered trades num, expected profit
+     */
+    private String optimizeGoal;
+    private Double percentPerTrade;
+    private Long holdDays;
+    private Integer maxHolds;
+    private SimpMessagingTemplate notifier;
+    private String topic;
 
     /**
      * Optimize trading strategy based on GD algorithm
@@ -51,21 +70,21 @@ public class GradientDescentOptimizer {
         OptimizationResult result = new OptimizationResult();
         result.setParameterNames(parameterNames);
         List<List<Double>> parameterHistory = new ArrayList<>();
-        List<Double> avgProfit = new ArrayList<>();
-        result.setAvgProfit(avgProfit);
+        List<Double> optimizationGoals = new ArrayList<>();
+        result.setOptimizationGoal(optimizationGoals);
         result.setParameters(parameterHistory);
         List<BackTestingResult> backTestingResults = new ArrayList<>();
         result.setResults(backTestingResults);
         parameterHistory.add(parameters);
         BackTestingResult lastResult = null;
         BackTestingResult currentResult = evaluateCost(parameters);
-        avgProfit.add(currentResult.getTotalProfit() / currentResult.getTradingCount());
+        optimizationGoals.add(calculateOptimizationGoal(currentResult));
         backTestingResults.add(currentResult);
         int iterationCount = 0;
         //Randomize step
         //step = new Random(new Date().getTime()).nextInt(iteration);
-        LOGGER.info("Start Optimization. {} assets, BuyStrategyId: {}, SellStrategyId: {}, probeValue: {}, learningRate: {}, CovergeThreshold: {}, MaxIteration: {}",
-                timeSeries.size(), buyStrategyId, sellStrategyId, probeValue, step, convergeThreshold, iteration);
+        LOGGER.info("Start Optimization. {} assets, BuyStrategyId: {}, SellStrategyId: {}, probeValue: {}, learningRate: {}, CovergeThreshold: {}, MaxIteration: {}, OptimizationGoal: {}, PercentPerTrade: {}, HoldDays: {}, MaxHolds: {}",
+                timeSeries.size(), buyStrategyId, sellStrategyId, probeValue, step, convergeThreshold, iteration, optimizeGoal, percentPerTrade, holdDays, maxHolds);
         //start iteration
         do {
             lastResult = currentResult;
@@ -78,18 +97,22 @@ public class GradientDescentOptimizer {
             currentResult = evaluateCost(parameters);
             iterationCount++;
 
+            int inertiaCount = 0;
             //If no change just go further
-            while (Math.abs(currentResult.getTotalProfit() - lastResult.getTotalProfit()) < 0.00000001) {
+            while (Math.abs(currentResult.getTotalProfit() - lastResult.getTotalProfit()) < 0.00000001 && MAX_INERTIA_STEPS > inertiaCount) {
                 parameters = updateParameters(gradients);
                 currentResult = evaluateCost(parameters);
+                inertiaCount++;
             }
             //Recording
             step = step * SUPPRESSOR;
             probeValue = probeValue * SUPPRESSOR;
             parameterHistory.add(parameters);
             backTestingResults.add(currentResult);
-            avgProfit.add(currentResult.getTotalProfit() / currentResult.getTradingCount());
-            LOGGER.info("Iteration {} finished. Avg Profit: {}", iterationCount, currentResult.getTotalProfit() / currentResult.getTradingCount());
+            Double optimizationGoal = calculateOptimizationGoal(currentResult);
+            optimizationGoals.add(optimizationGoal);
+            LOGGER.info("Iteration {} finished. {}: {}", iterationCount, optimizeGoal, optimizationGoal);
+            notifier.convertAndSend(topic, new ProgressMessage("InProgress", String.format("Optimizing your strategy: Iteration [%d], %s [%f]", iterationCount, optimizeGoal, optimizationGoal),50 + 50 * iterationCount / iteration));
         } while (!isConverged(lastResult, currentResult, iterationCount));
         result.setIterationNum(iterationCount);
         return result;
@@ -112,7 +135,7 @@ public class GradientDescentOptimizer {
             BackTestingResult y1 = evaluateCost(x1);
             BackTestingResult y2 = evaluateCost(x2);
             //This is for searching the MAX point
-            Double gradient = (y1.getTotalProfit() / y1.getTradingCount() - y2.getTotalProfit() / y2.getTradingCount()) / (2 * probeValue);
+            Double gradient = (calculateOptimizationGoal(y1) - calculateOptimizationGoal(y2)) / (2 * probeValue);
             gradients.add(gradient);
             stringBuilder.append(" " + gradient);
         }
@@ -184,6 +207,14 @@ public class GradientDescentOptimizer {
             return true;
         } else {
             return false;
+        }
+    }
+
+    private Double calculateOptimizationGoal(BackTestingResult result) {
+        if (optimizeGoal.equals(OptimizationType.AVG_PROFIT.name())) {
+            return result.getTotalProfit() / result.getTradingCount();
+        } else {
+            return Math.pow(result.getTotalProfit() / result.getTradingCount() * percentPerTrade + 1, holdDays / result.getAverageHoldingDays() * maxHolds) - 1;
         }
     }
 }

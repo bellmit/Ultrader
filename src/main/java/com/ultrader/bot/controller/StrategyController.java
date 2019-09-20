@@ -6,13 +6,12 @@ import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.*;
 import com.ultrader.bot.model.Strategy;
-import com.ultrader.bot.monitor.MarketDataMonitor;
-import com.ultrader.bot.monitor.TradingStrategyMonitor;
+import com.ultrader.bot.monitor.TradingAccountMonitor;
 import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.util.GradientDescentOptimizer;
+import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingUtil;
-import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +21,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import org.ta4j.core.*;
-import org.ta4j.core.Trade;
-import org.ta4j.core.analysis.CashFlow;
-import org.ta4j.core.analysis.criteria.*;
+
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -82,7 +81,7 @@ public class StrategyController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/getStrategyParameters")
     @ResponseBody
-    public List<Pair<String, Double>> getStrategyParameters(@RequestParam long buyStrategyId, @RequestParam long sellStrategyId) {
+    public List<StrategyParameter> getStrategyParameters(@RequestParam long buyStrategyId, @RequestParam long sellStrategyId) {
         try {
             return TradingUtil.extractParameters(strategyDao, ruleDao, buyStrategyId, sellStrategyId);
         } catch (Exception e) {
@@ -210,7 +209,7 @@ public class StrategyController {
             results.add(result);
             count++;
         }
-        notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("Completed", "",100));
+        notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("Completed", "Back Test Completed",100));
         return new ResponseEntity<Iterable<BackTestingResult>>(results, HttpStatus.OK);
     }
 
@@ -226,7 +225,8 @@ public class StrategyController {
             @RequestParam double probeValue,
             @RequestParam double learningRate,
             @RequestParam double convergeThreshold,
-            @RequestParam int maxIteration) {
+            @RequestParam int maxIteration,
+            @RequestParam String optimizeGoal) {
         interval = interval * 1000;
         List<BackTestingResult> results = new ArrayList<>();
         List<TimeSeries> timeSeriesList = new ArrayList<>();
@@ -256,11 +256,19 @@ public class StrategyController {
             LOGGER.error("Cannot load history data for {}", stocks);
             return new ResponseEntity<OptimizationResult>(HttpStatus.FAILED_DEPENDENCY);
         }
-        List<Pair<String, Double>> parameters = TradingUtil.extractParameters(
+        List<StrategyParameter> parameters = TradingUtil.extractParameters(
                 strategyDao,
                 ruleDao,
                 buyStrategyId,
                 sellStrategyId);
+        String percentPerTrade = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "5%");
+        Double percent = percentPerTrade.indexOf("%") > 0 ?
+                (Double.parseDouble(percentPerTrade.substring(0, percentPerTrade.length() - 1)) / 100) :
+                (Double.parseDouble(percentPerTrade) / TradingAccountMonitor.getAccount().getPortfolioValue());
+        Double maxHolds = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "-1"));
+        if (maxHolds < 0) {
+            maxHolds = 1 / percent;
+        }
         GradientDescentOptimizer optimizer = new GradientDescentOptimizer(
                 strategyDao,
                 ruleDao,
@@ -272,7 +280,14 @@ public class StrategyController {
                 probeValue,
                 learningRate,
                 convergeThreshold,
-                maxIteration);
+                maxIteration,
+                optimizeGoal,
+                percent,
+                (endDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC)) / 3600 / 24,
+                (int)Math.round(maxHolds),
+                notifier,
+                OPTIMIZATION_TOPIC);
+        notifier.convertAndSend(OPTIMIZATION_TOPIC, new ProgressMessage("Completed", "Optimization Completed",100));
         return new ResponseEntity<OptimizationResult>(optimizer.optimize(), HttpStatus.OK);
     }
 
