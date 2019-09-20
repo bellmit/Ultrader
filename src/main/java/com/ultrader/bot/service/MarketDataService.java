@@ -1,5 +1,6 @@
 package com.ultrader.bot.service;
 
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.ta4j.core.Bar;
 import org.ta4j.core.TimeSeries;
 
@@ -22,7 +23,7 @@ public interface MarketDataService {
      * @throws InterruptedException
      */
     List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) throws InterruptedException;
-    void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate) throws InterruptedException;
+    void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate, SimpMessagingTemplate notifier, String topic) throws InterruptedException;
     void subscribe(String symbol);
     void unsubscribe(String symbol);
     void restart();

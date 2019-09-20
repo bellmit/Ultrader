@@ -4,9 +4,7 @@ import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.BackTestingResult;
-import com.ultrader.bot.model.Setting;
-import com.ultrader.bot.monitor.MarketDataMonitor;
-import com.ultrader.bot.monitor.TradingStrategyMonitor;
+import javafx.util.Pair;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,14 +57,15 @@ public class TradingUtil {
             RuleDao ruleDao,
             long strategyId,
             TimeSeries stock,
-            PriorityQueue<Double> parameters,
+            Queue<Pair<String,Double>> parameters,
             boolean backfill) {
         try{
             Validate.notNull(strategyDao, "strategyDao is required");
             Validate.notNull(ruleDao, "ruleDao is required");
             String strategyExp = strategyDao.findById(strategyId).map(s -> s.getFormula()).orElse(null);
             Validate.notEmpty(strategyExp,"Cannot find strategy id: " + strategyId);
-
+            List<String> path = new ArrayList<>();
+            path.add(strategyDao.findById(strategyId).get().getName());
             Rule rules = null;
             String logicOperator = "";
             String[] ruleStr = strategyExp.split(SettingConstant.DELIMITER);
@@ -78,7 +77,9 @@ public class TradingUtil {
                     newRule = generateTradingStrategy(strategyDao, ruleDao, subStrategyId, stock, parameters, backfill);
                 } else {
                     long ruleId = Long.parseLong(str.replaceAll("\\D+",""));
-                    newRule = generateTradingRule(ruleDao, ruleId, stock, parameters, backfill);
+                    path.add(ruleDao.findById(ruleId).get().getName());
+                    newRule = generateTradingRule(ruleDao, ruleId, stock, parameters, backfill, path);
+                    path.remove(path.size()-1);
                 }
 
                 if(rules == null) {
@@ -140,7 +141,7 @@ public class TradingUtil {
      * @return
      * @throws Exception
      */
-    public static Rule generateTradingRule(RuleDao ruleDao , Long rid, TimeSeries stock, PriorityQueue<Double> parameters, boolean backfill) throws Exception {
+    public static Rule generateTradingRule(RuleDao ruleDao , Long rid, TimeSeries stock, Queue<Pair<String,Double>> parameters, boolean backfill, List<String> path) throws Exception {
         String ruleExp = ruleDao.findById(rid).map(r -> r.getFormula()).orElse(null);
         String ruleType = ruleDao.findById(rid).map(r -> r.getType()).orElse(null);
         Validate.notEmpty(ruleExp, "Cannot find ruleExp for rule id " + rid);
@@ -149,7 +150,7 @@ public class TradingUtil {
         try {
             Class<?> rule = getRuleClass(ruleType);
             Constructor<?> constructor = rule.getConstructor(getArgClasses(args));
-            return (Rule) constructor.newInstance(getArgs(args, stock, parameters, backfill));
+            return (Rule) constructor.newInstance(getArgs(args, stock, parameters, backfill, path));
         } catch (Exception e) {
             LOGGER.error(String.format("Generate rule %s, type %s failed", ruleExp, ruleType), e);
             throw e;
@@ -211,7 +212,7 @@ public class TradingUtil {
      * @return
      * @throws Exception
      */
-    public static Object[] getArgs(String[] args, TimeSeries stock, PriorityQueue<Double> parameters, boolean backfill) throws Exception {
+    public static Object[] getArgs(String[] args, TimeSeries stock, Queue<Pair<String,Double>> parameters, boolean backfill, List<String> path) throws Exception {
         Object[] values = new Object[args.length];
         for (int i = 0; i < values.length; i++) {
             try {
@@ -230,6 +231,7 @@ public class TradingUtil {
                             valueClasses[j-1] = Indicator.class;
                         } else if (argStr[j].indexOf(".") >= 0) {
                             valueClasses[j-1] = double.class;
+
                         } else {
                             //Indicator value is an integer
                             valueClasses[j-1] = int.class;
@@ -252,14 +254,17 @@ public class TradingUtil {
                             argValues[j-1] = new  ClosePriceIndicator(stock);
                         } else if (argStr[j].indexOf(".") >= 0) {
                             if (parameters != null) {
+                                path.add(argStr[0]);
                                 if (backfill) {
                                     argValues[j-1] = Double.parseDouble(argStr[j]);
-                                    parameters.offer(Double.parseDouble(argStr[j]));
+                                    parameters.offer(new Pair<>(path.toString(),Double.parseDouble(argStr[j])));
+                                    LOGGER.debug("Push {}: {}", path.toString(), Double.parseDouble(argStr[j]));
                                 } else {
                                     //Use input parameters
-                                    LOGGER.debug("Pop {}", parameters.peek());
-                                    argValues[j-1] = parameters.poll();
+                                    LOGGER.debug("Pop {}: {}", path.toString(), parameters.peek());
+                                    argValues[j-1] = parameters.poll().getValue();
                                 }
+                                path.remove(path.size() -1);
                             } else {
                                 //Use saved parameters
                                 argValues[j-1] = Double.parseDouble(argStr[j]);
@@ -273,15 +278,18 @@ public class TradingUtil {
                 } else if (argType.equals(NUMBER)) {
                     //Arg is a number
                     if (parameters != null) {
+                        path.add(argStr[0]);
                         if (backfill) {
                             //Use saved parameters
                             values[i] = PrecisionNum.valueOf(argStr[1]);
-                            parameters.offer(Double.valueOf(argStr[1]));
+                            parameters.offer(new Pair<>(path.toString(), Double.valueOf(argStr[1])));
+                            LOGGER.debug("Push {}: {}", path.toString(), Double.parseDouble(argStr[1]));
                         } else {
                             //Use input parameters
-                            LOGGER.debug("Pop {}", parameters.peek());
-                            values[i] = PrecisionNum.valueOf(parameters.poll());
+                            LOGGER.debug("Pop {}: {}", path, parameters.peek());
+                            values[i] = PrecisionNum.valueOf(parameters.poll().getValue());
                         }
+                        path.remove(path.size() -1);
                     } else {
                         //Use saved parameters
                         values[i] = PrecisionNum.valueOf(argStr[1]);
@@ -335,10 +343,10 @@ public class TradingUtil {
      */
     public static BackTestingResult backTest(TimeSeries series, int buyStrategyId, int sellStrategyId, StrategyDao strategyDao, RuleDao ruleDao, List<Double> parameters) {
         try {
-            PriorityQueue<Double> parameterQueue = null;
+            Queue<Pair<String, Double>> parameterQueue = null;
             if (parameters != null) {
-                PriorityQueue<Double> queue = new PriorityQueue<>();
-                parameters.stream().forEach(p -> queue.offer(p));
+                Queue<Pair<String, Double>> queue = new LinkedList<Pair<String, Double>>();
+                parameters.stream().forEach(p -> queue.offer(new Pair<>("", p)));
                 parameterQueue = queue;
             }
 
@@ -395,18 +403,18 @@ public class TradingUtil {
      * @param sellStrategyId
      * @return
      */
-    public static List<Double> extractParameters(StrategyDao strategyDao, RuleDao ruleDao, long buyStrategyId, long sellStrategyId) {
-        PriorityQueue<Double> parameterQueue = new PriorityQueue<Double>();
+    public static List<Pair<String, Double>> extractParameters(StrategyDao strategyDao, RuleDao ruleDao, long buyStrategyId, long sellStrategyId) {
+        Queue<Pair<String, Double>> parameterQueue = new LinkedList<>();
         //Extract parameters from buy strategy first, the order does matter.
         generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, new BaseTimeSeries(), parameterQueue, true);
         generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, new BaseTimeSeries(), parameterQueue, true);
-        List<Double> parameters = new ArrayList<>();
+        List<Pair<String, Double>> parameters = new ArrayList<>();
         StringBuilder stringBuilder = new StringBuilder(String.format("Find parameters in strategy %d, %d:", buyStrategyId, sellStrategyId));
         while (!parameterQueue.isEmpty()) {
             parameters.add(parameterQueue.poll());
             stringBuilder.append(" " + parameters.get(parameters.size()-1));
         }
-        LOGGER.debug(stringBuilder.toString());
+        LOGGER.info(stringBuilder.toString());
         return parameters;
     }
 }

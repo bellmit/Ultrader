@@ -1,6 +1,8 @@
 package com.ultrader.bot.service.polygon;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.model.ProgressMessage;
 import com.ultrader.bot.model.polygon.AggResponse;
 import com.ultrader.bot.model.polygon.Aggv2;
 import com.ultrader.bot.service.MarketDataService;
@@ -16,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -46,12 +49,14 @@ public class PolygonMarketDataService implements MarketDataService {
     private Dispatcher dispatcher;
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     private final SettingDao settingDao;
+    private RateLimiter rateLimiter;
 
     @Autowired
     public PolygonMarketDataService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
 
+        rateLimiter = RateLimiter.create(150);
         this.settingDao = settingDao;
         this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(), "");
         if (polygonKey.isEmpty()) {
@@ -102,6 +107,7 @@ public class PolygonMarketDataService implements MarketDataService {
         LOGGER.debug("Start date {}, End Date {}", startDate, endDate);
         for (TimeSeries timeSeries : stocks) {
             if (timeSeries.getBarCount() == 0 && interval >= 60000) {
+                rateLimiter.acquire();
                 GetStockBarsTask task = new GetStockBarsTask(timeSeries, client, startDate, endDate, getPeriodUnit(interval), getPeriodLength(interval), interval, polygonKey);
                 threadPoolTaskExecutor.execute(task);
                 newStockCount++;
@@ -118,7 +124,7 @@ public class PolygonMarketDataService implements MarketDataService {
     }
 
     @Override
-    public void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate) throws InterruptedException {
+    public void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate, SimpMessagingTemplate notifier, String topic) throws InterruptedException {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         long sectionLength = MAX_DATA_PER_REQUEST * interval / 60000 / MIN_PER_TRADING_DAY;
@@ -129,9 +135,15 @@ public class PolygonMarketDataService implements MarketDataService {
             if (currentDate.isAfter(endDate)) {
                 currentDate = endDate;
             }
-            LOGGER.info("Loading history data from {} to {}.", startDate.format(formatter), currentDate.format(formatter));
+            String msg = String.format("Loading history data from %s to %s.", startDate.format(formatter), currentDate.format(formatter));
+            LOGGER.info(msg);
+            if (notifier != null) {
+                long progress = 50 * (currentDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC)) / (endDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC));
+                notifier.convertAndSend(topic, new ProgressMessage("InProgress", msg, (int)progress));
+            }
             for (TimeSeries timeSeries : stocks) {
                 if (interval >= 60000) {
+                    rateLimiter.acquire();
                     GetStockBarsTask task = new GetStockBarsTask(timeSeries, client, startDate.format(formatter), currentDate.format(formatter), getPeriodUnit(interval), getPeriodLength(interval), interval, polygonKey);
                     threadPoolTaskExecutor.execute(task);
                     newStockCount++;

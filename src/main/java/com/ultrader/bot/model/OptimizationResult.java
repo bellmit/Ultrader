@@ -14,4 +14,6 @@ public class OptimizationResult {
     private int iterationNum;
     private List<List<Double>> parameters;
     private List<BackTestingResult> results;
+    private List<Double> avgProfit;
+    private List<String> parameterNames;
 }

@@ -136,7 +136,7 @@ public class MarketDataMonitor extends Monitor {
                 double priceMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MAX.getName(), "-1.0"));
                 double priceMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MIN.getName(), "0.0"));
                 double volumeMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MAX.getName(), "-1.0"));
-                double volumeMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MIN.getName(), "1000.0"));
+                double volumeMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_VOLUME_LIMIT_MIN.getName(), "0.0"));
                 for (TimeSeries timeSeries : updateSeries) {
                     //Don't filter positions
                     if(TradingAccountMonitor.getPositions().containsKey(timeSeries.getName())) {
@@ -196,7 +196,7 @@ public class MarketDataMonitor extends Monitor {
         }
         firstRun = false;
         long end = System.currentTimeMillis();
-        if (end - start > getInterval()) {
+        if (end - start > getInterval() && marketOpen) {
             //Cannot update all asset in limit time
             LOGGER.error("Cannot update market data in time. Please reduce the monitoring assets number or increase trading period.");
             NotificationUtil.sendNotification(notifier, notificationDao, new Notification(

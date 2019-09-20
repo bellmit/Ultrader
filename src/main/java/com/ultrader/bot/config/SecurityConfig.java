@@ -72,7 +72,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 // websockets
                 .antMatchers(
                         "/ws/**/**",
-                        "/ws/**").permitAll()
+                        "/ws/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
                 //Auth Controller
                 .antMatchers("/api/auth/**").permitAll()
                 //Metadata Controller

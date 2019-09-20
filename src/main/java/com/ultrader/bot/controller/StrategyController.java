@@ -12,6 +12,7 @@ import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.util.GradientDescentOptimizer;
 import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingUtil;
+import javafx.util.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,7 @@ import org.ta4j.core.analysis.criteria.*;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.ultrader.bot.util.TradingUtil.backTest;
 
@@ -40,7 +42,8 @@ import static com.ultrader.bot.util.TradingUtil.backTest;
 @RestController("StrategyController")
 public class StrategyController {
     private static Logger LOGGER = LoggerFactory.getLogger(StrategyController.class);
-
+    private static final String BACKTEST_TOPIC = "/topic/progress/backtest";
+    private static final String OPTIMIZATION_TOPIC = "/topic/progress/optimize";
     @Autowired
     private StrategyDao strategyDao;
 
@@ -79,7 +82,7 @@ public class StrategyController {
 
     @RequestMapping(method = RequestMethod.GET, value = "/getStrategyParameters")
     @ResponseBody
-    public List<Double> getStrategyParameters(@RequestParam long buyStrategyId, @RequestParam long sellStrategyId) {
+    public List<Pair<String, Double>> getStrategyParameters(@RequestParam long buyStrategyId, @RequestParam long sellStrategyId) {
         try {
             return TradingUtil.extractParameters(strategyDao, ruleDao, buyStrategyId, sellStrategyId);
         } catch (Exception e) {
@@ -179,11 +182,11 @@ public class StrategyController {
         }
         try {
             //Load market data
-            tradingPlatform.getMarketDataService().getTimeSeries(timeSeriesList, interval, startDate, endDate);
-            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("InProgress", "Loading history market data",50));
+            tradingPlatform.getMarketDataService().getTimeSeries(timeSeriesList, interval, startDate, endDate, notifier, BACKTEST_TOPIC);
+            notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("InProgress", "Loading history market data",50));
         } catch (Exception e) {
             LOGGER.error("Load back test data failed.", e);
-            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("Error", "Loading history market data failed",50));
+            notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("Error", "Loading history market data failed",50));
             return new ResponseEntity<Iterable<BackTestingResult>>(HttpStatus.FAILED_DEPENDENCY);
         }
         //Check time series
@@ -199,7 +202,7 @@ public class StrategyController {
         }
         int count = 0;
         for (TimeSeries timeSeries : timeSeriesList) {
-            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("InProgress", "Back test " + timeSeries.getName(),50 + 50 * count / timeSeriesList.size()));
+            notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("InProgress", "Back test " + timeSeries.getName(),50 + 50 * count / timeSeriesList.size()));
             BackTestingResult result = backTest(timeSeries, buyStrategyId, sellStrategyId, strategyDao, ruleDao, null);
             if (result == null) {
                 continue;
@@ -207,7 +210,7 @@ public class StrategyController {
             results.add(result);
             count++;
         }
-        notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("Completed", "",100));
+        notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("Completed", "",100));
         return new ResponseEntity<Iterable<BackTestingResult>>(results, HttpStatus.OK);
     }
 
@@ -235,11 +238,11 @@ public class StrategyController {
         }
         try {
             //Load market data
-            tradingPlatform.getMarketDataService().getTimeSeries(timeSeriesList, interval, startDate, endDate);
-            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("InProgress", "Loading history market data",50));
+            tradingPlatform.getMarketDataService().getTimeSeries(timeSeriesList, interval, startDate, endDate, notifier, OPTIMIZATION_TOPIC);
+            notifier.convertAndSend(OPTIMIZATION_TOPIC, new ProgressMessage("InProgress", "Loading history market data",50));
         } catch (Exception e) {
             LOGGER.error("Load back test data failed.", e);
-            notifier.convertAndSend("/topic/progress/backtest", new ProgressMessage("Error", "Loading history market data failed",50));
+            notifier.convertAndSend(OPTIMIZATION_TOPIC, new ProgressMessage("Error", "Loading history market data failed",50));
             return new ResponseEntity<OptimizationResult>(HttpStatus.FAILED_DEPENDENCY);
         }
         //Check time series
@@ -253,16 +256,17 @@ public class StrategyController {
             LOGGER.error("Cannot load history data for {}", stocks);
             return new ResponseEntity<OptimizationResult>(HttpStatus.FAILED_DEPENDENCY);
         }
-
+        List<Pair<String, Double>> parameters = TradingUtil.extractParameters(
+                strategyDao,
+                ruleDao,
+                buyStrategyId,
+                sellStrategyId);
         GradientDescentOptimizer optimizer = new GradientDescentOptimizer(
                 strategyDao,
                 ruleDao,
                 timeSeriesList,
-                TradingUtil.extractParameters(
-                        strategyDao,
-                        ruleDao,
-                        buyStrategyId,
-                        sellStrategyId),
+                parameters.stream().map(p -> p.getValue()).collect(Collectors.toList()),
+                parameters.stream().map(p -> p.getKey()).collect(Collectors.toList()),
                 buyStrategyId,
                 sellStrategyId,
                 probeValue,

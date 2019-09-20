@@ -1,6 +1,7 @@
 package com.ultrader.bot.service.alpaca;
 
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.model.ProgressMessage;
 import com.ultrader.bot.model.alpaca.Bar;
 import com.ultrader.bot.service.MarketDataService;
 import com.ultrader.bot.util.RepositoryUtil;
@@ -16,6 +17,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -95,7 +97,7 @@ public class AlpacaMarketDataService implements MarketDataService {
     }
 
     @Override
-    public void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate) throws InterruptedException {
+    public void getTimeSeries(List<TimeSeries> stocks, Long interval, LocalDateTime startDate, LocalDateTime endDate, SimpMessagingTemplate notifier, String topic) throws InterruptedException {
         Map<String, TimeSeries> result = new HashMap<>();
         stocks.stream().forEach(s -> result.put(s.getName(), s));
         long sectionLength = MAX_DATA_PER_REQUEST * interval / 60000 / MIN_PER_TRADING_DAY;
@@ -107,7 +109,12 @@ public class AlpacaMarketDataService implements MarketDataService {
             }
             int count = 0;
             DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
-            LOGGER.info("Loading history data from {} to {}.", startDate.format(formatter), currentDate.format(formatter));
+            String msg = String.format("Loading history data from %s to %s.", startDate.format(formatter), currentDate.format(formatter));
+            LOGGER.info(msg);
+            if (notifier != null) {
+                long progress = 50 * (currentDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC)) / (endDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC));
+                notifier.convertAndSend(topic, new ProgressMessage("InProgress", msg, (int)progress));
+            }
             StringBuilder symbols = new StringBuilder();
             for (TimeSeries timeSeries : stocks) {
                 if (count == 0) {

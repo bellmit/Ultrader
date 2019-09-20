@@ -86,7 +86,7 @@ public class NotificationUtil {
      * @return
      */
     public static DashboardDataMessage generateProfitNotification(OrderDao orderDao) {
-        DecimalFormat df = new DecimalFormat("#.##");
+        DecimalFormat df = new DecimalFormat("#.####");
         Map<String, String> map = new HashMap<>();
         LocalTime midnight = LocalTime.MIDNIGHT;
         LocalDate today = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE));
@@ -108,8 +108,8 @@ public class NotificationUtil {
             }
         }
         map.put("TotalProfit", df.format(totalProfit));
-        map.put("AverageProfit", df.format( sellCount == 0 ? 0 : totalProfit / sellCount));
-        map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : totalRatio / sellCount));
+        map.put("AverageProfit", df.format( sellCount == 0 ? 0 : (totalProfit / sellCount)));
+        map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : (totalRatio / sellCount)));
         LOGGER.info("Notify profit update {}", map);
         return new DashboardDataMessage(map);
     }

@@ -4,6 +4,7 @@ import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.BackTestingResult;
 import com.ultrader.bot.model.OptimizationResult;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -11,8 +12,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ta4j.core.TimeSeries;
 
+import javax.swing.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+
 import java.util.stream.Collectors;
 
 /**
@@ -25,10 +29,12 @@ import java.util.stream.Collectors;
 @NoArgsConstructor
 public class GradientDescentOptimizer {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradientDescentOptimizer.class);
+    private static final double SUPPRESSOR = 0.6;
     private StrategyDao strategyDao;
     private RuleDao ruleDao;
     private List<TimeSeries> timeSeries;
     private List<Double> parameters;
+    private List<String> parameterNames;
     private int buyStrategyId;
     private int sellStrategyId;
     private double probeValue;
@@ -43,15 +49,21 @@ public class GradientDescentOptimizer {
     public OptimizationResult optimize() {
         //init
         OptimizationResult result = new OptimizationResult();
+        result.setParameterNames(parameterNames);
         List<List<Double>> parameterHistory = new ArrayList<>();
+        List<Double> avgProfit = new ArrayList<>();
+        result.setAvgProfit(avgProfit);
         result.setParameters(parameterHistory);
         List<BackTestingResult> backTestingResults = new ArrayList<>();
         result.setResults(backTestingResults);
         parameterHistory.add(parameters);
         BackTestingResult lastResult = null;
         BackTestingResult currentResult = evaluateCost(parameters);
+        avgProfit.add(currentResult.getTotalProfit() / currentResult.getTradingCount());
         backTestingResults.add(currentResult);
         int iterationCount = 0;
+        //Randomize step
+        //step = new Random(new Date().getTime()).nextInt(iteration);
         LOGGER.info("Start Optimization. {} assets, BuyStrategyId: {}, SellStrategyId: {}, probeValue: {}, learningRate: {}, CovergeThreshold: {}, MaxIteration: {}",
                 timeSeries.size(), buyStrategyId, sellStrategyId, probeValue, step, convergeThreshold, iteration);
         //start iteration
@@ -61,6 +73,7 @@ public class GradientDescentOptimizer {
             List<Double> gradients = calculateGradient(parameters);
             //Update Parameters
             parameters = updateParameters(gradients);
+
             //Evaluate new parameters
             currentResult = evaluateCost(parameters);
             iterationCount++;
@@ -71,8 +84,11 @@ public class GradientDescentOptimizer {
                 currentResult = evaluateCost(parameters);
             }
             //Recording
+            step = step * SUPPRESSOR;
+            probeValue = probeValue * SUPPRESSOR;
             parameterHistory.add(parameters);
             backTestingResults.add(currentResult);
+            avgProfit.add(currentResult.getTotalProfit() / currentResult.getTradingCount());
             LOGGER.info("Iteration {} finished. Avg Profit: {}", iterationCount, currentResult.getTotalProfit() / currentResult.getTradingCount());
         } while (!isConverged(lastResult, currentResult, iterationCount));
         result.setIterationNum(iterationCount);

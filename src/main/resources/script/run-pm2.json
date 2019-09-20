@@ -5,7 +5,7 @@
       "cwd": ".",
       "script": "java",
       "args": [
-        "-Xmx512m",
+        "-Xmx1g",
         "-jar",
         "Ultrader.jar",
         "--spring.config.location=file:application.properties"
