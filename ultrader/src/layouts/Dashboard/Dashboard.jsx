@@ -101,14 +101,17 @@ class DashboardComp extends Component {
     if (!this.props.stompClient || !this.props.socket) {
       stompClient.connect(authHeader, frame => {
         this.props.onConnectedToMonitor(socket, stompClient);
+
         stompClient.subscribe(
           "/topic/status/data",
           this.processDataStatusMessage
         );
+
         stompClient.subscribe(
           "/topic/status/market",
           this.processMarketStatusMessage
         );
+
         stompClient.subscribe(
           "/topic/dashboard/account",
           this.processPortfolioMessage
@@ -214,11 +217,6 @@ class DashboardComp extends Component {
   }
 
   componentDidUpdate(e) {
-    if (e.history.action === "PUSH") {
-      document.documentElement.scrollTop = 0;
-      document.scrollingElement.scrollTop = 0;
-      this.refs.mainPanel.scrollTop = 0;
-    }
     if (
       window.innerWidth < 993 &&
       e.history.action === "PUSH" &&
