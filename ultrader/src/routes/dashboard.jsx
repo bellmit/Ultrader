@@ -10,6 +10,7 @@ import Strategies from "containers/Strategies/Strategies.jsx";
 import Positions from "containers/Positions/Positions.jsx";
 import AssetLists from "containers/AssetLists/AssetLists.jsx";
 import Backtest from "containers/Backtest/Backtest.jsx";
+import Optimization from "containers/Optimization/Optimization.jsx";
 import PendingOrders from "containers/Orders/PendingOrders.jsx";
 import HistoryOrders from "containers/Orders/HistoryOrders.jsx";
 
@@ -21,10 +22,10 @@ var dashboardRoutes = [
     component: Dashboard
   },
   {
-        path: "/settings/editSettings",
-        name: "Settings",
-        icon: "pe-7s-config",
-        component: EditSettings
+    path: "/settings/editSettings",
+    name: "Settings",
+    icon: "pe-7s-config",
+    component: EditSettings
   },
   {
     path: "/rules",
@@ -71,12 +72,19 @@ var dashboardRoutes = [
       }
     ]
   },
-    {
-      path: "/backtest",
-      name: "Backtest",
-      icon: "pe-7s-graph1",
-      component: Backtest
-    },
+  {
+    path: "/backtest",
+    name: "Backtest",
+    icon: "pe-7s-graph1",
+    component: Backtest
+  },
+  {
+    path: "/optimization",
+    name: "Optimization",
+    icon: "pe-7s-graph1",
+    component: Optimization
+  },
+
   { redirect: true, path: "/", pathTo: "/dashboard", name: "Dashboard" }
 ];
 export default dashboardRoutes;

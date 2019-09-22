@@ -10,6 +10,7 @@ import assetLists from './AssetLists/AssetLists';
 import orders from './Orders/Orders';
 import dashboard from './Dashboard/Dashboard';
 import backtest from './Backtest/Backtest';
+import optimization from './Optimization/Optimization';
 
 
 export default combineReducers({
@@ -23,5 +24,6 @@ export default combineReducers({
   greetingMonitor,
   settings,
   dashboard,
-  backtest
+  backtest,
+  optimization
 })

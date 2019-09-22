@@ -22,7 +22,7 @@ import {
   handleResponse,
   getAuthHeader
 } from "helpers/UrlHelper";
-  var ps;
+var ps;
 class HeaderLinks extends Component {
   constructor(props) {
     super(props);
@@ -37,38 +37,37 @@ class HeaderLinks extends Component {
   getNotification() {
     axiosGetWithAuth("/api/notification/getNotifications?length=10")
       .then(res => {
-      console.log(res);
         var notifications = res.data.reverse();
         for (var i in notifications) {
-            var notification = {};
-            var messageBody = notifications[i];
-            var level = "info";
-            var icon = "pe-7s-info";
-            switch (messageBody.type) {
-                              case 'BUY':
-                              level = '#28a745';
-                              icon = 'pe-7s-plus';
-                              break;
-                              case 'SELL':
-                              level = '#28a745';
-                              icon = 'pe-7s-less';
-                              break;
-                              case 'WARN':
-                              level = '#ffc107';
-                              icon = 'pe-7s-speaker';
-                              break;
-                              case 'ERROR':
-                              level = '#dc3545';
-                              icon = 'pe-7s-speaker';
-                              break;
-                              default:
-                              break;
-            }
-            notification.level = level;
-            notification.icon = icon;
-            notification.message = messageBody;
-            notification.new = false;
-            this.props.notifications.push(notification);
+          var notification = {};
+          var messageBody = notifications[i];
+          var level = "info";
+          var icon = "pe-7s-info";
+          switch (messageBody.type) {
+            case "BUY":
+              level = "#28a745";
+              icon = "pe-7s-plus";
+              break;
+            case "SELL":
+              level = "#28a745";
+              icon = "pe-7s-less";
+              break;
+            case "WARN":
+              level = "#ffc107";
+              icon = "pe-7s-speaker";
+              break;
+            case "ERROR":
+              level = "#dc3545";
+              icon = "pe-7s-speaker";
+              break;
+            default:
+              break;
+          }
+          notification.level = level;
+          notification.icon = icon;
+          notification.message = messageBody;
+          notification.new = false;
+          this.props.notifications.push(notification);
         }
       })
       .catch(error => {
@@ -94,13 +93,13 @@ class HeaderLinks extends Component {
     }
   }
   readNotification() {
-    for(var i in this.props.notifications) {
+    for (var i in this.props.notifications) {
       this.props.notifications[i].new = false;
     }
   }
   componentDidMount() {
     if (navigator.platform.indexOf("Win") > -1) {
-      ps = new PerfectScrollbar('.dropdown-menu');
+      ps = new PerfectScrollbar(".dropdown-menu");
     }
   }
   reboot() {
@@ -188,7 +187,10 @@ class HeaderLinks extends Component {
               <div>
                 <i className="fa fa-bell-o" />
                 <span className="notification">
-                  {this.props.notifications.filter(this.isNewNotification).length}
+                  {
+                    this.props.notifications.filter(this.isNewNotification)
+                      .length
+                  }
                 </span>
                 <p className="hidden-md hidden-lg">
                   Notifications
@@ -198,16 +200,38 @@ class HeaderLinks extends Component {
             }
             noCaret
             onClick={this.readNotification}
-            id="basic-nav-dropdown-2">
+            id="basic-nav-dropdown-2"
+          >
             {this.props.notifications.reverse().map((notification, i) => (
               <MenuItem eventKey={"3." + i} key={"3." + i}>
-              <div className="card" style={{color:'white', backgroundColor:notification.level, marginBottom:'5px'}}>
-                <div className="content">
-                  <p> <i className={notification.icon}></i>&nbsp;{notification.message.content}</p>
+                <div
+                  className="card"
+                  style={{
+                    color: "white",
+                    backgroundColor: notification.level,
+                    marginBottom: "5px"
+                  }}
+                >
+                  <div className="content">
+                    <p>
+                      {" "}
+                      <i className={notification.icon}></i>&nbsp;
+                      {notification.message.content}
+                    </p>
+                  </div>
+                  <div className="footer">
+                    <hr />
+                    <div className="stats" style={{ color: "white" }}>
+                      <div>
+                        <i className="fa fa-clock-o"></i>{" "}
+                        {parseDate(notification.message.date)}{" "}
+                        <span style={{ float: "right" }}>
+                          {notification.new ? "New" : ""}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div className="footer"><hr/><div className="stats" style={{color:'white'}}><div><i className="fa fa-clock-o"></i> {parseDate(notification.message.date)} <span style={{float:'right'}}>{notification.new?"New":""}</span></div></div></div>
-              </div>
-
               </MenuItem>
             ))}
           </NavDropdown>

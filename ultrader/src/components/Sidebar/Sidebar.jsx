@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import { Collapse } from "react-bootstrap";
 import { NavLink } from "react-router-dom";
 // this is used to create scrollbars on windows devices like the ones from apple devices
-import PerfectScrollbar from "perfect-scrollbar";
-import "perfect-scrollbar/css/perfect-scrollbar.css";
+import "react-perfect-scrollbar/dist/css/styles.css";
+import PerfectScrollbar from "react-perfect-scrollbar";
 
 import HeaderLinks from "components/Header/HeaderLinks.jsx";
 
@@ -48,122 +48,104 @@ class Sidebar extends Component {
     this.updateDimensions();
     // add event listener for windows resize
     window.addEventListener("resize", this.updateDimensions.bind(this));
-    if (navigator.platform.indexOf("Win") > -1) {
-      ps = new PerfectScrollbar(this.refs.sidebarWrapper, {
-        suppressScrollX: true,
-        suppressScrollY: false
-      });
-    }
   }
-  componentDidUpdate() {
-    if (navigator.platform.indexOf("Win") > -1) {
-      setTimeout(() => {
-        ps.update();
-      }, 350);
-    }
-  }
-  componentWillUnmount() {
-    if (navigator.platform.indexOf("Win") > -1) {
-      ps.destroy();
-    }
-  }
+  componentDidUpdate() {}
+
+  componentWillUnmount() {}
+
   render() {
     return (
       <div className="sidebar" data-color="black" data-image={image}>
         <div className="sidebar-background" style={bgImage} />
         <div className="logo">
-          <a
-            href=""
-            className="simple-text logo-mini"
-          >
+          <a href="" className="simple-text logo-mini">
             <div className="logo-img">
               <img src={logo} alt="react-logo" />
             </div>
           </a>
-          <a
-            href=""
-            className="simple-text logo-normal"
-          >
-            <img style={{height:'40px'}} src={logoText}/>
+          <a href="" className="simple-text logo-normal">
+            <img style={{ height: "40px" }} src={logoText} />
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">
-          <ul className="nav">
-            {/* If we are on responsive, we want both links from navbar and sidebar
+          <PerfectScrollbar>
+            <ul className="nav">
+              {/* If we are on responsive, we want both links from navbar and sidebar
                             to appear in sidebar, so we render here HeaderLinks */}
-            {this.state.width <= 992 ? <HeaderLinks {...this.props}/> : null}
-            {/*
+              {this.state.width <= 992 ? <HeaderLinks {...this.props} /> : null}
+              {/*
                             here we render the links in the sidebar
                             if the link is simple, we make a simple link, if not,
                             we have to create a collapsible group,
                             with the speciffic parent button and with it's children which are the links
                         */}
-            {dashboardRoutes.map((prop, key) => {
-              var st = {};
-              st[prop["state"]] = !this.state[prop.state];
-              if (prop.collapse) {
-                return (
-                  <li className={this.activeRoute(prop.path)} key={key}>
-                    <a onClick={() => this.setState(st)}>
-                      <i className={prop.icon} />
-                      <p>
-                        {prop.name}
-                        <b
-                          className={
-                            this.state[prop.state]
-                              ? "caret rotate-180"
-                              : "caret"
-                          }
-                        />
-                      </p>
-                    </a>
-                    <Collapse in={this.state[prop.state]}>
-                      <ul className="nav">
-                        {prop.views.map((prop, key) => {
-                          return (
-                            <li
-                              className={this.activeRoute(prop.path)}
-                              key={key}
-                            >
-                              <NavLink
-                                to={prop.path}
-                                className="nav-link"
-                                activeClassName="active"
-                              >
-                                <span className="sidebar-mini">
-                                  {prop.mini}
-                                </span>
-                                <span className="sidebar-normal">
-                                  {prop.name}
-                                </span>
-                              </NavLink>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </Collapse>
-                  </li>
-                );
-              } else {
-                if (prop.redirect) {
-                  return null;
-                } else {
+              {dashboardRoutes.map((prop, key) => {
+                var st = {};
+                st[prop["state"]] = !this.state[prop.state];
+                if (prop.collapse) {
                   return (
                     <li className={this.activeRoute(prop.path)} key={key}>
-                      <NavLink
-                        to={prop.path}
-                        className="nav-link"
-                        activeClassName="active"
-                      >
+                      <a onClick={() => this.setState(st)}>
                         <i className={prop.icon} />
-                        <p>{prop.name}</p>
-                      </NavLink>
+                        <p>
+                          {prop.name}
+                          <b
+                            className={
+                              this.state[prop.state]
+                                ? "caret rotate-180"
+                                : "caret"
+                            }
+                          />
+                        </p>
+                      </a>
+                      <Collapse in={this.state[prop.state]}>
+                        <ul className="nav">
+                          {prop.views.map((prop, key) => {
+                            return (
+                              <li
+                                className={this.activeRoute(prop.path)}
+                                key={key}
+                              >
+                                <NavLink
+                                  to={prop.path}
+                                  className="nav-link"
+                                  activeClassName="active"
+                                >
+                                  <span className="sidebar-mini">
+                                    {prop.mini}
+                                  </span>
+                                  <span className="sidebar-normal">
+                                    {prop.name}
+                                  </span>
+                                </NavLink>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </Collapse>
                     </li>
                   );
+                } else {
+                  if (prop.redirect) {
+                    return null;
+                  } else {
+                    return (
+                      <li className={this.activeRoute(prop.path)} key={key}>
+                        <NavLink
+                          to={prop.path}
+                          className="nav-link"
+                          activeClassName="active"
+                        >
+                          <i className={prop.icon} />
+                          <p>{prop.name}</p>
+                        </NavLink>
+                      </li>
+                    );
+                  }
                 }
-              }
-            })}
-          </ul>
+              })}
+            </ul>
+          </PerfectScrollbar>
         </div>
       </div>
     );

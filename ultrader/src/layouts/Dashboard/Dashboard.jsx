@@ -1,8 +1,8 @@
 import React, { Component } from "react";
 import { Switch, Route, Redirect } from "react-router-dom";
 // this is used to create scrollbars on windows devices like the ones from apple devices
-import PerfectScrollbar from "perfect-scrollbar";
-import "perfect-scrollbar/css/perfect-scrollbar.css";
+import "react-perfect-scrollbar/dist/css/styles.css";
+import PerfectScrollbar from "react-perfect-scrollbar";
 // react component that creates notifications (like some alerts with messages)
 import NotificationSystem from "react-notification-system";
 
@@ -93,7 +93,7 @@ class DashboardComp extends Component {
   }
 
   connectToSockets() {
-    let socket = new SockJS("/ws");
+    let socket = new SockJS("http://localhost:9191/ws");
     let stompClient = Stomp.over(socket);
     stompClient.debug = () => {};
 
@@ -190,9 +190,6 @@ class DashboardComp extends Component {
 
   componentDidMount() {
     this.setState({ _notificationSystem: this.refs.notificationSystem });
-    if (navigator.platform.indexOf("Win") > -1) {
-      ps = new PerfectScrollbar(this.refs.mainPanel);
-    }
     this.connectToSockets();
     this.initMetadata();
     this.initData();
@@ -206,10 +203,6 @@ class DashboardComp extends Component {
   }
 
   componentWillUnmount() {
-    if (navigator.platform.indexOf("Win") > -1) {
-      ps.destroy();
-    }
-
     clearInterval(this.interval);
   }
 
@@ -276,45 +269,47 @@ class DashboardComp extends Component {
       <div className="wrapper">
         <NotificationSystem ref="notificationSystem" />
         <Sidebar {...this.props} />
-        <div
-          className={
-            "main-panel" +
-            (this.props.location.pathname === "/maps/full-screen-maps"
-              ? " main-panel-maps"
-              : "")
-          }
-          ref="mainPanel"
-        >
-          <Header {...this.props} />
-          <Switch>
-            {dashboardRoutes.map((prop, key) => {
-              if (prop.collapse) {
-                return prop.views.map((prop, key) => {
-                  return (
-                    <Route
-                      path={prop.path}
-                      component={prop.component}
-                      key={key}
-                    />
-                  );
-                });
-              } else {
-                if (prop.redirect)
-                  return (
-                    <Redirect from={prop.path} to={prop.pathTo} key={key} />
-                  );
-                else
-                  return (
-                    <Route
-                      path={prop.path}
-                      component={prop.component}
-                      key={key}
-                    />
-                  );
-              }
-            })}
-          </Switch>
-        </div>
+        <PerfectScrollbar>
+          <div
+            className={
+              "main-panel" +
+              (this.props.location.pathname === "/maps/full-screen-maps"
+                ? " main-panel-maps"
+                : "")
+            }
+            ref="mainPanel"
+          >
+            <Header {...this.props} />
+            <Switch>
+              {dashboardRoutes.map((prop, key) => {
+                if (prop.collapse) {
+                  return prop.views.map((prop, key) => {
+                    return (
+                      <Route
+                        path={prop.path}
+                        component={prop.component}
+                        key={key}
+                      />
+                    );
+                  });
+                } else {
+                  if (prop.redirect)
+                    return (
+                      <Redirect from={prop.path} to={prop.pathTo} key={key} />
+                    );
+                  else
+                    return (
+                      <Route
+                        path={prop.path}
+                        component={prop.component}
+                        key={key}
+                      />
+                    );
+                }
+              })}
+            </Switch>
+          </div>
+        </PerfectScrollbar>
       </div>
     );
   }
