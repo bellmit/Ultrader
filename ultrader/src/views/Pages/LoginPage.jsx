@@ -44,25 +44,34 @@ class LoginPageComp extends Component {
       password: password
     })
       .then(user => {
-        if(!user) {
+        if (!user) {
           alertError("Invalid Username or Password!");
         } else {
           let userObj = {
             token: user.data.accessToken
           };
           localStorage.setItem("user", JSON.stringify(userObj));
-          if(user.data.setup) {
+          if (user.data.setup) {
             window.location = "/#/Dashboard";
           } else {
             window.location = "/#/setup/wizard";
           }
         }
 
-
         return user;
       })
-      .catch(error => {
-        alertError(error);
+      .catch(err => {
+        const error = err.response;
+        console.log(error);
+        if (error.status === 401 || error.status === 403) {
+          alertError("Invalid Username or Password!");
+        } else if (error.status === 500) {
+          alertError(
+            "Server is not responding, please make sure the server is started."
+          );
+        } else {
+          alertError(error);
+        }
       });
   }
 

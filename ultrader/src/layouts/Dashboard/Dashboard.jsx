@@ -21,6 +21,7 @@ import SockJS from "sockjs-client";
 import Stomp from "stompjs";
 import axios from "axios";
 import { parseDate, parseProfit } from "helpers/ParseHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 import {
   axiosGetWithAuth,
@@ -99,39 +100,54 @@ class DashboardComp extends Component {
 
     let authHeader = getAuthHeader();
     if (!this.props.stompClient || !this.props.socket) {
-      stompClient.connect(authHeader, frame => {
-        this.props.onConnectedToMonitor(socket, stompClient);
-        stompClient.subscribe(
-          "/topic/status/data",
-          this.processDataStatusMessage
-        );
-        stompClient.subscribe(
-          "/topic/status/market",
-          this.processMarketStatusMessage
-        );
-        stompClient.subscribe(
-          "/topic/dashboard/account",
-          this.processPortfolioMessage
-        );
-        stompClient.subscribe(
-          "/topic/dashboard/trades",
-          this.processTradesMessage
-        );
-        stompClient.subscribe(
-          "/topic/dashboard/profit",
-          this.processProfitMessage
-        );
-        stompClient.subscribe(
-          "/topic/dashboard/position",
-          this.processPositionMessage
-        );
-        stompClient.subscribe(
-          "/topic/progress/backtest",
-          this.processBacktestProgressMessage
-        );
-        stompClient.subscribe("/topic/notification", this.processNotification);
-        this.initData();
-      });
+      stompClient.connect(
+        authHeader,
+        frame => {
+          this.props.onConnectedToMonitor(socket, stompClient);
+          stompClient.subscribe(
+            "/topic/status/data",
+            this.processDataStatusMessage
+          );
+          stompClient.subscribe(
+            "/topic/status/market",
+            this.processMarketStatusMessage
+          );
+          stompClient.subscribe(
+            "/topic/dashboard/account",
+            this.processPortfolioMessage
+          );
+          stompClient.subscribe(
+            "/topic/dashboard/trades",
+            this.processTradesMessage
+          );
+          stompClient.subscribe(
+            "/topic/dashboard/profit",
+            this.processProfitMessage
+          );
+          stompClient.subscribe(
+            "/topic/dashboard/position",
+            this.processPositionMessage
+          );
+          stompClient.subscribe(
+            "/topic/progress/backtest",
+            this.processBacktestProgressMessage
+          );
+          stompClient.subscribe(
+            "/topic/notification",
+            this.processNotification
+          );
+          this.initData();
+        },
+        error => {
+          alertError(
+            "Your Session has expired, please re-login. You will be redirected in 5 seconds."
+          );
+          setTimeout(() => {
+            localStorage.removeItem("user");
+            window.location.reload(true);
+          }, 5000);
+        }
+      );
     }
   }
 
@@ -207,7 +223,6 @@ class DashboardComp extends Component {
   }
 
   componentDidUpdate(e) {
-
     if (
       window.innerWidth < 993 &&
       e.history.action === "PUSH" &&

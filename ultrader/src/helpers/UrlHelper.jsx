@@ -1,4 +1,5 @@
 import axios from "axios";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 const axiosInstance = axios.create({});
 
@@ -9,7 +10,6 @@ const axiosInstance = axios.create({});
   again
 */
 
-
 axiosInstance.interceptors.response.use(
   res => {
     return res;
@@ -17,20 +17,28 @@ axiosInstance.interceptors.response.use(
   err => {
     const error = err.response;
     // if error is 401
-    if (error.status === 401 || error.status === 403) {
-      // auto logout if 401 response returned from api
-      localStorage.removeItem("user");
-      window.location.reload(true);
-    } else if (error.status === 406) {
-      // if error is 406 (for checking is keys are setup)
-      window.location.href = "/#/setup/wizard";
+    if (window.location.href.indexOf("/pages/") > -1) {
+      return Promise.reject(err);
     } else {
-        return Promise.reject(err);
-    }
+      if (error.status === 401 || error.status === 403) {
+        // auto logout if 401 response returned from api
 
+        alertError(
+          "Your Session has expired, please re-login. You will be redirected in 5 seconds."
+        );
+        setTimeout(() => {
+          localStorage.removeItem("user");
+          window.location.reload(true);
+        }, 5000);
+      } else if (error.status === 406) {
+        // if error is 406 (for checking is keys are setup)
+        window.location.href = "/#/setup/wizard";
+      } else {
+        return Promise.reject(err);
+      }
+    }
   }
 );
-
 
 export function getAuthHeader() {
   // return authorization header with jwt token
