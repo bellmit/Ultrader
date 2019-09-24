@@ -96,7 +96,7 @@ class DashboardComp extends Component {
   }
 
   connectToSockets() {
-    let socket = new SockJS("http://localhost:9191/ws");
+    let socket = new SockJS("/ws");
     let stompClient = Stomp.over(socket);
     stompClient.debug = () => {};
 
