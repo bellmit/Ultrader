@@ -9,10 +9,9 @@ import HeaderLinks from "components/Header/HeaderLinks.jsx";
 
 // backgroundImage for Sidebar
 import image from "assets/img/blur-chart-data-159888.jpg";
-// image for avatar in Sidebar
-import avatar from "assets/img/default-avatar.png";
+
 // logo for sidebar
-import logo from "logo.svg";
+import logo from "logo.png";
 import logoText from "assets/img/logo.png";
 
 import dashboardRoutes from "routes/dashboard.jsx";
@@ -58,13 +57,13 @@ class Sidebar extends Component {
       <div className="sidebar" data-color="black" data-image={image}>
         <div className="sidebar-background" style={bgImage} />
         <div className="logo">
-          <a href="" className="simple-text logo-mini">
+          <a href="http://www.ultraderbot.com" className="simple-text logo-mini">
             <div className="logo-img">
               <img src={logo} alt="react-logo" />
             </div>
           </a>
-          <a href="" className="simple-text logo-normal">
-            <img style={{ height: "40px" }} src={logoText} />
+          <a href="http://www.ultraderbot.com" className="simple-text logo-normal">
+            Ultra Trader
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">
