@@ -21,7 +21,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 import { tooltip } from "helpers/TooltipHelper";
-import { parseDate } from "helpers/ParseHelper";
+import { parseDate,parseProfit } from "helpers/ParseHelper";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 
@@ -44,7 +44,7 @@ class OptimizationComp extends Component {
     this.selectSellStrategyOption = this.selectSellStrategyOption.bind(this);
     this.initData = this.initData.bind(this);
     this.toggleInputs = this.toggleInputs.bind(this);
-    this.generateSummary = this.generateSummary.bind(this);
+    this.showBestParameters = this.showBestParameters.bind(this);
 
     this.state = {
       showInputs: true,
@@ -69,7 +69,8 @@ class OptimizationComp extends Component {
       totalProfitStrategy: 0.0,
       totalProfitHold: 0.0,
       amountPerTrade: 0.0,
-      holdLimit: 0
+      holdLimit: 0,
+      optimizationGoal: "AVG_PROFIT"
     };
   }
 
@@ -144,78 +145,7 @@ class OptimizationComp extends Component {
     });
   }
 
-  generateSummary(res) {
-    var totalStocks = 0;
-    var totalTrades = 0;
-    var profitTradesRatio = 0.0;
-    var profitStockRatio = 0.0;
-    var holdingDays = 0.0;
-    var avgHoldingDays = 0.0;
-    var profitPerStock = 0.0;
-    var profitPerTrade = 0.0;
-    var totalProfitStrategy = 0.0;
-    var totalProfitHold = 0.0;
-    var hasTrade = 0;
-    for (var i in res.data) {
-      totalStocks += 1;
-      if (res.data[i].tradingCount > 0) {
-        hasTrade += 1;
-        totalTrades += res.data[i].tradingCount;
-        profitTradesRatio +=
-          res.data[i].tradingCount * res.data[i].profitTradesRatio;
-        if (res.data[i].averageHoldingDays > 0) {
-          avgHoldingDays += res.data[i].averageHoldingDays;
-        }
-        profitPerTrade += res.data[i].totalProfit;
-      }
 
-      if (res.data[i].buyAndHold > 0) {
-        profitStockRatio += 1;
-      }
-      var startDate = new Date(res.data[i].startDate);
-      var endDate = new Date(res.data[i].endDate);
-      if (endDate.getTime() - startDate.getTime() > holdingDays) {
-        holdingDays = endDate.getTime() - startDate.getTime();
-      }
-      profitPerStock += res.data[i].buyAndHold;
-    }
-
-    this.state.totalStocks = totalStocks;
-    this.state.totalTrades = totalTrades;
-    this.state.profitTradesRatio =
-      ((profitTradesRatio / totalTrades) * 100).toFixed(4) + "%";
-    this.state.profitStockRatio =
-      ((profitStockRatio / totalStocks) * 100).toFixed(4) + "%";
-    this.state.holdingDays = Math.round(holdingDays / 24 / 3600 / 1000);
-    this.state.avgHoldingDays = (avgHoldingDays / hasTrade).toFixed(1);
-    this.state.profitPerTrade =
-      ((profitPerTrade / totalTrades) * 100).toFixed(4) + "%";
-    this.state.profitPerStock =
-      ((profitPerStock / totalStocks) * 100).toFixed(4) + "%";
-    this.state.totalProfitHold =
-      ((profitPerStock / totalStocks) * 100).toFixed(4) + "%";
-
-    var isPercentage = false;
-    var amount = this.state.amountPerTrade + "";
-    if (amount.indexOf("%") > 0) {
-      amount = parseFloat(amount.substring(0, amount.length - 1));
-      isPercentage = true;
-    } else {
-      amount = parseFloat(parseFloat(amount) / this.props.portfolio.value);
-    }
-    var holds = parseInt(this.state.holdLimit);
-    this.state.totalProfitStrategy =
-      (
-        (Math.pow(
-          ((profitPerTrade / totalTrades) * amount) / 100 + 1,
-          Math.round(
-            (this.state.holdingDays / this.state.avgHoldingDays) * holds
-          )
-        ) -
-          1) *
-        100
-      ).toFixed(4) + "%";
-  }
   selectBuyStrategyOption(option) {
     let selectedBuyStrategyOption = option ? option : {};
     this.setState({
@@ -237,6 +167,16 @@ class OptimizationComp extends Component {
     });
   }
 
+  showBestParameters() {
+    var table = []
+    var parameters = this.props.optimization.bestParameters.parameters.split("|");
+    var names = this.props.optimization.parameterNames.split("|");
+    for (var i in names) {
+        table.push(<p>{names[i]} : {parameters[i]}</p>);
+    }
+    return table;
+  }
+
   getOptimization() {
     this.props.onOptimizationStarted();
 
@@ -255,26 +195,29 @@ class OptimizationComp extends Component {
         "&sellStrategyId=" +
         this.state.selectedSellStrategyOption.value +
         "&probeValue=" +
-        "0.1" +
+        "1" +
         "&learningRate=" +
-        "10" +
+        "50" +
         "&convergeThreshold=" +
-        "0.6" +
+        "0.000001" +
         "&maxIteration=" +
-        "100" +
+        this.state.iteration +
         "&optimizeGoal=" +
-        "AVG_PROFIT"
+        this.state.optimizationGoal
     )
       .then(res => {
         this.setState({ inTesting: false });
-        this.generateSummary(res);
         this.props.onOptimizationSuccess(res);
         this.toggleInputs(false);
       })
       .catch(error => {
-        console.log(error);
         this.setState({ inTesting: false });
-        alertError(error);
+        if (error.indexOf("411")) {
+          alertError("Insufficient training data, please add more assets or increase the data range.");
+        } else {
+          alertError(error);
+        }
+
       });
   }
 
@@ -329,7 +272,7 @@ class OptimizationComp extends Component {
                 <Collapse in={this.state.showInputs}>
                   <form>
                     <FormGroup>
-                      <ControlLabel>Start Date</ControlLabel>
+                      <ControlLabel>Start Date {tooltip("Start date of the training data")}</ControlLabel>
                       <Datetime
                         id="startDate"
                         inputProps={{ placeholder: "Test Start Date" }}
@@ -339,7 +282,7 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>End Date</ControlLabel>
+                      <ControlLabel>End Date {tooltip("End date of the training data")}</ControlLabel>
                       <Datetime
                         id="endDate"
                         inputProps={{ placeholder: "Test End Date" }}
@@ -349,7 +292,7 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Interval</ControlLabel>
+                      <ControlLabel>Trading Period {tooltip("Trading period used in the training")}</ControlLabel>
                       <Select
                         placeholder="One bar represent how long"
                         name="intervalInput"
@@ -360,7 +303,7 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Stocks</ControlLabel>
+                      <ControlLabel>Asset List {tooltip("Assets in the list will be regarded as the training data")}</ControlLabel>
                       <Select
                         placeholder="Choose a created Asset List"
                         name="tradingStockList"
@@ -371,7 +314,7 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Buy Strategy</ControlLabel>
+                      <ControlLabel>Trade Buy Strategy {tooltip("Buy strategy will be used in the training")}</ControlLabel>
                       <Select
                         placeholder="Trade Buy Strategy"
                         name="buyStrategy"
@@ -384,7 +327,7 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Sell Strategy</ControlLabel>
+                      <ControlLabel>Trade Sell Strategy {tooltip("Sell strategy will be used in the training")}</ControlLabel>
                       <Select
                         placeholder="Trade Sell Strategy"
                         name="sellStrategy"
@@ -396,6 +339,18 @@ class OptimizationComp extends Component {
                         }
                       />
                     </FormGroup>
+                    <FormGroup>
+                      <ControlLabel>Optimization Iteration {tooltip("The maximum iterations you want to optimize the parameter. Bigger number will cost more time to training and provide better result. Recommend value 10 - 20.")}</ControlLabel>
+                      <FormControl
+                        id="iteration"
+                        value={this.state.iteration}
+                        onChange={e => {
+                           this.setState({ iteration: e.target.value });
+                        }}
+                        type="text"
+                        placeholder="e.g. 10"
+                    />
+                    </FormGroup>
                     <Button
                       fill
                       disabled={this.state.inTesting}
@@ -403,7 +358,7 @@ class OptimizationComp extends Component {
                       color="info"
                       style={{ textAlign: "center" }}
                     >
-                      Test
+                      Optimize
                     </Button>
                   </form>
                 </Collapse>
@@ -420,49 +375,40 @@ class OptimizationComp extends Component {
               </div>
             }
           />
-          {this.props.bestResultss && this.props.bestResultss.length > 0 && (
+          {this.props.optimization.results && this.props.optimization.results.length > 0 && (
             <div>
               <Row>
-                <Col md={6} xs={12}>
+                <Col md={12} xs={12}>
                   <Card
-                    title="Trading Strategy Summary"
+                    title="Best Parameter Combination"
                     content={
                       <div>
-                        <p>Total Trades: {this.state.totalTrades}</p>
-                        <p>
-                          Avg. Profitable Trades %:{" "}
-                          {this.state.profitTradesRatio}
-                        </p>
-                        <p>
-                          Avg. Holding Days/ Stock: {this.state.avgHoldingDays}
-                        </p>
-                        <p>
-                          Avg. Profit % / Trade: {this.state.profitPerTrade}
-                        </p>
-                        <p>
-                          Expected Total Profit %:{" "}
-                          {this.state.totalProfitStrategy}
-                        </p>
-                      </div>
-                    }
-                  />
-                </Col>
-                <Col md={6} xs={12}>
-                  <Card
-                    title="Buy and Hold Summary"
-                    content={
-                      <div>
-                        <p>Total Stocks: {this.state.totalStocks}</p>
-                        <p>
-                          Profitable Stocks %: {this.state.profitStockRatio}
-                        </p>
-                        <p>Holding Days: {this.state.holdingDays}</p>
-                        <p>
-                          Avg. Profit % / Stock: {this.state.profitPerStock}
-                        </p>
-                        <p>
-                          Expected Total Profit %: {this.state.totalProfitHold}
-                        </p>
+                        <ReactTable
+                        data={this.props.optimization.bestParameters}
+                        filterable
+                        columns={[
+                          {
+                            Header: "Strategy Name",
+                            accessor: "strategyName"
+                          },
+                          {
+                            Header: "Rule Name",
+                            accessor: "ruleName"
+                          },
+                          {
+                            Header: "Parameter Type",
+                            accessor: "parameterType"
+                          },
+                          {
+                            Header: "Value",
+                            accessor: "value"
+                          }
+                        ]}
+                        defaultPageSize={5}
+                        showPaginationTop
+                        showPaginationBottom={false}
+                        className="-striped -highlight"
+                      />
                       </div>
                     }
                   />
@@ -471,55 +417,53 @@ class OptimizationComp extends Component {
               <Row>
                 <Col md={12}>
                   <Card
-                    title="Stock Details"
+                    title="Optimization Details"
                     content={
                       <ReactTable
-                        data={this.props.bestResultss}
+                        data={this.props.optimization.results}
                         filterable
                         columns={[
                           {
-                            Header: "Stock",
-                            accessor: "stock"
+                            Header: "Iteration",
+                            accessor: "iteration"
+                          },
+                          {
+                            Header: this.state.optimizationGoal,
+                            accessor: "optimizationGoal",
+                            Cell: cell => parseFloat(cell.value).toFixed(6)
+                          },
+                          {
+                            Header: this.props.optimization.parameterNames,
+                            accessor: "parameters"
                           },
                           {
                             Header: "Trades",
-                            accessor: "tradingCount"
+                            accessor: "backtest.tradingCount"
                           },
                           {
                             Header: "Profitable Trades %",
-                            accessor: "profitTradesRatio"
+                            accessor: "backtest.profitTradesRatio",
+                            Cell: cell => parseFloat(cell.value).toFixed(6)
                           },
                           {
                             Header: "Reward/Risk %",
-                            accessor: "rewardRiskRatio",
+                            accessor: "backtest.rewardRiskRatio",
                             Cell: cell => parseFloat(cell.value).toFixed(6)
                           },
                           {
                             Header: "Buy and Hold %",
-                            accessor: "buyAndHold",
+                            accessor: "backtest.buyAndHold",
                             Cell: cell => parseFloat(cell.value).toFixed(6)
                           },
                           {
                             Header: "Total Profit %",
-                            accessor: "totalProfit",
+                            accessor: "backtest.totalProfit",
                             Cell: cell => parseFloat(cell.value).toFixed(6)
                           },
                           {
                             Header: "Average Holding Days",
-                            accessor: "averageHoldingDays",
+                            accessor: "backtest.averageHoldingDays",
                             Cell: cell => parseFloat(cell.value).toFixed(1)
-                          },
-                          {
-                            Header: "Start Date",
-                            accessor: "startDate",
-                            Cell: cell =>
-                              cell.value ? parseDate(cell.value) : ""
-                          },
-                          {
-                            Header: "End Date",
-                            accessor: "endDate",
-                            Cell: cell =>
-                              cell.value ? parseDate(cell.value) : ""
                           }
                         ]}
                         defaultPageSize={20}

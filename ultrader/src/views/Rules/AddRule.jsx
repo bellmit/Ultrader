@@ -115,7 +115,6 @@ export default class AddRuleComp extends React.Component {
       };
       axiosPostWithAuth("/api/rule/addRule", rule)
         .then(res => {
-          console.log(res);
           alertSuccess("Saved rule successfully.");
           this.props.onAddRuleSuccess(res);
         })
@@ -154,7 +153,6 @@ export default class AddRuleComp extends React.Component {
   }
 
   initializeRuleFields(selectedRuleFieldTypeOption) {
-    console.log(selectedRuleFieldTypeOption);
     let ruleFields = selectedRuleFieldTypeOption.value.split("|");
     var ruleFieldValues = ruleFields.map(ruleField => {
       switch (ruleField) {

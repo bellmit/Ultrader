@@ -287,8 +287,13 @@ public class StrategyController {
                 (int)Math.round(maxHolds),
                 notifier,
                 OPTIMIZATION_TOPIC);
+        OptimizationResult result = optimizer.optimize();
         notifier.convertAndSend(OPTIMIZATION_TOPIC, new ProgressMessage("Completed", "Optimization Completed",100));
-        return new ResponseEntity<OptimizationResult>(optimizer.optimize(), HttpStatus.OK);
+        if (result.getParameters().size()<2) {
+            LOGGER.error("Insufficient training data. Please increase the date range.");
+            return new ResponseEntity<OptimizationResult>(HttpStatus.LENGTH_REQUIRED);
+        }
+        return new ResponseEntity<OptimizationResult>(result, HttpStatus.OK);
     }
 
 }

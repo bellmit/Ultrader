@@ -317,7 +317,7 @@ class BacktestComp extends Component {
                 <Collapse in={this.state.showInputs}>
                   <form>
                     <FormGroup>
-                      <ControlLabel>Start Date</ControlLabel>
+                      <ControlLabel>Start Date {tooltip("Start date of the testing data")}</ControlLabel>
                       <Datetime
                         id="startDate"
                         inputProps={{ placeholder: "Test Start Date" }}
@@ -327,7 +327,7 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>End Date</ControlLabel>
+                      <ControlLabel>End Date {tooltip("End date of the testing data")}</ControlLabel>
                       <Datetime
                         id="endDate"
                         inputProps={{ placeholder: "Test End Date" }}
@@ -337,7 +337,7 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Interval</ControlLabel>
+                      <ControlLabel>Trading Period {tooltip("Trading period used in the testing")}</ControlLabel>
                       <Select
                         placeholder="One bar represent how long"
                         name="intervalInput"
@@ -348,7 +348,7 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Stocks</ControlLabel>
+                      <ControlLabel>Test Asset List {tooltip("Asset List will be used in the testing")}</ControlLabel>
                       <Select
                         placeholder="Choose a created Asset List"
                         name="tradingStockList"
@@ -359,7 +359,7 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Buy Strategy</ControlLabel>
+                      <ControlLabel>Test Buy Strategy {tooltip("Buy strategy will be used in the testing")}</ControlLabel>
                       <Select
                         placeholder="Trade Buy Strategy"
                         name="buyStrategy"
@@ -372,7 +372,7 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Sell Strategy</ControlLabel>
+                      <ControlLabel>Test Sell Strategy {tooltip("Sell strategy will be used in the testing")}</ControlLabel>
                       <Select
                         placeholder="Trade Sell Strategy"
                         name="sellStrategy"
@@ -416,19 +416,19 @@ class BacktestComp extends Component {
                     title="Trading Strategy Summary"
                     content={
                       <div>
-                        <p>Total Trades: {this.state.totalTrades}</p>
+                        <p>Total Trades{tooltip("Sum of trades during the testing")}: {this.state.totalTrades}</p>
                         <p>
-                          Avg. Profitable Trades %:{" "}
+                          Avg. Profitable Trades % {tooltip("Averagely, possibility of one trade can make profit")}:{" "}
                           {this.state.profitTradesRatio}
                         </p>
                         <p>
-                          Avg. Holding Days/ Stock: {this.state.avgHoldingDays}
+                          Avg. Holding Days/ Asset {tooltip("Average holding days for each asset")}: {this.state.avgHoldingDays}
                         </p>
                         <p>
-                          Avg. Profit % / Trade: {this.state.profitPerTrade}
+                          Avg. Profit % / Trade {tooltip("Averagely, profit that one trade can gain")}: {this.state.profitPerTrade}
                         </p>
                         <p>
-                          Expected Total Profit %:{" "}
+                          Expected Total Profit % {tooltip("Considering user current settings, such as how much spend on each trader and max position, the expect total profit can gain during the testing date range")}:{" "}
                           {this.state.totalProfitStrategy}
                         </p>
                       </div>
@@ -440,16 +440,16 @@ class BacktestComp extends Component {
                     title="Buy and Hold Summary"
                     content={
                       <div>
-                        <p>Total Stocks: {this.state.totalStocks}</p>
+                        <p>Total Assets {tooltip("How many asset used in the testing")}: {this.state.totalStocks}</p>
                         <p>
-                          Profitable Stocks %: {this.state.profitStockRatio}
+                          Profitable Asset % {tooltip("If holding the asset, how many percentages asset will be profitable.")}: {this.state.profitStockRatio}
                         </p>
-                        <p>Holding Days: {this.state.holdingDays}</p>
+                        <p>Holding Days {tooltip("Holding days = testing data days")}: {this.state.holdingDays}</p>
                         <p>
-                          Avg. Profit % / Stock: {this.state.profitPerStock}
+                          Avg. Profit % / Asset {tooltip("The profit that one asset can gain, averagely")}: {this.state.profitPerStock}
                         </p>
                         <p>
-                          Expected Total Profit %: {this.state.totalProfitHold}
+                          Expected Total Profit % {tooltip("If spend same amount of money on each asset, the expected profit can gain.")}: {this.state.totalProfitHold}
                         </p>
                       </div>
                     }
@@ -459,7 +459,7 @@ class BacktestComp extends Component {
               <Row>
                 <Col md={12}>
                   <Card
-                    title="Stock Details"
+                    title="Back Test Details"
                     content={
                       <ReactTable
                         data={this.props.results}

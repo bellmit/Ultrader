@@ -48,7 +48,7 @@ var dashboardRoutes = [
   {
     path: "/assetLists",
     name: "Asset Lists",
-    icon: "pe-7s-cash",
+    icon: "pe-7s-note2",
     component: AssetLists
   },
   {
@@ -56,7 +56,7 @@ var dashboardRoutes = [
     path: "/orders",
     name: "Orders",
     state: "openOrders",
-    icon: "pe-7s-note2",
+    icon: "pe-7s-cash",
     views: [
       {
         path: "/orders/pendingOrders",
@@ -75,13 +75,13 @@ var dashboardRoutes = [
   {
     path: "/backtest",
     name: "Backtest",
-    icon: "pe-7s-graph1",
+    icon: "pe-7s-science",
     component: Backtest
   },
   {
     path: "/optimization",
     name: "Optimization",
-    icon: "pe-7s-graph1",
+    icon: "pe-7s-target",
     component: Optimization
   },
 

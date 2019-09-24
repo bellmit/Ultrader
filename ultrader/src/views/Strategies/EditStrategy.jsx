@@ -443,7 +443,6 @@ export default class EditStrategyComp extends React.Component {
   }
 
   render() {
-    console.log(this.state);
     return (
       <div className="main-content">
         <Grid fluid>

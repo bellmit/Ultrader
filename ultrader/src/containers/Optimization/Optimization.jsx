@@ -10,12 +10,8 @@ class Optimization extends Component {
   render() {
     return (
       <OptimizationComp
-        results={this.props.results}
+        optimization={this.props.optimization}
         progress={this.props.progress}
-        iteration={this.props.iteration}
-        parameters={this.props.parameters}
-        bestResults={this.props.bestResults}
-        bestParameters={this.props.bestParameters}
         onOptimizationSuccess={this.props.onOptimizationSuccess}
         onOptimizationStarted={this.props.onOptimizationStarted}
       />
@@ -25,12 +21,8 @@ class Optimization extends Component {
 
 const mapStateToProps = state => {
   return {
-    results: state.optimization.results,
-    progress: state.optimization.progress,
-    iteration: state.optimization.iteration,
-    parameters: state.optimization.parameters,
-    bestResults: state.optimization.bestResults,
-    bestParameters: state.optimization.bestParameters
+    optimization: state.optimization.optimization,
+    progress: state.optimization.progress
   };
 };
 

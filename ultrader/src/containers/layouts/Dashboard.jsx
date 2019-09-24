@@ -6,6 +6,7 @@ import * as ACTION_TYPES from "actions/layouts/DashboardActions";
 import * as RULES_ACTION_TYPES from "actions/Rules/RulesActions";
 import * as STRATEGIES_ACTION_TYPES from "actions/Strategies/StrategiesActions";
 import * as BACKTEST_ACTION_TYPES from "actions/Backtest/BacktestActions";
+import * as OPTIMIZATION_TYPES from "actions/Optimization/OptimizationActions";
 
 import DashboardComp from "layouts/Dashboard/Dashboard";
 
@@ -44,6 +45,9 @@ class Dashboard extends Component {
         onReceivedNotificationMessage={this.props.onReceivedNotificationMessage}
         onReceivedBacktestProgressMessage={
           this.props.onReceivedBacktestProgressMessage
+        }
+        onReceivedOptimizationProgressMessage={
+          this.props.onReceivedOptimizationProgressMessage
         }
         onRetrievedRuleTypes={this.props.onRetrievedRuleTypes}
         onRetrievedIndicatorTypes={this.props.onRetrievedIndicatorTypes}
@@ -163,7 +167,11 @@ const mapDispatchToProps = dispatch => {
         type: BACKTEST_ACTION_TYPES.RECEIVED_BACKTEST_PROGRESS_MESSAGE,
         response: response
       }),
-
+    onReceivedOptimizationProgressMessage: response =>
+      dispatch({
+        type: OPTIMIZATION_TYPES.RECEIVED_OPTIMIZATION_PROGRESS_MESSAGE,
+        response: response
+      }),
     // ---------------------- initialization ----------------------
     onReceivedDashboardNotifications: response =>
       dispatch({

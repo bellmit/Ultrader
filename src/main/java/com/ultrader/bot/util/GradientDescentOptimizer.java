@@ -37,7 +37,7 @@ public class GradientDescentOptimizer {
     /**
      * Max Inertia steps
      */
-    private static final double MAX_INERTIA_STEPS = 10;
+    private static final double MAX_INERTIA_STEPS = 1;
     private StrategyDao strategyDao;
     private RuleDao ruleDao;
     private List<TimeSeries> timeSeries;
@@ -87,15 +87,20 @@ public class GradientDescentOptimizer {
                 timeSeries.size(), buyStrategyId, sellStrategyId, probeValue, step, convergeThreshold, iteration, optimizeGoal, percentPerTrade, holdDays, maxHolds);
         //start iteration
         do {
+            iterationCount++;
             lastResult = currentResult;
             //Calculate gradient
             List<Double> gradients = calculateGradient(parameters);
+            if (!checkGradient(gradients)) {
+                LOGGER.error("Invalid gradient {}, Iteration {}", gradients, iterationCount);
+                break;
+            }
             //Update Parameters
             parameters = updateParameters(gradients);
 
             //Evaluate new parameters
             currentResult = evaluateCost(parameters);
-            iterationCount++;
+
 
             int inertiaCount = 0;
             //If no change just go further
@@ -153,6 +158,9 @@ public class GradientDescentOptimizer {
         double profitTradesRatio = 0.0, rewardRiskRatio = 0.0, vsBuyAndHold = 0.0, totalProfit = 0.0, averageHoldingDays = 0.0;
 
         for (TimeSeries asset : timeSeries) {
+            if (asset.getBarCount() == 0) {
+                continue;
+            }
             BackTestingResult result = TradingUtil.backTest(asset, buyStrategyId, sellStrategyId, strategyDao, ruleDao, parameters);
             if (result != null) {
                 LOGGER.debug(result.toString());
@@ -210,6 +218,24 @@ public class GradientDescentOptimizer {
         }
     }
 
+    /**
+     * Check if gradient is valid
+     * @param gradients
+     * @return
+     */
+    private boolean checkGradient(List<Double> gradients) {
+        for (Double gradient : gradients) {
+            if (gradient.isNaN()) {
+                return false;
+            }
+        }
+        return true;
+    }
+    /**
+     * Calculate loss based on the optimization goal
+     * @param result
+     * @return
+     */
     private Double calculateOptimizationGoal(BackTestingResult result) {
         if (optimizeGoal.equals(OptimizationType.AVG_PROFIT.name())) {
             return result.getTotalProfit() / result.getTradingCount();

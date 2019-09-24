@@ -44,10 +44,8 @@ class DashboardComp extends Component {
     this.processTradesMessage = this.processTradesMessage.bind(this);
     this.processProfitMessage = this.processProfitMessage.bind(this);
     this.processPositionMessage = this.processPositionMessage.bind(this);
-    this.processBacktestProgressMessage = this.processBacktestProgressMessage.bind(
-      this
-    );
-
+    this.processBacktestProgressMessage = this.processBacktestProgressMessage.bind(this);
+    this.processOptimizationProgressMessage = this.processOptimizationProgressMessage.bind(this);
     this.processNotification = this.processNotification.bind(this);
 
     this.connectToSockets = this.connectToSockets.bind(this);
@@ -86,6 +84,10 @@ class DashboardComp extends Component {
 
   processBacktestProgressMessage(message) {
     this.props.onReceivedBacktestProgressMessage(message);
+  }
+
+  processOptimizationProgressMessage(message) {
+    this.props.onReceivedOptimizationProgressMessage(message);
   }
 
   processNotification(message) {
@@ -131,6 +133,10 @@ class DashboardComp extends Component {
           stompClient.subscribe(
             "/topic/progress/backtest",
             this.processBacktestProgressMessage
+          );
+          stompClient.subscribe(
+            "/topic/progress/optimize",
+            this.processOptimizationProgressMessage
           );
           stompClient.subscribe(
             "/topic/notification",
