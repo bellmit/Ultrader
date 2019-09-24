@@ -20,16 +20,16 @@ axiosInstance.interceptors.response.use(
     if (window.location.href.indexOf("/pages/") > -1) {
       return Promise.reject(err);
     } else {
+      console.log(error);
       if (error.status === 401 || error.status === 403) {
         // auto logout if 401 response returned from api
-
         alertError(
-          "Your Session has expired, please re-login. You will be redirected in 5 seconds."
+          "Your Session has expired, please re-login. You will be redirected in 10 seconds."
         );
         setTimeout(() => {
           localStorage.removeItem("user");
           window.location.reload(true);
-        }, 5000);
+        }, 10000);
       } else if (error.status === 406) {
         // if error is 406 (for checking is keys are setup)
         window.location.href = "/#/setup/wizard";

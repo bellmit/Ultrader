@@ -8,11 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class CORSFilter implements Filter {
-
-    // This is to be replaced with a list of domains allowed to access the server
-    //You can include more than one origin here
-    private final List<String> allowedOrigins = Arrays.asList("http://localhost:3000");
-
     public void destroy() {
 
     }
@@ -25,7 +20,7 @@ public class CORSFilter implements Filter {
 
             // Access-Control-Allow-Origin
             String origin = request.getHeader("Origin");
-            response.setHeader("Access-Control-Allow-Origin", allowedOrigins.contains(origin) ? origin : "");
+            response.setHeader("Access-Control-Allow-Origin", origin);
             response.setHeader("Vary", "Origin");
 
             // Access-Control-Max-Age

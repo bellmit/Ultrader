@@ -64,10 +64,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
-        List<String> allowedOrigins = Arrays.asList("http://localhost:3000");
+        List<String> allowedOrigins = Arrays.asList("*");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
-        configuration.setAllowedMethods(Arrays.asList("GET","POST"));
+        configuration.setAllowCredentials(true);
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -83,9 +85,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .authorizeRequests()
                 .requestMatchers(CorsUtils:: isPreFlightRequest).permitAll()
                 // websockets
-                .antMatchers(
-                        "/ws/**/**",
-                        "/ws/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                .antMatchers("/ws/**").permitAll()
                 //Auth Controller
                 .antMatchers("/api/auth/**").permitAll()
                 //Metadata Controller
@@ -123,8 +123,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
                 .antMatchers("/admin/**").hasAuthority(UserType.ADMIN.getId().toString())
                 // database console
-                .antMatchers("/h2-console/**").permitAll()
-        ;
+                .antMatchers("/h2-console/**").permitAll();
 
 
         http.headers().frameOptions().sameOrigin();

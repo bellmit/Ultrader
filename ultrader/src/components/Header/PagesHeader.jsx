@@ -35,20 +35,14 @@ class PagesHeader extends Component {
           <Navbar.Brand>
             <NavLink to={"/dashboard"} className="nav-link">
               {this.state.width > 429
-                ? "Ultrader"
-                : "LBD PRO React"}
+                ? "ULTRA TRADER"
+                : "ULTRA TRADER"}
             </NavLink>
           </Navbar.Brand>
           <Navbar.Toggle onClick={this.mobileSidebarToggle} />
         </Navbar.Header>
         <Navbar.Collapse>
           <ul className="nav navbar-nav navbar-right">
-            <li>
-              <NavLink to={"/dashboard"} className="nav-link">
-                <i className="fa fa-th-list" />
-                <p>Dashboard</p>
-              </NavLink>
-            </li>
             <li className={this.activeRoute("login-page")}>
               <NavLink to={"/pages/login-page"} className="nav-link">
                 <i className="fa fa-drivers-license-o" />
