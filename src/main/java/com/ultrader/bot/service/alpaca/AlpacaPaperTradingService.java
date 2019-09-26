@@ -190,12 +190,12 @@ public class AlpacaPaperTradingService implements TradingService {
                     account.getBody().getCurrency(),
                     account.getBody().getBuying_power(),
                     account.getBody().getCash(),
-                    account.getBody().getCash_withdrawable(),
+                    account.getBody().getCash(),
                     account.getBody().getPortfolio_value(),
-                    account.getBody().isPattern_day_trader(),
-                    account.getBody().isTrading_blocked(),
-                    account.getBody().isTransfers_blocked(),
-                    account.getBody().isAccount_blocked());
+                    account.getBody().getPattern_day_trader(),
+                    account.getBody().getTrading_blocked(),
+                    account.getBody().getTransfers_blocked(),
+                    account.getBody().getAccount_blocked());
         } catch (Exception e) {
             LOGGER.error("Failed to call /account api.", e);
             return null;

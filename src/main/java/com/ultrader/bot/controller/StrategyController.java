@@ -222,9 +222,6 @@ public class StrategyController {
             @RequestParam String stocks,
             @RequestParam int buyStrategyId,
             @RequestParam int sellStrategyId,
-            @RequestParam double probeValue,
-            @RequestParam double learningRate,
-            @RequestParam double convergeThreshold,
             @RequestParam int maxIteration,
             @RequestParam String optimizeGoal) {
         interval = interval * 1000;
@@ -239,7 +236,7 @@ public class StrategyController {
         try {
             //Load market data
             tradingPlatform.getMarketDataService().getTimeSeries(timeSeriesList, interval, startDate, endDate, notifier, OPTIMIZATION_TOPIC);
-            notifier.convertAndSend(OPTIMIZATION_TOPIC, new ProgressMessage("InProgress", "Loading history market data",50));
+            notifier.convertAndSend(OPTIMIZATION_TOPIC, new ProgressMessage("InProgress", "Initial Optimization",50));
         } catch (Exception e) {
             LOGGER.error("Load back test data failed.", e);
             notifier.convertAndSend(OPTIMIZATION_TOPIC, new ProgressMessage("Error", "Loading history market data failed",50));
@@ -277,9 +274,8 @@ public class StrategyController {
                 parameters.stream().map(p -> p.getKey()).collect(Collectors.toList()),
                 buyStrategyId,
                 sellStrategyId,
-                probeValue,
-                learningRate,
-                convergeThreshold,
+                1000,
+                0.000001,
                 maxIteration,
                 optimizeGoal,
                 percent,

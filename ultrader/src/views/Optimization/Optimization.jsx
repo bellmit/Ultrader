@@ -31,7 +31,10 @@ var intervalOptions = [
   { value: "900", label: "15 Minutes" },
   { value: "86400", label: "1 Day" }
 ];
-
+var optimizationGoalOption = [
+  { value: "AVG_PROFIT", label: "Average Profit Per Trade" },
+  { value: "TOTAL_PROFIT", label: "Total Profit" }
+];
 class OptimizationComp extends Component {
   constructor(props) {
     super(props);
@@ -160,6 +163,13 @@ class OptimizationComp extends Component {
     });
   }
 
+  selectOptimizationGoalOption(option) {
+    let selectedOptimizationGoalOption = option ? option : {};
+    this.setState({
+      selectedOptimizationGoalOption: selectedOptimizationGoalOption
+    });
+  }
+
   selectSellStrategyOption(option) {
     let selectedSellStrategyOption = option ? option : {};
     this.setState({
@@ -194,16 +204,10 @@ class OptimizationComp extends Component {
         this.state.selectedBuyStrategyOption.value +
         "&sellStrategyId=" +
         this.state.selectedSellStrategyOption.value +
-        "&probeValue=" +
-        "1" +
-        "&learningRate=" +
-        "50" +
-        "&convergeThreshold=" +
-        "0.000001" +
         "&maxIteration=" +
         this.state.iteration +
         "&optimizeGoal=" +
-        this.state.optimizationGoal
+        this.state.selectedOptimizationGoalOption.value
     )
       .then(res => {
         this.setState({ inTesting: false });
@@ -228,7 +232,9 @@ class OptimizationComp extends Component {
       this.state.selectedIntervalOption &&
       this.state.stocks &&
       this.state.selectedBuyStrategyOption &&
-      this.state.selectedSellStrategyOption
+      this.state.selectedSellStrategyOption &&
+      this.state.iteration &&
+      this.state.selectedOptimizationGoalOption
     ) {
       return true;
     } else {
@@ -351,6 +357,18 @@ class OptimizationComp extends Component {
                         placeholder="e.g. 10"
                     />
                     </FormGroup>
+                    <FormGroup>
+                      <ControlLabel>Optimization Goal{tooltip("The criterion of the optimization trying to maximize.")}</ControlLabel>
+                      <Select
+                        placeholder="Choose one optimization goal"
+                        name="optimizationGoal"
+                        options={optimizationGoalOption}
+                        value={this.state.selectedOptimizationGoalOption}
+                        id="optimizationGoalSelect"
+                        onChange={option => this.selectOptimizationGoalOption(option)}
+
+                      />
+                    </FormGroup>
                     <Button
                       fill
                       disabled={this.state.inTesting}
@@ -428,7 +446,7 @@ class OptimizationComp extends Component {
                             accessor: "iteration"
                           },
                           {
-                            Header: this.state.optimizationGoal,
+                            Header: this.state.selectedOptimizationGoalOption.label,
                             accessor: "optimizationGoal",
                             Cell: cell => parseFloat(cell.value).toFixed(6)
                           },

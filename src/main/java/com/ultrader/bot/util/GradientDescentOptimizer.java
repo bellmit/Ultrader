@@ -33,11 +33,11 @@ public class GradientDescentOptimizer {
     /**
      * Apply on step, make the step smaller
      */
-    private static final double SUPPRESSOR = 0.6;
+    private static final double SUPPRESSOR = 0.8;
     /**
      * Max Inertia steps
      */
-    private static final double MAX_INERTIA_STEPS = 1;
+    private static final double MAX_INERTIA_STEPS = 10;
     private StrategyDao strategyDao;
     private RuleDao ruleDao;
     private List<TimeSeries> timeSeries;
@@ -45,7 +45,6 @@ public class GradientDescentOptimizer {
     private List<String> parameterNames;
     private int buyStrategyId;
     private int sellStrategyId;
-    private double probeValue;
     private double step;
     private double convergeThreshold;
     private int iteration;
@@ -63,6 +62,7 @@ public class GradientDescentOptimizer {
 
     /**
      * Optimize trading strategy based on GD algorithm
+     *
      * @return
      */
     public OptimizationResult optimize() {
@@ -83,8 +83,8 @@ public class GradientDescentOptimizer {
         int iterationCount = 0;
         //Randomize step
         //step = new Random(new Date().getTime()).nextInt(iteration);
-        LOGGER.info("Start Optimization. {} assets, BuyStrategyId: {}, SellStrategyId: {}, probeValue: {}, learningRate: {}, CovergeThreshold: {}, MaxIteration: {}, OptimizationGoal: {}, PercentPerTrade: {}, HoldDays: {}, MaxHolds: {}",
-                timeSeries.size(), buyStrategyId, sellStrategyId, probeValue, step, convergeThreshold, iteration, optimizeGoal, percentPerTrade, holdDays, maxHolds);
+        LOGGER.info("Start Optimization. {} assets, BuyStrategyId: {}, SellStrategyId: {}, learningRate: {}, CovergeThreshold: {}, MaxIteration: {}, OptimizationGoal: {}, PercentPerTrade: {}, HoldDays: {}, MaxHolds: {}",
+                timeSeries.size(), buyStrategyId, sellStrategyId, step, convergeThreshold, iteration, optimizeGoal, percentPerTrade, holdDays, maxHolds);
         //start iteration
         do {
             iterationCount++;
@@ -95,6 +95,8 @@ public class GradientDescentOptimizer {
                 LOGGER.error("Invalid gradient {}, Iteration {}", gradients, iterationCount);
                 break;
             }
+            //Adjust step size based on gradient
+            adjustStepSize(gradients);
             //Update Parameters
             parameters = updateParameters(gradients);
 
@@ -110,14 +112,14 @@ public class GradientDescentOptimizer {
                 inertiaCount++;
             }
             //Recording
-            step = step * SUPPRESSOR;
-            probeValue = probeValue * SUPPRESSOR;
+
+
             parameterHistory.add(parameters);
             backTestingResults.add(currentResult);
             Double optimizationGoal = calculateOptimizationGoal(currentResult);
             optimizationGoals.add(optimizationGoal);
-            LOGGER.info("Iteration {} finished. {}: {}", iterationCount, optimizeGoal, optimizationGoal);
-            notifier.convertAndSend(topic, new ProgressMessage("InProgress", String.format("Optimizing your strategy: Iteration [%d], %s [%f]", iterationCount, optimizeGoal, optimizationGoal),50 + 50 * iterationCount / iteration));
+            LOGGER.info("Iteration {} finished. {}: {}, Parameters:{}, Step:{}", iterationCount, optimizeGoal, optimizationGoal, parameters, step);
+            notifier.convertAndSend(topic, new ProgressMessage("InProgress", String.format("Optimizing your strategy: Iteration [%d], %s [%f]", iterationCount, optimizeGoal, optimizationGoal), 50 + 50 * iterationCount / iteration));
         } while (!isConverged(lastResult, currentResult, iterationCount));
         result.setIterationNum(iterationCount);
         return result;
@@ -125,6 +127,7 @@ public class GradientDescentOptimizer {
 
     /**
      * Calculate parameter gradient based on a probe way
+     *
      * @param parameters
      * @return
      */
@@ -133,6 +136,7 @@ public class GradientDescentOptimizer {
         StringBuilder stringBuilder = new StringBuilder("Gradients:");
         //Calculate derivative
         for (int i = 0; i < parameters.size(); i++) {
+            Double probeValue = Math.abs(parameters.get(i) / 10);
             List<Double> x1 = parameters.stream().map(p -> p.doubleValue()).collect(Collectors.toList());
             x1.set(i, x1.get(i) + probeValue);
             List<Double> x2 = parameters.stream().map(p -> p.doubleValue()).collect(Collectors.toList());
@@ -150,6 +154,7 @@ public class GradientDescentOptimizer {
 
     /**
      * Input the parameter to evaluate the strategy performance
+     *
      * @param parameters
      * @return
      */
@@ -178,7 +183,7 @@ public class GradientDescentOptimizer {
         return new BackTestingResult(
                 "All",
                 tradingCount,
-                tradingCount == 0 ? 0 : (profitTradesRatio/tradingCount),
+                tradingCount == 0 ? 0 : (profitTradesRatio / tradingCount),
                 rewardRiskRatioCount == 0 ? 0 : rewardRiskRatio / rewardRiskRatioCount,
                 vsBuyAndHold / timeSeries.size(),
                 totalProfit,
@@ -189,12 +194,13 @@ public class GradientDescentOptimizer {
 
     /**
      * Update parameters based on the gradient
+     *
      * @param gradients
      * @return
      */
     private List<Double> updateParameters(List<Double> gradients) {
         List<Double> newParameters = new ArrayList<>();
-        for (int i = 0 ; i < gradients.size(); i++) {
+        for (int i = 0; i < gradients.size(); i++) {
             newParameters.add(parameters.get(i) + step * gradients.get(i));
         }
         return newParameters;
@@ -202,6 +208,7 @@ public class GradientDescentOptimizer {
 
     /**
      * Check if learning is converged
+     *
      * @param lastResult
      * @param currentResult
      * @param iterationCount
@@ -220,6 +227,7 @@ public class GradientDescentOptimizer {
 
     /**
      * Check if gradient is valid
+     *
      * @param gradients
      * @return
      */
@@ -231,8 +239,28 @@ public class GradientDescentOptimizer {
         }
         return true;
     }
+
+    private void adjustStepSize(List<Double> gradients) {
+        //If it's first iteration, adjust step dynamically
+        boolean suitable = false;
+        while (!suitable) {
+            suitable = true;
+            for (int i = 0; i < gradients.size(); i++) {
+                if ((Math.abs(parameters.get(i)) + 0.1) /2 < Math.abs(gradients.get(i) * step)) {
+                    //If any change for any parameter is bigger than parameter itself
+                    //Then it's a big change should decrease step size
+                    //Plus SUPPRESSOR to handle parameter = 0 case
+                    suitable = false;
+                    break;
+                }
+            }
+            step = step * SUPPRESSOR;
+        }
+    }
+
     /**
      * Calculate loss based on the optimization goal
+     *
      * @param result
      * @return
      */
@@ -240,7 +268,7 @@ public class GradientDescentOptimizer {
         if (optimizeGoal.equals(OptimizationType.AVG_PROFIT.name())) {
             return result.getTotalProfit() / result.getTradingCount();
         } else {
-            return Math.pow(result.getTotalProfit() / result.getTradingCount() * percentPerTrade + 1, holdDays / result.getAverageHoldingDays() * maxHolds) - 1;
+            return result.getTotalProfit();
         }
     }
 }
