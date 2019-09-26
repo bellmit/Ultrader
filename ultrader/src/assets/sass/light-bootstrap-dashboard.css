@@ -4830,7 +4830,7 @@ h1 .subtitle {
       width: 30px;
       text-align: center;
       margin-left: 27px;
-      margin-right: 15px;
+      margin-right: 27px;
       position: relative; }
     .sidebar .logo a.logo-normal {
       height: 40px;
@@ -4865,7 +4865,7 @@ h1 .subtitle {
   .sidebar .nav i {
     font-size: 24px;
     float: left;
-    margin-right: 15px;
+    margin-right: 27px;
     line-height: 30px;
     width: 30px;
     text-align: center; }
@@ -4908,7 +4908,7 @@ h1 .subtitle {
   .sidebar .nav i {
     font-size: 28px;
     float: left;
-    margin-right: 15px;
+    margin-right: 27px;
     line-height: 30px;
     width: 30px;
     text-align: center; }
