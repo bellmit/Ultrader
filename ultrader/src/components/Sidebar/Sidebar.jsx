@@ -63,7 +63,7 @@ class Sidebar extends Component {
             </div>
           </a>
           <a href="http://www.ultraderbot.com" className="simple-text logo-normal">
-            Ultra Trader
+            ULTRADER
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">
