@@ -19,6 +19,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { isFloat, isInt } from "helpers/ParseHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
+import { tooltip } from "helpers/TooltipHelper";
 
 var booleanOptions = [
   { value: "true", label: "true" },
@@ -33,12 +34,14 @@ export default class EditAssetListComp extends React.Component {
     this.validate = this.validate.bind(this);
     this.saveAssetList = this.saveAssetList.bind(this);
     this.onAssetsInputChange = this.onAssetsInputChange.bind(this);
+    this.handleAssetsChange = this.handleAssetsChange.bind(this);
 
     this.state = {
       assetListName: this.props.assetList.name,
       assetListDescription: this.props.assetList.description,
       selectedAssetsOptions: [],
-      selectedAssetsList: this.props.assetList.symbols
+      selectedAssetsList: this.props.assetList.symbols,
+      assetsError: null
     };
   }
 
@@ -92,6 +95,23 @@ export default class EditAssetListComp extends React.Component {
     });
   }
 
+  handleAssetsChange(event) {
+    var regex = /^([A-Z]{1,5}?,)*([A-Z]{1,5}?)+$/;
+    this.setState({
+      selectedAssetsList: event.target.value
+    });
+    !regex.test(event.target.value)
+      ? this.setState({
+          assetsError: (
+            <small className="text-danger">
+              Please enter 5 or less capital letters stock symbols separated by
+              commas (AAPL,GOOGL).
+            </small>
+          )
+        })
+      : this.setState({ assetsError: null });
+  }
+
   render() {
     const { assetsInputValue, assetsMenuOpen } = this.state;
     return (
@@ -101,7 +121,7 @@ export default class EditAssetListComp extends React.Component {
             <Col md={8} mdOffset={2}>
               <Card
                 textCenter
-                title="Add A AssetList"
+                title="Edit A AssetList"
                 content={
                   <Form horizontal>
                     <fieldset>
@@ -141,9 +161,13 @@ export default class EditAssetListComp extends React.Component {
                     <fieldset>
                       <FormGroup>
                         <ControlLabel className="col-sm-2">
-                          AssetList Type
+                          Assets{" "}
+                          {tooltip(
+                            "Please enter 5 or less capital letters stock symbols separated by commas (AAPL,GOOGL)."
+                          )}
                         </ControlLabel>
                         <Col sm={10}>
+                          {/*
                           <WindowedSelect
                             isMulti
                             value={this.props.selectedAssetsOptions}
@@ -156,7 +180,17 @@ export default class EditAssetListComp extends React.Component {
                             id="TRADE_EXCHANGE_LIST"
                             options={this.props.assetOptions}
                             menuIsOpen={assetsMenuOpen}
+                          />*/}
+                          <textarea
+                            className="form-control"
+                            id="exampleFormControlTextarea1"
+                            placeholder="Please enter 5 or less capital letters stock symbols separated by commas (AAPL,GOOGL)."
+                            rows="5"
+                            value={this.state.selectedAssetsList}
+                            onChange={event => this.handleAssetsChange(event)}
                           />
+
+                          {this.state.assetsError}
                         </Col>
                       </FormGroup>
                     </fieldset>
