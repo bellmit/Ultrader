@@ -238,6 +238,7 @@ class OptimizationComp extends Component {
     ) {
       return true;
     } else {
+      alertError("Please fill all fields.");
       return false;
     }
   }
@@ -250,7 +251,8 @@ class OptimizationComp extends Component {
     });
   }
 
-  search() {
+  search(e) {
+    e.preventDefault();
     if (this.validate() && !this.state.inTesting) {
       this.setState({ inTesting: true });
       this.getOptimization();
@@ -286,7 +288,7 @@ class OptimizationComp extends Component {
                   </p>
                   </div>
                 <Collapse in={this.state.showInputs}>
-                  <form>
+                  <form onSubmit={this.search}>
                     <FormGroup>
                       <ControlLabel>Start Date {tooltip("Start date of the training data")}</ControlLabel>
                       <Datetime
@@ -385,7 +387,7 @@ class OptimizationComp extends Component {
                       onClick={this.search.bind(this)}
                       color="info"
                       style={{ textAlign: "center" }}
-                    >
+                      type="submit">
                       Optimize
                     </Button>
                   </form>

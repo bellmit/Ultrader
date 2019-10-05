@@ -98,7 +98,7 @@ class LoginPageComp extends Component {
       <Grid>
         <Row>
           <Col md={4} sm={6} mdOffset={4} smOffset={3}>
-            <form>
+            <form onSubmit={this.handleSubmit}>
               <Card
                 hidden={this.state.cardHidden}
                 textCenter
@@ -127,7 +127,7 @@ class LoginPageComp extends Component {
                   </div>
                 }
                 legend={
-                  <Button bsStyle="info" fill wd onClick={this.handleSubmit}>
+                  <Button bsStyle="info" fill wd onClick={this.handleSubmit} type="submit">
                     Login
                   </Button>
                 }

@@ -23,6 +23,7 @@ class RegisterPageComp extends Component {
     this.handlePasswordChange = this.handlePasswordChange.bind(this);
     this.handleCfPasswordChange = this.handleCfPasswordChange.bind(this);
     this.handleRegisterSubmit = this.handleRegisterSubmit.bind(this);
+    this.validate = this.validate.bind(this);
     this.state = {
       // Register
       username: "",
@@ -75,30 +76,18 @@ class RegisterPageComp extends Component {
       : this.setState({ cfpasswordError: null });
   }
 
-  handleRegisterSubmit() {
-    !this.state.username
-      ? this.setState({
-          usernameError: (
-            <small className="text-danger">Username is required.</small>
-          )
-        })
-      : this.setState({ usernameError: null });
-    this.state.password.length < 6
-      ? this.setState({
-          passwordError: (
-            <small className="text-danger">
-              You must enter a password of at least 6 characters.
-            </small>
-          )
-        })
-      : this.setState({ passwordError: null });
-    this.state.cfpassword !== this.state.password
-      ? this.setState({
-          cfpasswordError: (
-            <small className="text-danger">Passwords do not match.</small>
-          )
-        })
-      : this.setState({ cfpasswordError: null });
+  validate() {
+    return (
+      this.state.username &&
+      this.state.password.length > 6 &&
+      this.state.cfpassword == this.state.password
+    );
+  }
+
+
+  handleRegisterSubmit(e) {
+    e.preventDefault();
+    if (this.validate()) {
 
     axiosPostWithAuth("/api/user/addRootUser", {
       username: this.state.username,
@@ -113,8 +102,13 @@ class RegisterPageComp extends Component {
         }
       })
       .catch(error => {
-        alertError(error);
+          if (error.response.status == 409) {
+            alertError("Username or email already in use!");
+          } else {
+            alertError(error);
+          }
       });
+    }
   }
 
   render() {
@@ -133,7 +127,7 @@ class RegisterPageComp extends Component {
             </div>
           </Col>
           <Col md={8} mdOffset={2}>
-            <form>
+            <form onSubmit={this.handleRegisterSubmit}>
               <Card
                 plain
                 content={
@@ -183,7 +177,7 @@ class RegisterPageComp extends Component {
                     fill
                     pullRight
                     onClick={this.handleRegisterSubmit.bind(this)}
-                  >
+                    type="submit">
                     Register
                   </Button>
                 }

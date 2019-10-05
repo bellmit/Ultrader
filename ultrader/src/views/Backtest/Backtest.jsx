@@ -291,7 +291,8 @@ class BacktestComp extends Component {
     });
   }
 
-  search() {
+  search(e) {
+    e.preventDefault();
     if (this.validate() && !this.state.inTesting) {
       this.setState({ inTesting: true });
       this.getBacktest();
@@ -326,7 +327,7 @@ class BacktestComp extends Component {
                   </div>
 
                 <Collapse in={this.state.showInputs}>
-                 <form>
+                  <form onSubmit={this.search}>
                     <FormGroup>
                       <ControlLabel>Start Date {tooltip("Start date of the testing data")}</ControlLabel>
                       <Datetime
@@ -401,7 +402,7 @@ class BacktestComp extends Component {
                       onClick={this.search.bind(this)}
                       color="info"
                       style={{ textAlign: "center" }}
-                    >
+                      type="submit">
                       Test
                     </Button>
                   </form>
