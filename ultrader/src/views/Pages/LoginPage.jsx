@@ -29,7 +29,20 @@ class LoginPageComp extends Component {
     this.handleSubmit = this.handleSubmit.bind(this);
     this.login = this.login.bind(this);
   }
+
   componentDidMount() {
+    axiosGetWithAuth("/api/user/hasUsers")
+      .then(res => {
+        // if there is no users, redirect to register
+        if (!res.data) {
+          window.location = "/#/pages/register-page";
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
+
     setTimeout(
       function() {
         this.setState({ cardHidden: false });
@@ -127,7 +140,13 @@ class LoginPageComp extends Component {
                   </div>
                 }
                 legend={
-                  <Button bsStyle="info" fill wd onClick={this.handleSubmit} type="submit">
+                  <Button
+                    bsStyle="info"
+                    fill
+                    wd
+                    onClick={this.handleSubmit}
+                    type="submit"
+                  >
                     Login
                   </Button>
                 }

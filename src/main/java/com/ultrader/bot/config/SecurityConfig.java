@@ -112,6 +112,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 //User Controller
                 .antMatchers("/api/user/addRootUser/**").permitAll()
                 .antMatchers("/api/user/getUserType/**").permitAll()
+                .antMatchers("/api/user/hasUsers/**").permitAll()
                 .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString())
                 //Strategy Controller
                 .antMatchers("/api/strategy/getStrategy/**").permitAll()

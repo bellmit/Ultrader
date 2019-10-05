@@ -66,6 +66,17 @@ public class UserController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/hasUsers")
+    @ResponseBody
+    public boolean hasUsers() {
+        try {
+            return userDao.count() > 0;
+        } catch (Exception e) {
+            LOGGER.error("Has users failed.", e);
+            return false;
+        }
+    }
+
     @RequestMapping(method = RequestMethod.GET, value = "/getUser/{id}")
     @ResponseBody
     public User getUser(@PathVariable Long id) {
