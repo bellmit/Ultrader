@@ -1,7 +1,9 @@
 package com.ultrader.bot.monitor;
 
+import com.ultrader.bot.dao.AssetListDao;
 import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.dao.SettingDao;
+import com.ultrader.bot.model.AssetList;
 import com.ultrader.bot.model.Notification;
 import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.MarketDataService;
@@ -34,6 +36,7 @@ public class MarketDataMonitor extends Monitor {
     private final SettingDao settingDao;
     private final SimpMessagingTemplate notifier;
     private final NotificationDao notificationDao;
+    private final AssetListDao assetListDao;
 
     private boolean firstRun = true;
     private Date lastUpdateDate;
@@ -44,6 +47,7 @@ public class MarketDataMonitor extends Monitor {
                               final TradingService tradingService,
                               final MarketDataService marketDataService,
                               final SettingDao settingDao,
+                              final AssetListDao assetListDao,
                               final SimpMessagingTemplate notifier,
                               final NotificationDao notificationDao) {
         super(interval);
@@ -52,11 +56,13 @@ public class MarketDataMonitor extends Monitor {
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(notifier, "notifier is required");
         Validate.notNull(notificationDao, "notificationDao is required");
+        Validate.notNull(assetListDao, "assetListDao is required");
         this.settingDao = settingDao;
         this.marketDataService = marketDataService;
         this.tradingService = tradingService;
         this.notifier = notifier;
         this.notificationDao = notificationDao;
+        this.assetListDao = assetListDao;
     }
 
     @Override
@@ -98,7 +104,14 @@ public class MarketDataMonitor extends Monitor {
             LOGGER.debug(String.format("Found %d stocks in the exchanges.", stockInExchange.size()));
             //Filter by list
             boolean isWhiteList = Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.WHITE_LIST_ENABLE.getName(), "true"));
-            Set<String> customizedStockList = new HashSet<>(Arrays.asList(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_STOCK_LIST.getName(), "AMZN,AAPL,NVDA,GOOGL").split(DELIMITER)));
+            String assetList = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_STOCK_LIST.getName(), "");
+            Set<String> customizedStockList = new HashSet<>();
+            if (!assetList.isEmpty()) {
+                Optional<AssetList> assets = assetListDao.findById(assetList);
+                if (assets.isPresent()) {
+                    customizedStockList = new HashSet<>(Arrays.asList(assets.get().getSymbols().split(DELIMITER)));
+                }
+            }
             Set<String> watchList = new HashSet<>();
             for(String stock : stockInExchange) {
                 if(isWhiteList && customizedStockList.contains(stock)) {
@@ -222,6 +235,7 @@ public class MarketDataMonitor extends Monitor {
                             TradingService tradingService,
                             MarketDataService marketDataService,
                             SettingDao settingDao,
+                            AssetListDao assetListDao,
                             SimpMessagingTemplate notifier,
                             NotificationDao notificationDao) {
         singleton_instance = new MarketDataMonitor(
@@ -229,6 +243,7 @@ public class MarketDataMonitor extends Monitor {
                 tradingService,
                 marketDataService,
                 settingDao,
+                assetListDao,
                 notifier,
                 notificationDao);
     }

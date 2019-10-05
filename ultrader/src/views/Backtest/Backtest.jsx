@@ -314,8 +314,19 @@ class BacktestComp extends Component {
           <Card
             content={
               <div>
+                  <div  className={'alert alert-warning'}>
+                  <strong>Warning!</strong>
+                  <p>
+                    Test longer date range or more assets will cost more system resource and impact the Ultrader functions if the memory is not sufficient.
+                  </p>
+                  <p>
+                  Please choose appropriate date range and asset list and test on hosts which have bigger memory.
+                  It's recommended to run the back test after the market is closed.
+                  </p>
+                  </div>
+
                 <Collapse in={this.state.showInputs}>
-                  <form>
+                 <form>
                     <FormGroup>
                       <ControlLabel>Start Date {tooltip("Start date of the testing data")}</ControlLabel>
                       <Datetime
@@ -394,6 +405,7 @@ class BacktestComp extends Component {
                       Test
                     </Button>
                   </form>
+
                 </Collapse>
                 <div style={{ textAlign: "center" }}>
                   <Button

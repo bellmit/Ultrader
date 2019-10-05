@@ -57,9 +57,9 @@ public enum RuleType {
                     "Satisfied when the difference of the indicator current value and its previous value is below the Upper Threshold and above the Lower Threshold. It can test both, positive and negative slope."},
             new String[]{
                     "Indicator|Integer N|Upper Threshold",
-                    "Indicator|Integer N|Upper Threshold|Lower Threshold",
+                    "Indicator|Integer N|Lower Threshold|Upper Threshold",
                     "Indicator|Lower Threshold",
-                    "Indicator|Upper Threshold|Lower Threshold"}),
+                    "Indicator|Lower Threshold|Upper Threshold"}),
 
     IsEqualRule("IsEqualRule", "Is Equal Rule",
             new String[]{

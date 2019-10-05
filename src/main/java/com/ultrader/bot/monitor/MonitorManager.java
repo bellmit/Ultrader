@@ -42,6 +42,8 @@ public class MonitorManager implements CommandLineRunner {
     @Autowired
     private ChartDao chartDao;
     @Autowired
+    private AssetListDao assetListDao;
+    @Autowired
     private PositionDao positionDao;
     @Autowired
     private NotificationDao notificationDao;
@@ -66,7 +68,7 @@ public class MonitorManager implements CommandLineRunner {
         threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
         //Start MarketDate Monitor
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")) * 1000;
-        MarketDataMonitor.init(interval, tradingPlatform.getTradingService(), tradingPlatform.getMarketDataService(), settingDao, feedbackNotifier, notificationDao);
+        MarketDataMonitor.init(interval, tradingPlatform.getTradingService(), tradingPlatform.getMarketDataService(), settingDao, assetListDao, feedbackNotifier, notificationDao);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
 
 

@@ -43,6 +43,7 @@ public class StrategyController {
     private static Logger LOGGER = LoggerFactory.getLogger(StrategyController.class);
     private static final String BACKTEST_TOPIC = "/topic/progress/backtest";
     private static final String OPTIMIZATION_TOPIC = "/topic/progress/optimize";
+    private static final int BACKTEST_BATCH_SIZE = 5;
     @Autowired
     private StrategyDao strategyDao;
 
@@ -175,18 +176,40 @@ public class StrategyController {
         interval = interval * 1000;
         List<BackTestingResult> results = new ArrayList<>();
         List<TimeSeries> timeSeriesList = new ArrayList<>();
+        int count = 0;
+        int total = stocks.split(",").length;
         for (String stock : stocks.split(",")) {
             TimeSeries timeSeries = new BaseTimeSeries(stock);
             timeSeriesList.add(timeSeries);
+            if (timeSeriesList.size() == BACKTEST_BATCH_SIZE) {
+                notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("InProgress", "Back test " + timeSeriesList.stream().map(s -> s.getName()).collect(Collectors.toList()),100 * count / total));
+                List<BackTestingResult> batchResults = backtestAsset(timeSeriesList, startDate, endDate, interval, buyStrategyId, sellStrategyId);
+                if (batchResults != null) {
+                    results.addAll(batchResults);
+                }
+                count += BACKTEST_BATCH_SIZE;
+                timeSeriesList.clear();
+            }
         }
+        if (timeSeriesList.size() > 0) {
+            notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("InProgress", "Back test " + timeSeriesList.stream().map(s -> s.getName()).collect(Collectors.toList()),100 * count / total));
+            List<BackTestingResult> batchResults = backtestAsset(timeSeriesList, startDate, endDate, interval, buyStrategyId, sellStrategyId);
+            if (batchResults != null) {
+                results.addAll(batchResults);
+            }
+        }
+        notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("Completed", "Back Test Completed",100));
+        return new ResponseEntity<Iterable<BackTestingResult>>(results, HttpStatus.OK);
+    }
+
+    private List<BackTestingResult> backtestAsset(List<TimeSeries> timeSeriesList, LocalDateTime startDate, LocalDateTime endDate, long interval, int buyStrategyId, int sellStrategyId) {
+        List<BackTestingResult> results = new ArrayList<>();
         try {
             //Load market data
-            tradingPlatform.getMarketDataService().getTimeSeries(timeSeriesList, interval, startDate, endDate, notifier, BACKTEST_TOPIC);
-            notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("InProgress", "Loading history market data",50));
+            tradingPlatform.getMarketDataService().getTimeSeries(timeSeriesList, interval, startDate, endDate, null, BACKTEST_TOPIC);
         } catch (Exception e) {
             LOGGER.error("Load back test data failed.", e);
-            notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("Error", "Loading history market data failed",50));
-            return new ResponseEntity<Iterable<BackTestingResult>>(HttpStatus.FAILED_DEPENDENCY);
+            return null;
         }
         //Check time series
         boolean hasResponse = false;
@@ -196,12 +219,10 @@ public class StrategyController {
             }
         }
         if (!hasResponse) {
-            LOGGER.error("Cannot load history data for {}", stocks);
-            return new ResponseEntity<Iterable<BackTestingResult>>(HttpStatus.FAILED_DEPENDENCY);
+            return null;
         }
         int count = 0;
         for (TimeSeries timeSeries : timeSeriesList) {
-            notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("InProgress", "Back test " + timeSeries.getName(),50 + 50 * count / timeSeriesList.size()));
             BackTestingResult result = backTest(timeSeries, buyStrategyId, sellStrategyId, strategyDao, ruleDao, null);
             if (result == null) {
                 continue;
@@ -209,8 +230,7 @@ public class StrategyController {
             results.add(result);
             count++;
         }
-        notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("Completed", "Back Test Completed",100));
-        return new ResponseEntity<Iterable<BackTestingResult>>(results, HttpStatus.OK);
+        return results;
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/optimizeStrategyByDate")

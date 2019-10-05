@@ -275,6 +275,16 @@ class OptimizationComp extends Component {
           <Card
             content={
               <div>
+                  <div className={'alert alert-warning'}>
+                  <strong>Warning!</strong>
+                  <p>
+                    Use longer date range or more assets will cost more system resource and impact the Ultrader functions if the memory is not sufficient.
+                  </p>
+                  <p>
+                  Please choose appropriate date range and asset list and optimize on hosts which have bigger memory.
+                  It's recommended to run the optimization after the market is closed.
+                  </p>
+                  </div>
                 <Collapse in={this.state.showInputs}>
                   <form>
                     <FormGroup>

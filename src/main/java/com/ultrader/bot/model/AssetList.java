@@ -22,6 +22,6 @@ public class AssetList {
     private String name;
     @Column(name="description")
     private String description;
-    @Column(name="symbols", nullable=false)
+    @Column(name="symbols", nullable=false, length = 30000)
     private String symbols;
 }

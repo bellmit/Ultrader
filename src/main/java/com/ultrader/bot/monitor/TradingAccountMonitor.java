@@ -4,6 +4,7 @@ import com.ultrader.bot.dao.*;
 import com.ultrader.bot.model.*;
 import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.TradingService;
+import com.ultrader.bot.util.NotificationType;
 import com.ultrader.bot.util.NotificationUtil;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
@@ -35,7 +36,6 @@ public class TradingAccountMonitor extends Monitor {
     private final ChartDao chartDao;
     private final PositionDao positionDao;
     private final NotificationDao notificationDao;
-
 
     private TradingAccountMonitor(long interval,
                                   final TradingService tradingService,
