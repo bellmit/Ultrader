@@ -38,6 +38,7 @@ class Step2 extends React.Component {
       exchangeMenuOpen: null,
       exchangeInputValue: null
     };
+
   }
 
   render() {
@@ -74,21 +75,6 @@ class Step2 extends React.Component {
                         onChange={option =>
                           this.props.selectMarketDataPlatformOption(option)
                         }
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <ControlLabel>Trade Exchange List {tooltip("TradeExchangeList")}</ControlLabel>
-                      <Select
-                        isMulti
-                        value={this.props.selectedExchangeOptions}
-                        isClearable
-                        isSearchable
-                        inputValue={inputValue}
-                        onChange={this.props.onExchangeInputChange}
-                        name="exchange"
-                        id="TRADE_EXCHANGE_LIST"
-                        options={exchangeOptions}
-                        menuIsOpen={menuIsOpen}
                       />
                     </FormGroup>
                   </form>

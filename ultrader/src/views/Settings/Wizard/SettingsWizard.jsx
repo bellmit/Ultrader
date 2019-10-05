@@ -45,7 +45,9 @@ class SettingsWizardComp extends Component {
       selectedTradingPlatformOption: selectedTradingPlatformOption
     });
     this.props.onAddSetting("GLOBAL_TRADING_PLATFORM", option.value);
-    this.props.onAddSetting("TRADE_WHITE_LIST_ENABLE", false);
+    this.props.onAddSetting("TRADE_WHITE_LIST_ENABLE", true);
+    this.props.onAddSetting("TRADE_STOCK_LIST", "ULTRADER 600");
+    this.props.onAddSetting("TRADE_EXCHANGE_LIST", "NASDAQ,NYSE,NYSEARCA");
     this.props.onAddSetting("TRADE_PRICE_LIMIT_MAX", 2000);
     this.props.onAddSetting("TRADE_PRICE_LIMIT_MIN", 1);
     this.props.onAddSetting("TRADE_PERIOD_SECOND", 300);

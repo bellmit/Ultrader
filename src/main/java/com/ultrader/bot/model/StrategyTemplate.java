@@ -4,52 +4,76 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum StrategyTemplate {
-    MACD("MACD", "基于MACD的高级策略", "<p>买入策略: 当前期小范围震荡且MACD出现V字型且MACD大于0.5 </p><p>卖出策略: （当MACD出现A字型且盈利3%）或者亏损5%</p>","{\n" +
-            "\t\"strategies\": [{\n" +
-            "\t\t\"id\": 7,\n" +
-            "\t\t\"name\": \"MACD买入策略\",\n" +
-            "\t\t\"description\": \"基于MACD的高级买入策略\",\n" +
-            "\t\t\"type\": \"Buy\",\n" +
-            "\t\t\"formula\": \"5&,4\"\n" +
-            "\t}, {\n" +
-            "\t\t\"id\": 8,\n" +
-            "\t\t\"name\": \"MACD卖出策略\",\n" +
-            "\t\t\"description\": \"基于MACD的高级卖出策略\",\n" +
-            "\t\t\"type\": \"Sell\",\n" +
-            "\t\t\"formula\": \"6&,3|,2\"\n" +
-            "\t}],\n" +
-            "\t\"rules\": [{\n" +
-            "\t\t\"id\": 2,\n" +
-            "\t\t\"name\": \"亏了5%\",\n" +
-            "\t\t\"description\": \"跌5%时止损\",\n" +
-            "\t\t\"type\": \"StopLossRule\",\n" +
-            "\t\t\"formula\": \"ClosePrice,Number:5\"\n" +
-            "\t}, {\n" +
-            "\t\t\"id\": 3,\n" +
-            "\t\t\"name\": \"盈利3%\",\n" +
-            "\t\t\"description\": \"3% 止盈\",\n" +
-            "\t\t\"type\": \"StopGainRule\",\n" +
-            "\t\t\"formula\": \"ClosePrice,Number:3\"\n" +
-            "\t}, {\n" +
-            "\t\t\"id\": 4,\n" +
-            "\t\t\"name\": \"MACD大于0.5\",\n" +
-            "\t\t\"description\": \"MACD从小于0.5变成大于0.5\",\n" +
-            "\t\t\"type\": \"CrossedUpIndicatorRule\",\n" +
-            "\t\t\"formula\": \"MACDIndicator:ClosePrice:12:26,Number:0.5\"\n" +
-            "\t}, {\n" +
-            "\t\t\"id\": 5,\n" +
-            "\t\t\"name\": \"MACD V型\",\n" +
-            "\t\t\"description\": \"MACD 出现V型 在过去36个数据点中\",\n" +
-            "\t\t\"type\": \"IsHighestRule\",\n" +
-            "\t\t\"formula\": \"MACDIndicator:ClosePrice,Integer:36\"\n" +
-            "\t}, {\n" +
-            "\t\t\"id\": 6,\n" +
-            "\t\t\"name\": \"MACD A型\",\n" +
-            "\t\t\"description\": \"MACD 出现A型 在过去24个数据点中\",\n" +
-            "\t\t\"type\": \"IsLowestRule\",\n" +
-            "\t\t\"formula\": \"MACDIndicator:ClosePrice,Integer:24\"\n" +
-            "\t}]\n" +
-            "}");
+    SWING_TRADING("SwingTrading", "基于MACD，RSI，DEMA短线交易策略", "<p>买入策略: 基于MACD，RSI和DEMA的短线买入策略 </p><p>卖出策略: 在停止上涨或达到止损、持有时间过长后卖出的策略</p>",
+            "{ \n" +
+                    "   \"strategies\":[ \n" +
+                    "      { \n" +
+                    "         \"id\":9,\n" +
+                    "         \"name\":\"基于MACD,RSI，DEMA的买入策略\",\n" +
+                    "         \"description\":\"针对ULTRADER 600优化的短线买入策略\",\n" +
+                    "         \"type\":\"Buy\",\n" +
+                    "         \"formula\":\"4&,6&,8\"\n" +
+                    "      },\n" +
+                    "      { \n" +
+                    "         \"id\":10,\n" +
+                    "         \"name\":\"基于RSI卖出策略\",\n" +
+                    "         \"description\":\"适用于短线的卖出策略\",\n" +
+                    "         \"type\":\"Sell\",\n" +
+                    "         \"formula\":\"3&,7|,2|,5\"\n" +
+                    "      }\n" +
+                    "   ],\n" +
+                    "   \"rules\":[ \n" +
+                    "      { \n" +
+                    "         \"id\":2,\n" +
+                    "         \"name\":\"亏损3%\",\n" +
+                    "         \"description\":\"下跌3%时止损\",\n" +
+                    "         \"type\":\"StopLossRule\",\n" +
+                    "         \"formula\":\"ClosePrice,Number:3\"\n" +
+                    "      },\n" +
+                    "      { \n" +
+                    "         \"id\":3,\n" +
+                    "         \"name\":\"盈利1%\",\n" +
+                    "         \"description\":\"上涨1%时止盈\",\n" +
+                    "         \"type\":\"StopGainRule\",\n" +
+                    "         \"formula\":\"ClosePrice,Number:1\"\n" +
+                    "      },\n" +
+                    "      { \n" +
+                    "         \"id\":4,\n" +
+                    "         \"name\":\"MACD小于-0.06\",\n" +
+                    "         \"description\":\"MACD从小于-0.06\",\n" +
+                    "         \"type\":\"UnderIndicatorRule\",\n" +
+                    "         \"formula\":\"MACDIndicator:ClosePrice,Number:-0.06\"\n" +
+                    "      },\n" +
+                    "      { \n" +
+                    "         \"id\":5,\n" +
+                    "         \"name\":\"Hold 7天\",\n" +
+                    "         \"description\":\"hold不超过7天 （604800秒）\",\n" +
+                    "         \"type\":\"StopHoldRule\",\n" +
+                    "         \"formula\":\"ClosePrice,Integer:604800\"\n" +
+                    "      },\n" +
+                    "      { \n" +
+                    "         \"id\":6,\n" +
+                    "         \"name\":\"RSI 超卖\",\n" +
+                    "         \"description\":\"RSI 从下穿越30\",\n" +
+                    "         \"type\":\"CrossedUpIndicatorRule\",\n" +
+                    "         \"formula\":\"RSIIndicator:ClosePrice:14,Number:30\"\n" +
+                    "      },\n" +
+                    "      { \n" +
+                    "         \"id\":7,\n" +
+                    "         \"name\":\"RSI 超买\",\n" +
+                    "         \"description\":\"RSI 从上穿越70\",\n" +
+                    "         \"type\":\"CrossedDownIndicatorRule\",\n" +
+                    "         \"formula\":\"RSIIndicator:ClosePrice:14,Number:70\"\n" +
+                    "      },\n" +
+                    "      { \n" +
+                    "         \"id\":8,\n" +
+                    "         \"name\":\"整理阶段\",\n" +
+                    "         \"description\":\"Double EMA在过去36个Bar内斜率稳定\",\n" +
+                    "         \"type\":\"InSlopeRule\",\n" +
+                    "         \"formula\":\"DoubleEMAIndicator:ClosePrice:50,Integer:36,Number:-0.6,Number:0.6\"\n" +
+                    "      }\n" +
+                    "   ]\n" +
+                    "}");
 
     private String id;
     private String name;

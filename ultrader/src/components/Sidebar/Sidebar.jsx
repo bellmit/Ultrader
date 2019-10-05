@@ -12,7 +12,7 @@ import image from "assets/img/blur-chart-data-159888.jpg";
 
 // logo for sidebar
 import logo from "logo.png";
-import logoText from "assets/img/logo.png";
+import logoText from "assets/img/banner.png";
 
 import dashboardRoutes from "routes/dashboard.jsx";
 
@@ -57,13 +57,8 @@ class Sidebar extends Component {
       <div className="sidebar" data-color="black" data-image={image}>
         <div className="sidebar-background" style={bgImage} />
         <div className="logo">
-          <a href="http://www.ultraderbot.com" className="simple-text logo-mini">
-            <div className="logo-img">
-              <img src={logo} alt="react-logo" />
-            </div>
-          </a>
           <a href="http://www.ultraderbot.com" className="simple-text logo-normal">
-            ULTRADER
+              <img src={logoText} alt="Ultrader" style={{height:40, width:244}}/>
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">

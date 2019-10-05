@@ -1,7 +1,10 @@
 package com.ultrader.bot.controller;
 
+import com.ultrader.bot.dao.AssetListDao;
 import com.ultrader.bot.dao.UserDao;
+import com.ultrader.bot.model.AssetList;
 import com.ultrader.bot.model.User;
+import com.ultrader.bot.util.DefaultSetting;
 import com.ultrader.bot.util.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +24,8 @@ public class UserController {
 
     @Autowired
     private UserDao userDao;
+    @Autowired
+    private AssetListDao assetListDao;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -47,6 +52,7 @@ public class UserController {
             user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
             user.setRoleId(UserType.ADMIN.getId().toString());
             User savedUser = userDao.save(user);
+            initDatabase();
             return savedUser;
         } catch (Exception e) {
             LOGGER.error("Save user failed.", e);
@@ -54,6 +60,11 @@ public class UserController {
         }
     }
 
+    private void initDatabase() {
+        assetListDao.save(DefaultSetting.NASDAQ100);
+        assetListDao.save(DefaultSetting.SP500);
+        assetListDao.save(DefaultSetting.ULTRADER600);
+    }
     @RequestMapping(method = RequestMethod.GET, value = "/getUsers")
     @ResponseBody
     public Iterable<User> getUsers() {
