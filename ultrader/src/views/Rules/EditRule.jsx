@@ -337,15 +337,14 @@ export default class EditRuleComp extends React.Component {
 
   selectRuleType(option) {
     let ruleFieldTypes = option ? option.value : [];
-    let index = -1;
     let ruleFieldTypeOptions = option
-      ? option.value.map(ruleFieldType => {
-          index++;
+      ? option.value.map((ruleFieldType,index) => {
           return { label: option.argName[index], value: ruleFieldType, description: option.descriptions[index] };
         })
       : [];
     let selectedRuleFieldTypeOption =
       ruleFieldTypeOptions.length > 0 ? ruleFieldTypeOptions[0] : {};
+
     this.initializeRuleFields(selectedRuleFieldTypeOption);
     this.setState({
       ruleFieldTypes: ruleFieldTypes,
@@ -355,11 +354,41 @@ export default class EditRuleComp extends React.Component {
     });
   }
 
+  initializeRuleFields(selectedRuleFieldTypeOption) {
+    let ruleFields = selectedRuleFieldTypeOption.value.split("|");
+    var ruleFieldValues = ruleFields.map(ruleField => {
+      switch (ruleField) {
+        case "ClosePrice":
+        case "TimeSeries":
+          var ruleFieldValue = {
+            label: ruleField,
+            ruleFieldName: ruleField,
+            value: {
+              value: "N/A"
+            }
+          };
+          return ruleFieldValue;
+        default:
+          var ruleFieldValue = {
+            label: ruleField,
+            ruleFieldName: ruleField,
+            value: {
+              value: ""
+            }
+          };
+          return ruleFieldValue;
+      }
+    });
+    this.setState({
+      ruleFieldValues: ruleFieldValues
+    });
+  }
+
   setValueAndPopulateIndicatorArgs(ruleFieldName, ruleFieldValue, index) {
     switch (ruleFieldName) {
       case "NumIndicator":
         if (ruleFieldValue && ruleFieldValue.args) {
-          let indicatorName = ruleFieldValue.name;
+          let indicatorName = ruleFieldValue.label;
           let indicatorArgs = ruleFieldValue.args.split("|");
           let indicatorArgName = ruleFieldValue.argName.split("|");
           let indicatorArgInputs = indicatorArgs.map((indicatorArg, i) => {
@@ -394,37 +423,6 @@ export default class EditRuleComp extends React.Component {
     }
   }
 
-  initializeRuleFields(selectedRuleFieldTypeOption) {
-    console.log(selectedRuleFieldTypeOption);
-    let ruleFields = selectedRuleFieldTypeOption.value.split("|");
-    var ruleFieldValues = ruleFields.map(ruleField => {
-      switch (ruleField) {
-        case "ClosePrice":
-        case "TimeSeries":
-          var ruleFieldValue = {
-            label: ruleField,
-            ruleFieldName: ruleField,
-            value: {
-              value: "N/A"
-            }
-          };
-          return ruleFieldValue;
-        default:
-          var ruleFieldValue = {
-            label: ruleField,
-            ruleFieldName: ruleField,
-            value: {
-              value: ""
-            }
-          };
-          return ruleFieldValue;
-      }
-    });
-    this.setState({
-      ruleFieldValues: ruleFieldValues
-    });
-  }
-
   ruleFields() {
     if (
       this.state.selectedRuleFieldTypeOption &&
@@ -438,7 +436,7 @@ export default class EditRuleComp extends React.Component {
             <fieldset>
               <FormGroup>
                 <ControlLabel className="col-sm-2">
-                  {ruleFieldName} {tooltip(this.state.ruleFieldValues[index].description)}
+                  {ruleFieldName} {ruleFieldType[index]==="NumIndicator"?tooltip(this.state.ruleFieldValues[index].description):""}
                 </ControlLabel>
                 <Col sm={10}>{this.ruleField(ruleFieldType[index], index)}</Col>
               </FormGroup>
@@ -456,6 +454,7 @@ export default class EditRuleComp extends React.Component {
     ruleFieldValues[index] = {
       label: ruleFieldName,
       ruleFieldName: ruleFieldName,
+      description: ruleFieldValue.description,
       value: {
         value: ruleFieldValue
       }
