@@ -63,7 +63,7 @@ public class AssetController {
             List<Asset> assets = new ArrayList<>();
             for (Map.Entry<String, Set<String>> entry : MarketDataMonitor.getInstance().getAvailableStock().entrySet()) {
                 for (String symbol : entry.getValue()) {
-                    assets.add(new Asset(symbol, "stock", entry.getKey(), symbol, "", true));
+                    assets.add(new Asset(symbol, "stock", entry.getKey(), symbol, "", true, null, null, null));
                 }
             }
             return assets;

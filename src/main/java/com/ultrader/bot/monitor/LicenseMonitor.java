@@ -2,25 +2,17 @@ package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.dao.SettingDao;
-import com.ultrader.bot.model.KeyVerificationRequest;
-import com.ultrader.bot.model.KeyVerificationResponse;
-import com.ultrader.bot.model.Notification;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.service.LicenseService;
-import com.ultrader.bot.util.NotificationUtil;
+import com.ultrader.bot.service.NotificationService;
+import com.ultrader.bot.util.NotificationType;
 import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingPlatformConstant;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.util.DigestUtils;
-import org.springframework.web.client.RestTemplate;
-
-import java.util.Date;
-import java.util.UUID;
 
 /**
  * License Monitor
@@ -33,24 +25,20 @@ public class LicenseMonitor extends Monitor {
     private boolean validLicense = false;
     private LicenseService licenseService;
     private SettingDao settingDao;
-    private SimpMessagingTemplate notifier;
-    private NotificationDao notificationDao;
+    private NotificationService notifier;
 
     private LicenseMonitor(long interval,
                            final LicenseService licenseService,
                            final SettingDao settingDao,
-                           final SimpMessagingTemplate notifier,
-                           final NotificationDao notificationDao) {
+                           final NotificationService notifier) {
         super(interval);
         Validate.notNull(licenseService, "licenseService is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(notifier, "notifier is required");
-        Validate.notNull(notificationDao, "notificationDao is required");
 
         this.licenseService = licenseService;
         this.settingDao = settingDao;
         this.notifier = notifier;
-        this.notificationDao = notificationDao;
     }
 
     @Override
@@ -70,32 +58,17 @@ public class LicenseMonitor extends Monitor {
             }
             if(StringUtils.isEmpty(ultraderKey) || StringUtils.isEmpty(ultraderSecret) || StringUtils.isEmpty(tradingKey)) {
                 LOGGER.error("Missing key settings.");
-                NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
-                        UUID.randomUUID().toString(),
-                        "ERROR",
-                        "Cannot find Ultra Trader key in your setting.",
-                        "License Failure",
-                        new Date()));
+                notifier.sendNotification("License Failure","Cannot find Ultra Trader key in your setting.", NotificationType.ERROR.name());
                 validLicense = false;
                 return;
             }
             validLicense = licenseService.verifyLicense(ultraderKey, ultraderSecret, tradingKey, platformName);
             if (!validLicense) {
-                NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
-                        UUID.randomUUID().toString(),
-                        "WARN",
-                        "Cannot verify your Ultra Trader license. Please check if your license is expired.",
-                        "License Failure",
-                        new Date()));
+                notifier.sendNotification("License Failure","Cannot verify your Ultra Trader license. Please check if your license is expired.", NotificationType.WARN.name());
             }
         } catch (Exception e) {
             LOGGER.error("Verify license failed.",e);
-            NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
-                    UUID.randomUUID().toString(),
-                    "ERROR",
-                    "Cannot verify your Ultra Trader license. Your trading will be blocked.",
-                    "License Failure",
-                    new Date()));
+            notifier.sendNotification("License Failure","Cannot verify your Ultra Trader license. Your trading will be blocked.", NotificationType.ERROR.name());
         }
 
     }
@@ -105,9 +78,8 @@ public class LicenseMonitor extends Monitor {
     public static void init(long interval,
                             final LicenseService licenseService,
                             final SettingDao settingDao,
-                            final SimpMessagingTemplate notifier,
-                            final NotificationDao notificationDao) {
-        singleton_instance = new LicenseMonitor(interval, licenseService, settingDao, notifier, notificationDao);
+                            final NotificationService notifier) {
+        singleton_instance = new LicenseMonitor(interval, licenseService, settingDao, notifier);
     }
 
     public static LicenseMonitor getInstance() throws IllegalAccessException {

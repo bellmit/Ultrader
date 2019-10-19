@@ -1,14 +1,9 @@
 package com.ultrader.bot.controller;
 
-import com.ultrader.bot.BotApplication;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.monitor.MonitorManager;
 import com.ultrader.bot.service.TradingPlatform;
-import com.ultrader.bot.service.alpaca.AlpacaMarketDataService;
-import com.ultrader.bot.service.alpaca.AlpacaPaperTradingService;
-import com.ultrader.bot.service.alpaca.AlpacaTradingService;
-import com.ultrader.bot.service.polygon.PolygonMarketDataService;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import org.slf4j.Logger;
@@ -27,14 +22,6 @@ public class SettingController {
     private static Logger LOGGER = LoggerFactory.getLogger(SettingController.class);
     @Autowired
     private MonitorManager monitorManager;
-    @Autowired
-    private AlpacaTradingService alpacaTradingService;
-    @Autowired
-    private AlpacaPaperTradingService alpacaPaperTradingService;
-    @Autowired
-    private AlpacaMarketDataService alpacaMarketDataService;
-    @Autowired
-    private PolygonMarketDataService polygonMarketDataService;
     @Autowired
     private TradingPlatform tradingPlatform;
     @Autowired
@@ -84,10 +71,6 @@ public class SettingController {
     public void restart() {
         LOGGER.info("Restart Ultrader ...");
         tradingPlatform.restart();
-        alpacaMarketDataService.restart();
-        alpacaPaperTradingService.restart();
-        alpacaTradingService.restart();
-        polygonMarketDataService.restart();
         monitorManager.restart();
     }
 }

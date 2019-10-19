@@ -1,9 +1,7 @@
 package com.ultrader.bot.service;
 
-import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.KeyVerificationRequest;
 import com.ultrader.bot.model.KeyVerificationResponse;
-import com.ultrader.bot.util.RepositoryUtil;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

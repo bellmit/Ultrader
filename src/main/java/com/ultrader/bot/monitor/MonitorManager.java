@@ -2,15 +2,14 @@ package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.*;
 import com.ultrader.bot.service.LicenseService;
+import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
-import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +35,7 @@ public class MonitorManager implements CommandLineRunner {
     @Autowired
     private RuleDao ruleDao;
     @Autowired
-    private SimpMessagingTemplate feedbackNotifier;
+    private NotificationService notifier;
     @Autowired
     private OrderDao orderDao;
     @Autowired
@@ -60,21 +59,21 @@ public class MonitorManager implements CommandLineRunner {
         threadPoolTaskExecutor.setWaitForTasksToCompleteOnShutdown(false);
         threadPoolTaskExecutor.initialize();
         //Start License Monitor
-        LicenseMonitor.init(24 * 3600L * 1000, licenseService, settingDao, feedbackNotifier, notificationDao);
+        LicenseMonitor.init(24 * 3600L * 1000, licenseService, settingDao, notifier);
         threadPoolTaskExecutor.execute(LicenseMonitor.getInstance());
 
         //Trading account monitor
-        TradingAccountMonitor.init(10000, tradingPlatform.getTradingService(), settingDao, feedbackNotifier, orderDao, chartDao, positionDao, notificationDao);
+        TradingAccountMonitor.init(10000, tradingPlatform.getTradingService(), settingDao, notifier, orderDao, chartDao, positionDao);
         threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
         //Start MarketDate Monitor
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")) * 1000;
-        MarketDataMonitor.init(interval, tradingPlatform.getTradingService(), tradingPlatform.getMarketDataService(), settingDao, assetListDao, feedbackNotifier, notificationDao);
+        MarketDataMonitor.init(interval, tradingPlatform, settingDao, assetListDao, notifier);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
 
 
         //Start Trading strategy monitor
         Thread.sleep(10000);
-        TradingStrategyMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, strategyDao, ruleDao, feedbackNotifier);
+        TradingStrategyMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, strategyDao, ruleDao, notifier);
         threadPoolTaskExecutor.execute(TradingStrategyMonitor.getInstance());
     }
 

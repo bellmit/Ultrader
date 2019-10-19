@@ -43,7 +43,7 @@ public class StrategyController {
     private static Logger LOGGER = LoggerFactory.getLogger(StrategyController.class);
     private static final String BACKTEST_TOPIC = "/topic/progress/backtest";
     private static final String OPTIMIZATION_TOPIC = "/topic/progress/optimize";
-    private static final int BACKTEST_BATCH_SIZE = 5;
+    private static final int BACKTEST_BATCH_SIZE = 10;
     @Autowired
     private StrategyDao strategyDao;
 

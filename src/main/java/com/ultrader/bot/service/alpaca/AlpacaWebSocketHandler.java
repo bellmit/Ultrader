@@ -1,19 +1,15 @@
 package com.ultrader.bot.service.alpaca;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ultrader.bot.dao.ChartDao;
-import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.dao.OrderDao;
-import com.ultrader.bot.model.Notification;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.alpaca.websocket.TradeUpdateResponse;
 import com.ultrader.bot.model.alpaca.websocket.TradeUpdate;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
+import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.util.NotificationType;
-import com.ultrader.bot.util.NotificationUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.socket.BinaryMessage;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -21,8 +17,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.UUID;
 
 
 public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
@@ -30,18 +24,14 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
     private final String key;
     private final String secret;
     private final OrderDao orderDao;
-    private final ChartDao chartDao;
-    private final NotificationDao notificationDao;
     private ObjectMapper objectMapper;
-    private SimpMessagingTemplate notifier;
+    private NotificationService notifier;
 
-    public AlpacaWebSocketHandler(final String key, final String secret, final OrderDao orderDao, final NotificationDao notificationDao, final ChartDao chartDao, final SimpMessagingTemplate notifier) {
+    public AlpacaWebSocketHandler(final String key, final String secret, final OrderDao orderDao, final NotificationService notifier) {
         this.key = key;
         this.secret = secret;
         this.objectMapper = new ObjectMapper();
         this.orderDao = orderDao;
-        this.chartDao = chartDao;
-        this.notificationDao = notificationDao;
         this.notifier = notifier;
     }
 
@@ -110,17 +100,18 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
             //Populate Dashboard Message
             try {
                 TradingAccountMonitor.getInstance().syncAccount();
-                notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(TradingAccountMonitor.getAccount(), chartDao));
-                notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
-                notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
-                Notification notification = new Notification(UUID.randomUUID().toString(),
-                        order.getSide().equalsIgnoreCase(com.ultrader.bot.model.alpaca.Order.BUY) ? NotificationType.BUY.name() : NotificationType.SELL.name(),
+                notifier.sendAccountNotification(TradingAccountMonitor.getAccount());
+                notifier.sendProfitNotification();
+                notifier.sendTradesNotification();
+                notifier.sendPositionNotification();
+                notifier.sendNotification(
+                        "Stock Trade",
                         String.format("%s stock %s at %s, quantity %s",
-                                order.getSide(),
-                                order.getSymbol(),
-                                order.getAveragePrice(),
-                                order.getQuantity()), "Stock Trade", new Date());
-                NotificationUtil.sendNotification(notifier, notificationDao, notification);
+                        order.getSide(),
+                        order.getSymbol(),
+                        order.getAveragePrice(),
+                        order.getQuantity()),
+                        order.getSide().equalsIgnoreCase(com.ultrader.bot.model.alpaca.Order.BUY) ? NotificationType.BUY.name() : NotificationType.SELL.name());
             } catch (Exception e) {
                 LOG.error("Sending notification failed", e);
             }

@@ -4,11 +4,12 @@ import com.ultrader.bot.dao.AssetListDao;
 import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.AssetList;
-import com.ultrader.bot.model.Notification;
 import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.MarketDataService;
+import com.ultrader.bot.service.NotificationService;
+import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.service.TradingService;
-import com.ultrader.bot.util.NotificationUtil;
+import com.ultrader.bot.util.NotificationType;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.Validate;
@@ -31,11 +32,9 @@ public class MarketDataMonitor extends Monitor {
     private static MarketDataMonitor singleton_instance = null;
     private static boolean marketOpen = false;
 
-    private final TradingService tradingService;
-    private final MarketDataService marketDataService;
+    private final TradingPlatform tradingPlatform;
     private final SettingDao settingDao;
-    private final SimpMessagingTemplate notifier;
-    private final NotificationDao notificationDao;
+    private final NotificationService notifier;
     private final AssetListDao assetListDao;
 
     private boolean firstRun = true;
@@ -44,24 +43,18 @@ public class MarketDataMonitor extends Monitor {
     public static Map<String, TimeSeries> timeSeriesMap = new HashMap<>();
     public static Object lock = new Object();
     private MarketDataMonitor(final long interval,
-                              final TradingService tradingService,
-                              final MarketDataService marketDataService,
+                              final TradingPlatform tradingPlatform,
                               final SettingDao settingDao,
                               final AssetListDao assetListDao,
-                              final SimpMessagingTemplate notifier,
-                              final NotificationDao notificationDao) {
+                              final NotificationService notifier) {
         super(interval);
-        Validate.notNull(tradingService, "tradingService is required");
-        Validate.notNull(marketDataService, "marketDataService is required");
+        Validate.notNull(tradingPlatform, "tradingPlatform is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(notifier, "notifier is required");
-        Validate.notNull(notificationDao, "notificationDao is required");
         Validate.notNull(assetListDao, "assetListDao is required");
         this.settingDao = settingDao;
-        this.marketDataService = marketDataService;
-        this.tradingService = tradingService;
+        this.tradingPlatform = tradingPlatform;
         this.notifier = notifier;
-        this.notificationDao = notificationDao;
         this.assetListDao = assetListDao;
     }
 
@@ -73,24 +66,23 @@ public class MarketDataMonitor extends Monitor {
             LOGGER.info(String.format("Update market data, platform: %s", platform));
             boolean marketStatusChanged = false;
             //Check if the market is open
-            if(tradingService.isMarketOpen()) {
+            if(tradingPlatform.getTradingService().isMarketOpen()) {
                 if(!marketOpen) {
                     marketStatusChanged = true;
                 }
                 marketOpen = true;
-                notifier.convertAndSend("/topic/status/market", new StatusMessage("opened", "Market is open"));
                 LOGGER.info("Market is opened now.");
             } else {
                 if(marketOpen) {
                     marketStatusChanged = true;
                 }
                 marketOpen = false;
-                notifier.convertAndSend("/topic/status/market", new StatusMessage("closed", "Market is closed"));
                 LOGGER.info("Market is closed now.");
             }
+            notifier.sendMarketStatus(marketOpen);
             //Get all stocks info, only do this once in a same trading day or on the first run
             if(marketStatusChanged || firstRun) {
-                availableStocks = tradingService.getAvailableStocks();
+                availableStocks = tradingPlatform.getTradingService().getAvailableStocks();
             }
             //Get the list of stocks need to update
             Set<String> stockInExchange = new HashSet<>();
@@ -125,8 +117,7 @@ public class MarketDataMonitor extends Monitor {
                 //Update
                 if(marketStatusChanged) {
                     //Reload market data
-                    timeSeriesMap.clear();
-                    tradingService.restart();
+                    tradingPlatform.restart();
                 }
                 //TODO Currently we force all the indicator have to use same period, we should support different period for different indicators
                 Map<String, TimeSeries> currentTimeSeries = new HashMap<>();
@@ -144,7 +135,7 @@ public class MarketDataMonitor extends Monitor {
                     }
                 }
 
-                updateSeries = marketDataService.updateTimeSeries(updateSeries, getInterval());
+                updateSeries = tradingPlatform.getMarketDataService().updateTimeSeries(updateSeries, getInterval());
                 //For max, If smaller than 0 then no limit
                 double priceMax = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MAX.getName(), "-1.0"));
                 double priceMin = Double.parseDouble(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PRICE_LIMIT_MIN.getName(), "0.0"));
@@ -190,9 +181,9 @@ public class MarketDataMonitor extends Monitor {
                 //Update subscribe
                 for (TimeSeries timeSeries : updateSeries) {
                     if(timeSeriesMap.containsKey(timeSeries.getName())) {
-                        marketDataService.subscribe(timeSeries.getName());
+                        tradingPlatform.getMarketDataService().subscribe(timeSeries.getName());
                     } else {
-                        marketDataService.unsubscribe(timeSeries.getName());
+                        tradingPlatform.getMarketDataService().unsubscribe(timeSeries.getName());
                     }
 
                 }
@@ -200,30 +191,27 @@ public class MarketDataMonitor extends Monitor {
             lastUpdateDate = new Date();
         } catch (Exception e) {
             LOGGER.error("Update market data failed. Your trading will be impacted", e);
-            NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
-                    UUID.randomUUID().toString(),
-                    "WARN",
+            notifier.sendNotification(
+                    "MarketData Service Failure",
                     "Market data updated failed. Try to reboot your bot or check the log.",
-                    "Update Failure",
-                    new Date()));
+                    NotificationType.ERROR.name());
         }
         firstRun = false;
         long end = System.currentTimeMillis();
         if (end - start > getInterval() && marketOpen) {
             //Cannot update all asset in limit time
             LOGGER.error("Cannot update market data in time. Please reduce the monitoring assets number or increase trading period.");
-            NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
-                    UUID.randomUUID().toString(),
-                    "ERROR",
+            notifier.sendNotification(
+                    "MarketData Service Failure",
                     "The bot cannot update all the stocks in one trading period. Try to reduce the stocks you want to monitor or increase the trade period",
-                    "Insufficient Computing Resource",
-                    new Date()));
+                    NotificationType.ERROR.name());
+
         }
     }
 
     public Map<String, Set<String>> getAvailableStock() {
         if (availableStocks == null) {
-            availableStocks = tradingService.getAvailableStocks();
+            availableStocks = tradingPlatform.getTradingService().getAvailableStocks();
         }
         return availableStocks;
     }
@@ -232,20 +220,16 @@ public class MarketDataMonitor extends Monitor {
     }
 
     public static void init(long interval,
-                            TradingService tradingService,
-                            MarketDataService marketDataService,
+                            TradingPlatform tradingPlatform,
                             SettingDao settingDao,
                             AssetListDao assetListDao,
-                            SimpMessagingTemplate notifier,
-                            NotificationDao notificationDao) {
+                            NotificationService notifier) {
         singleton_instance = new MarketDataMonitor(
                 interval,
-                tradingService,
-                marketDataService,
+                tradingPlatform,
                 settingDao,
                 assetListDao,
-                notifier,
-                notificationDao);
+                notifier);
     }
 
     public static MarketDataMonitor getInstance() throws IllegalAccessException {

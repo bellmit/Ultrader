@@ -3,7 +3,7 @@ package com.ultrader.bot.service;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.Position;
-import com.ultrader.bot.model.alpaca.Asset;
+import com.ultrader.bot.model.Setting;
 
 import java.util.Date;
 import java.util.List;
@@ -54,6 +54,17 @@ public interface TradingService {
     List<Order> getHistoryOrders(Date startDate, Date endDate);
 
     /**
+     * Get Account Configurations
+     * @return
+     */
+    Map<String, String> getAccountConfiguration();
+    /**
+     * Set Account Configurations
+     * @return
+     */
+    void setAccountConfiguration(Map<String, String> accountConfiguration);
+
+    /**
      * Check if websocket is working
      */
     boolean checkWebSocket();
@@ -62,4 +73,9 @@ public interface TradingService {
      * Restart
      */
     void restart();
+
+    /**
+     * Destroy
+     */
+    void destroy();
 }

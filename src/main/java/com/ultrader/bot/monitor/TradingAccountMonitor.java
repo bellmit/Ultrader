@@ -3,9 +3,9 @@ package com.ultrader.bot.monitor;
 import com.ultrader.bot.dao.*;
 import com.ultrader.bot.model.*;
 import com.ultrader.bot.model.websocket.StatusMessage;
+import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.NotificationType;
-import com.ultrader.bot.util.NotificationUtil;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.Validate;
@@ -32,19 +32,17 @@ public class TradingAccountMonitor extends Monitor {
     private final TradingService tradingService;
     private final SettingDao settingDao;
     private final OrderDao orderDao;
-    private final SimpMessagingTemplate notifier;
+    private final NotificationService notifier;
     private final ChartDao chartDao;
     private final PositionDao positionDao;
-    private final NotificationDao notificationDao;
 
     private TradingAccountMonitor(long interval,
                                   final TradingService tradingService,
                                   final SettingDao settingDao,
-                                  final SimpMessagingTemplate notifier,
+                                  final NotificationService notifier,
                                   final OrderDao orderDao,
                                   final ChartDao chartDao,
-                                  final PositionDao positionDao,
-                                  final NotificationDao notificationDao) {
+                                  final PositionDao positionDao) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(settingDao, "settingDao is required");
@@ -52,32 +50,28 @@ public class TradingAccountMonitor extends Monitor {
         Validate.notNull(orderDao, "orderDao is required");
         Validate.notNull(chartDao, "charDao is required");
         Validate.notNull(positionDao, "positionDao is required");
-        Validate.notNull(notificationDao, "notificationDao is required");
         this.tradingService = tradingService;
         this.settingDao = settingDao;
         this.notifier = notifier;
         this.orderDao = orderDao;
         this.chartDao = chartDao;
         this.positionDao = positionDao;
-        this.notificationDao = notificationDao;
     }
 
     public static void init(long interval,
                             final TradingService tradingService,
                             final SettingDao settingDao,
-                            final SimpMessagingTemplate notifier,
+                            final NotificationService notifier,
                             final OrderDao orderDao,
                             final ChartDao chartDao,
-                            final PositionDao positionDao,
-                            final NotificationDao notificationDao) {
+                            final PositionDao positionDao) {
         singleton_instance = new TradingAccountMonitor(interval,
                 tradingService,
                 settingDao,
                 notifier,
                 orderDao,
                 chartDao,
-                positionDao,
-                notificationDao);
+                positionDao);
     }
 
     public static TradingAccountMonitor getInstance() throws IllegalAccessException {
@@ -145,8 +139,9 @@ public class TradingAccountMonitor extends Monitor {
                 LOGGER.error("Invalid license or expired license");
                 return;
             }
-            //Get current position
-            positions = getAllPositions();
+            //Get current portfolio
+            syncAccount();
+
             if (RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX").equals("IEX")) {
                 //Add inter-bar price to position stocks
                 synchronized (MarketDataMonitor.lock) {
@@ -158,8 +153,7 @@ public class TradingAccountMonitor extends Monitor {
             if(!tradingService.checkWebSocket()) {
                 tradingService.restart();
             }
-            //Get current portfolio
-            syncAccount();
+
             List<Chart> lastOne = chartDao.getLastId();
             long id = lastOne.size() > 0 ? (lastOne.get(0).getId()) + 1 : 1000;
             Chart chart = new Chart();
@@ -169,25 +163,18 @@ public class TradingAccountMonitor extends Monitor {
             chart.setId(id);
             chartDao.save(chart);
             //Populate Dashboard Message
-            notifier.convertAndSend("/topic/dashboard/account", NotificationUtil.generateAccountNotification(account, chartDao));
-            notifier.convertAndSend("/topic/dashboard/trades", NotificationUtil.generateTradesNotification(orderDao));
-            notifier.convertAndSend("/topic/dashboard/profit", NotificationUtil.generateProfitNotification(orderDao));
-            notifier.convertAndSend("/topic/dashboard/position", NotificationUtil.generatePositionNotification());
+            notifier.sendAccountNotification(account);
+            notifier.sendTradesNotification();
+            notifier.sendProfitNotification();
+            notifier.sendPositionNotification();
             //Publish status
-            if (MarketDataMonitor.isMarketOpen()) {
-                notifier.convertAndSend("/topic/status/market", new StatusMessage("opened", "Market is open"));
-            } else {
-                notifier.convertAndSend("/topic/status/market", new StatusMessage("closed", "Market is close"));
-            }
-
+            notifier.sendMarketStatus(MarketDataMonitor.isMarketOpen());
         } catch (Exception e) {
             LOGGER.error("Update trading account failed.", e);
-            NotificationUtil.sendNotification(notifier, notificationDao, new Notification(
-                    UUID.randomUUID().toString(),
-                    "ERROR",
-                    "Cannot update your trading account, please check your account and reboot the bot.",
+            notifier.sendNotification(
                     "Account Update Failure",
-                    new Date()));
+                    "Cannot update your trading account, please check your account and reboot the bot.",
+                    NotificationType.ERROR.name());
         }
     }
 
@@ -214,6 +201,8 @@ public class TradingAccountMonitor extends Monitor {
      */
     public void syncAccount() throws RuntimeException {
         account = tradingService.getAccountInfo();
+        //Get current position
+        positions = getAllPositions();
         LOGGER.info("Account {}", account);
         if (account == null) {
             throw new RuntimeException("Cannot get account info, skip executing trading strategies");

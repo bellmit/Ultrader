@@ -1,5 +1,6 @@
 package com.ultrader.bot.service.alpaca;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.ProgressMessage;
 import com.ultrader.bot.model.alpaca.Bar;
@@ -36,7 +37,6 @@ import java.util.stream.Collectors;
  *
  * @author ytx1991
  */
-@Service("AlpacaMarketDataService")
 public class AlpacaMarketDataService implements MarketDataService {
     private static final Logger LOGGER = LoggerFactory.getLogger(AlpacaMarketDataService.class);
     private static final int MAX_STOCK = 150;
@@ -46,10 +46,10 @@ public class AlpacaMarketDataService implements MarketDataService {
     private String alpacaSecret;
     private RestTemplate client;
     private SettingDao settingDao;
+    private RateLimiter rateLimiter = RateLimiter.create(1);
 
     private ParameterizedTypeReference<HashMap<String, ArrayList<Bar>>> barResponseType;
 
-    @Autowired
     public AlpacaMarketDataService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
@@ -110,7 +110,7 @@ public class AlpacaMarketDataService implements MarketDataService {
             int count = 0;
             DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
             String msg = String.format("Loading history data from %s to %s.", startDate.format(formatter), currentDate.format(formatter));
-            LOGGER.info(msg);
+            LOGGER.debug(msg);
             if (notifier != null) {
                 long progress = 50 * (currentDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC)) / (endDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC));
                 notifier.convertAndSend(topic, new ProgressMessage("InProgress", msg, (int)progress));
@@ -167,6 +167,11 @@ public class AlpacaMarketDataService implements MarketDataService {
         }
     }
 
+    @Override
+    public void destroy() {
+
+    }
+
     private List<TimeSeries> updateStockTimeSeries(List<TimeSeries> stocks, Long interval, boolean isNewStock, int maxLength) {
         Map<String, TimeSeries> result = new HashMap<>();
         stocks.stream().forEach(s -> result.put(s.getName(), s));
@@ -211,6 +216,7 @@ public class AlpacaMarketDataService implements MarketDataService {
         }
         //parameter.append("&start=" + (new Date().getTime() - interval * (limit + 1)));
         //Get new bars
+        rateLimiter.acquire();
         ResponseEntity<HashMap<String, ArrayList<Bar>>> responseEntity = client.exchange("/bars/" + convertIntervalToTimeframe(interval) + parameter.toString(), HttpMethod.GET, entity, barResponseType);
         if (responseEntity.getStatusCode().is4xxClientError()) {
             LOGGER.error("Invalid Alpaca key, please check you key and secret");
@@ -237,7 +243,7 @@ public class AlpacaMarketDataService implements MarketDataService {
                         batchTimeSeries.get(stock).addBar(newBar, true);
                         LOGGER.debug("Replaced {} last bar {}", stock, newBar);
                     } else {
-                        if (barSize == 0 || endDate.getDayOfYear() != batchTimeSeries.get(stock).getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond()) <= 3600) {
+                        if (barSize == 0 || endDate.getDayOfYear() != batchTimeSeries.get(stock).getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond()) <= 7200) {
                             //Time series must be continuous
                             batchTimeSeries.get(stock).addBar(newBar);
                         } else {

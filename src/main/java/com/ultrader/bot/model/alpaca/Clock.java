@@ -14,8 +14,20 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Clock {
+    /**
+     * Current timestamp
+     */
     private Date timestamp;
+    /**
+     * Whether or not the market is open
+     */
     private Boolean is_open;
+    /**
+     * Next market open timestamp
+     */
     private Date next_open;
+    /**
+     * Next market close timestamp
+     */
     private Date next_close;
 }

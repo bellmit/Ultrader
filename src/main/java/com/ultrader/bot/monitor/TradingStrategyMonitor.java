@@ -7,6 +7,7 @@ import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.websocket.StatusMessage;
+import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
@@ -38,9 +39,9 @@ public class TradingStrategyMonitor extends Monitor {
     private final StrategyDao strategyDao;
     private final RuleDao ruleDao;
     private final TradingService tradingService;
-    private final SimpMessagingTemplate notifier;
+    private final NotificationService notifier;
 
-    private TradingStrategyMonitor(long interval, final TradingService tradingService, final SettingDao settingDao, final StrategyDao strategyDao, final RuleDao ruleDao, final SimpMessagingTemplate notifier) {
+    private TradingStrategyMonitor(long interval, final TradingService tradingService, final SettingDao settingDao, final StrategyDao strategyDao, final RuleDao ruleDao, final NotificationService notifier) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(settingDao, "settingDao is required");
@@ -55,7 +56,7 @@ public class TradingStrategyMonitor extends Monitor {
         this.notifier = notifier;
     }
 
-    public static void init(long interval, final TradingService tradingService, SettingDao settingDao, StrategyDao strategyDao, RuleDao ruleDao, SimpMessagingTemplate notifier) {
+    public static void init(long interval, final TradingService tradingService, SettingDao settingDao, StrategyDao strategyDao, RuleDao ruleDao, NotificationService notifier) {
         singleton_instance = new TradingStrategyMonitor(interval, tradingService, settingDao, strategyDao, ruleDao, notifier);
     }
 
@@ -176,11 +177,11 @@ public class TradingStrategyMonitor extends Monitor {
             LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
                     vailidCount, noTimeSeries, notLongEnough, notNewEnough);
             if (MarketDataMonitor.timeSeriesMap.size() * 0.1 > vailidCount) {
-                notifier.convertAndSend("/topic/status/data", new StatusMessage("error", "Most stocks don't have latest data"));
+                notifier.sendMarketDataStatus("error");
             } else if (MarketDataMonitor.timeSeriesMap.size() * 0.5 > vailidCount) {
-                notifier.convertAndSend("/topic/status/data", new StatusMessage("warning", "Some stocks don't have latest data"));
+                notifier.sendMarketDataStatus("warning");
             } else {
-                notifier.convertAndSend("/topic/status/data", new StatusMessage("normal", "Most stocks have latest data"));
+                notifier.sendMarketDataStatus("normal");
             }
 
 

@@ -38,7 +38,6 @@ import java.util.concurrent.TimeUnit;
  *
  * @author ytx1991
  */
-@Service("PolygonMarketDataService")
 public class PolygonMarketDataService implements MarketDataService {
     private final static Logger LOGGER = LoggerFactory.getLogger(PolygonMarketDataService.class);
     private final static int MIN_PER_TRADING_DAY = 390;
@@ -46,26 +45,35 @@ public class PolygonMarketDataService implements MarketDataService {
     private String polygonKey;
     private final String frequency = "A.";
     private RestTemplate client;
+    private RestTemplateBuilder restTemplateBuilder;
     private Dispatcher dispatcher;
+    private Connection connection;
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     private final SettingDao settingDao;
     private RateLimiter rateLimiter;
 
-    @Autowired
     public PolygonMarketDataService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
 
         rateLimiter = RateLimiter.create(150);
         this.settingDao = settingDao;
+        this.restTemplateBuilder = restTemplateBuilder;
+        initService();
+    }
+
+    private void initService() {
+        destroy();
         this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(), "");
         if (polygonKey.isEmpty()) {
             polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
         }
         if (polygonKey.isEmpty()) {
             LOGGER.error("Cannot find Alpaca key, please set up and reboot.");
+            return;
         }
         client = restTemplateBuilder.rootUri("https://api.polygon.io").build();
+
         threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.setCorePoolSize(400);
         threadPoolTaskExecutor.setMaxPoolSize(1000);
@@ -73,28 +81,29 @@ public class PolygonMarketDataService implements MarketDataService {
         threadPoolTaskExecutor.setQueueCapacity(10000);
         threadPoolTaskExecutor.initialize();
 
-        if (RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX").equals("POLYGON")) {
-            //Init Websocket
-            try {
-                Options options = new Options.Builder()
-                        .server("nats1.polygon.io:31101")
-                        .server("nats2.polygon.io:31102")
-                        .server("nats3.polygon.io:31103")
-                        .token(polygonKey)
-                        .maxReconnects(-1).build();
-                Connection connection = Nats.connect(options);
-                LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
-                dispatcher = connection.createDispatcher(new PolygonMessageHandler(this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"))));
-            } catch (Exception e) {
-                LOGGER.error("Failed to connect to Polygon.", e);
-            }
+        //Init Websocket
+        try {
+            Options options = new Options.Builder()
+                    .server("nats1.polygon.io:31101")
+                    .server("nats2.polygon.io:31102")
+                    .server("nats3.polygon.io:31103")
+                    .token(polygonKey)
+                    .maxReconnects(-1).build();
+            connection = Nats.connect(options);
+            LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
+            dispatcher = connection.createDispatcher(new PolygonMessageHandler(this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"))));
+        } catch (Exception e) {
+            LOGGER.error("Failed to connect to Polygon.", e);
+            return;
         }
-
 
     }
 
     @Override
     public List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) throws InterruptedException {
+        if (dispatcher == null) {
+            initService();
+        }
         interval = interval < 60000 ? 60000 : interval;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String endDate = ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).plusDays(1).format(formatter);
@@ -106,7 +115,7 @@ public class PolygonMarketDataService implements MarketDataService {
         int newStockCount = 0;
         LOGGER.debug("Start date {}, End Date {}", startDate, endDate);
         for (TimeSeries timeSeries : stocks) {
-            if (timeSeries.getBarCount() == 0 && interval >= 60000) {
+            if (timeSeries.getBarCount() == 0 && interval >= 60000 || dispatcher == null) {
                 rateLimiter.acquire();
                 GetStockBarsTask task = new GetStockBarsTask(timeSeries, client, startDate, endDate, getPeriodUnit(interval), getPeriodLength(interval), interval, polygonKey);
                 threadPoolTaskExecutor.execute(task);
@@ -139,7 +148,7 @@ public class PolygonMarketDataService implements MarketDataService {
             LOGGER.info(msg);
             if (notifier != null) {
                 long progress = 50 * (currentDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC)) / (endDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC));
-                notifier.convertAndSend(topic, new ProgressMessage("InProgress", msg, (int)progress));
+                notifier.convertAndSend(topic, new ProgressMessage("InProgress", msg, (int) progress));
             }
             for (TimeSeries timeSeries : stocks) {
                 if (interval >= 60000) {
@@ -165,38 +174,34 @@ public class PolygonMarketDataService implements MarketDataService {
 
     @Override
     public void subscribe(String symbol) {
-        dispatcher.subscribe(getFrequency() + symbol);
+        if (dispatcher != null) {
+            dispatcher.subscribe(getFrequency() + symbol);
+        }
     }
 
     @Override
     public void unsubscribe(String symbol) {
-        dispatcher.unsubscribe(getFrequency() + symbol);
+        if (dispatcher != null) {
+            dispatcher.unsubscribe(getFrequency() + symbol);
+        }
     }
 
     @Override
     public void restart() {
-        this.polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_KEY.getName(), "");
-        if (polygonKey.isEmpty()) {
-            polygonKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
+        initService();
+    }
+
+    @Override
+    public void destroy() {
+        if (threadPoolTaskExecutor != null) {
+            threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().clear();
+            threadPoolTaskExecutor.shutdown();
         }
-        if (polygonKey.isEmpty()) {
-            LOGGER.error("Cannot find Alpaca key, please set up and reboot.");
-        }
-        threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().clear();
-        if (RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX").equals("POLYGON")) {
-            //Init Websocket
+        if (connection != null) {
             try {
-                Options options = new Options.Builder()
-                        .server("nats1.polygon.io:31101")
-                        .server("nats2.polygon.io:31102")
-                        .server("nats3.polygon.io:31103")
-                        .token(polygonKey)
-                        .maxReconnects(-1).build();
-                Connection connection = Nats.connect(options);
-                LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
-                dispatcher = connection.createDispatcher(new PolygonMessageHandler(this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"))));
-            } catch (Exception e) {
-                LOGGER.error("Failed to connect to Polygon.", e);
+                connection.close();
+            } catch (InterruptedException e) {
+                LOGGER.error("Close Polygon Websocket.", e);
             }
         }
     }

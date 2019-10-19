@@ -208,9 +208,7 @@ class BacktestComp extends Component {
       (
         (Math.pow(
           ((profitPerTrade / totalTrades) * amount) / 100 + 1,
-          Math.round(
-            (this.state.holdingDays / this.state.avgHoldingDays) * holds
-          )
+          totalTrades
         ) -
           1) *
         100
