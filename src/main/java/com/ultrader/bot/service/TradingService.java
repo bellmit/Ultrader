@@ -57,12 +57,12 @@ public interface TradingService {
      * Get Account Configurations
      * @return
      */
-    Map<String, String> getAccountConfiguration();
+    List<Setting> getAccountConfiguration();
     /**
      * Set Account Configurations
      * @return
      */
-    void setAccountConfiguration(Map<String, String> accountConfiguration);
+    void setAccountConfiguration(List<Setting> accountConfiguration);
 
     /**
      * Check if websocket is working

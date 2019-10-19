@@ -11,6 +11,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Setting Controller
  * @author ytx1991
@@ -29,9 +32,10 @@ public class SettingController {
 
     @RequestMapping(method = RequestMethod.POST, value = "/addSettings")
     @ResponseBody
-    public Iterable<Setting> save(@RequestBody Iterable<Setting> settings) {
+    public Iterable<Setting> save(@RequestBody List<Setting> settings) {
         try {
             Iterable<Setting> savedSettings = settingDao.saveAll(settings);
+            tradingPlatform.getTradingService().setAccountConfiguration(settings);
             return savedSettings;
         } catch (Exception e) {
             LOGGER.error("Save setting failed.", e);
@@ -43,6 +47,7 @@ public class SettingController {
     @ResponseBody
     public Iterable<Setting> getSettings() {
         try {
+            settingDao.saveAll(tradingPlatform.getTradingService().getAccountConfiguration());
             Iterable<Setting> savedSettings = settingDao.findAll();
             return savedSettings;
         } catch (Exception e) {

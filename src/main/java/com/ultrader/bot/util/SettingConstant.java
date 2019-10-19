@@ -56,7 +56,17 @@ public enum SettingConstant {
     //Sell order type, limit, market, etc
     TRADE_SELL_ORDER_TYPE("TRADE_SELL_ORDER_TYPE"),
     //The max bars that indicator can use to calculate
-    INDICATOR_MAX_LENGTH("INDICATOR_MAX_LENGTH");
+    INDICATOR_MAX_LENGTH("INDICATOR_MAX_LENGTH"),
+    //both, entry, or exit. Controls Day Trading Margin Call (DTMC) checks.
+    ALPACA_DTMC("ALPACA_DTMC"),
+    //Use Alpaca margin in trading
+    ALPACA_USE_MARGIN("ALPACA_USE_MARGIN"),
+    //all or none. If none, emails for order fills are not sent.
+    ALPACA_TRADE_CONFIRM_EMAIL("ALPACA_TRADE_CONFIRM_EMAIL"),
+    //If true, new orders are blocked.
+    ALPACA_SUSPEND_TRADE("ALPACA_SUSPEND_TRADE"),
+    //If true, account becomes long-only mode.
+    ALPACA_NO_SHORTING("ALPACA_NO_SHORTING");
 
     public static final String DELIMITER = ",";
     private String name;

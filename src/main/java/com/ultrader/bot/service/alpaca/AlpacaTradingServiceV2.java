@@ -5,6 +5,8 @@ import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.Position;
+import com.ultrader.bot.model.Setting;
+import com.ultrader.bot.model.alpaca.AccountConfiguration;
 import com.ultrader.bot.model.alpaca.Asset;
 import com.ultrader.bot.model.alpaca.Clock;
 import com.ultrader.bot.service.NotificationService;
@@ -21,6 +23,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.socket.client.WebSocketConnectionManager;
@@ -74,6 +77,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
                 notifier.sendNotification("Setting Missing", "Cannot find Alpaca Live trading API key/secret, please check your setting", NotificationType.ERROR.name());
             } else {
                 client = restTemplateBuilder.rootUri("https://api.alpaca.markets/v2").build();
+                client.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
                 //Init Websocket
                 if (!alpacaKey.isEmpty()) {
                     connectionManager = new WebSocketConnectionManager(
@@ -91,6 +95,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
                 notifier.sendNotification("Setting Missing", "Cannot find Alpaca Paper trading API key/secret, please check your setting", NotificationType.ERROR.name());
             } else {
                 client = restTemplateBuilder.rootUri("https://paper-api.alpaca.markets/v2").build();
+                client.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
                 //Init Websocket
                 if (!alpacaKey.isEmpty()) {
                     connectionManager = new WebSocketConnectionManager(
@@ -332,12 +337,57 @@ public class AlpacaTradingServiceV2 implements TradingService {
     }
 
     @Override
-    public Map<String, String> getAccountConfiguration() {
-        return null;
+    public List<Setting> getAccountConfiguration() {
+        try {
+            HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
+            ResponseEntity<AccountConfiguration> configurationResponseEntity = client.exchange("/account/configurations", HttpMethod.GET, entity, AccountConfiguration.class);
+            if (configurationResponseEntity.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + configurationResponseEntity.getStatusCode().toString(), NotificationType.ERROR.name());
+                return null;
+            }
+            List<Setting> settings = new ArrayList<>();
+            settings.add(new Setting(SettingConstant.ALPACA_DTMC.getName(), configurationResponseEntity.getBody().getDtbp_check()));
+            settings.add(new Setting(SettingConstant.ALPACA_TRADE_CONFIRM_EMAIL.getName(), configurationResponseEntity.getBody().getTrade_confirm_email()));
+            settings.add(new Setting(SettingConstant.ALPACA_NO_SHORTING.getName(), configurationResponseEntity.getBody().getNo_shorting().toString()));
+            settings.add(new Setting(SettingConstant.ALPACA_SUSPEND_TRADE.getName(), configurationResponseEntity.getBody().getSuspend_trade().toString()));
+            return settings;
+        } catch (Exception e) {
+            LOGGER.error("Failed to get account configuration.", e);
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            return null;
+        }
     }
 
     @Override
-    public void setAccountConfiguration(Map<String, String> accountConfiguration) {
-
+    public void setAccountConfiguration(List<Setting> accountConfiguration) {
+        try {
+            Map<String, String> request = new HashMap<>();
+            for (Map.Entry<String, String> entry : request.entrySet()) {
+                if (entry.getKey().equals(SettingConstant.ALPACA_DTMC.getName())) {
+                    request.put("dtbp_check", entry.getValue());
+                }
+                if (entry.getKey().equals(SettingConstant.ALPACA_SUSPEND_TRADE.getName())) {
+                    request.put("suspend_trade", entry.getValue());
+                }
+                if (entry.getKey().equals(SettingConstant.ALPACA_NO_SHORTING.getName())) {
+                    request.put("no_shorting", entry.getValue());
+                }
+                if (entry.getKey().equals(SettingConstant.ALPACA_TRADE_CONFIRM_EMAIL.getName())) {
+                    request.put("trade_confirm_email", entry.getValue());
+                }
+            }
+            HttpEntity<Map<String,String>> entity = new HttpEntity<>(request, generateHeader());
+            ResponseEntity<AccountConfiguration> configurationResponseEntity = client.exchange("/account/configurations", HttpMethod.PATCH, entity, AccountConfiguration.class);
+            if (configurationResponseEntity.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + configurationResponseEntity.getStatusCode().toString(), NotificationType.ERROR.name());
+            }
+            return;
+        } catch (Exception e) {
+            LOGGER.error("Failed to get account configuration.", e);
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            return;
+        }
     }
 }

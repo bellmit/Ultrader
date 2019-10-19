@@ -16,7 +16,7 @@ public class AccountConfiguration {
     /**
      * If true, account becomes long-only mode.
      */
-    private boolean no_shorting;
+    private Boolean no_shorting;
 
     /**
      * all or none. If none, emails for order fills are not sent.
@@ -26,5 +26,5 @@ public class AccountConfiguration {
     /**
      * If true, new orders are blocked.
      */
-    private boolean suspend_trade;
+    private Boolean suspend_trade;
 }
