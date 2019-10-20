@@ -31,7 +31,7 @@ var intervalOptions = [
   { value: "86400", label: "1 Day" }
 ];
 
-class FinalStep extends Component {
+class TradingStep extends Component {
   constructor(props) {
     super(props);
     this.textOnChange = this.textOnChange.bind(this);
@@ -240,4 +240,4 @@ class FinalStep extends Component {
   }
 }
 
-export default FinalStep;
+export default TradingStep;

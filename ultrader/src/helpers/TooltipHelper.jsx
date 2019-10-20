@@ -25,7 +25,12 @@ var dictionary = {
     "SellStrategy": "Strategy for selling stocks.",
     "BuyOrderType": "The types of buying orders.",
     "SellOrderType": "The types of selling orders.",
-    "StrategyTemplate": "A good start point to build your own strategy."
+    "StrategyTemplate": "A good start point to build your own strategy.",
+    "DayTradingMarginCheck": "both, entry, or exit. Controls Day Trading Margin Call (DTMC) checks.",
+    "UseMargin": "Use Alpaca margin in trading",
+    "EmailNotification": "all or none. If none, emails for order fills are not sent.",
+    "SuspendTrade": "If true, new orders are blocked.",
+    "NoShortingTrade": "If true, account becomes long-only mode."
 }
 export function tooltip(term) {
   if(term in dictionary) {

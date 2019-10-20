@@ -12,7 +12,7 @@ import {
 import Card from "components/Card/Card.jsx";
 import { tooltip } from "helpers/TooltipHelper";
 
-class Step1 extends React.Component {
+class LicensesStep extends React.Component {
   constructor(props) {
     super(props);
     this.textOnChange = this.textOnChange.bind(this);
@@ -125,4 +125,4 @@ class Step1 extends React.Component {
   }
 }
 
-export default Step1;
+export default LicensesStep;

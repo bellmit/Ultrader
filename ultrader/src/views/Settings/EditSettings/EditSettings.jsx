@@ -10,9 +10,10 @@ import axios from "axios";
 
 import Card from "components/Card/Card.jsx";
 
-import Step1 from "./Step1.jsx";
-import Step2 from "./Step2.jsx";
-import FinalStep from "./FinalStep.jsx";
+import LicensesStep from "./LicensesStep.jsx";
+import GlobalStep from "./GlobalStep.jsx";
+import TradingStep from "./TradingStep.jsx";
+import AlpacaStep from "./AlpacaStep.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
@@ -27,16 +28,29 @@ var marketDataPlatformOptions = [
   { value: "POLYGON", label: "Polygon API" }
 ];
 
+var marginCheckOptions = [
+  { value: "both", label: "both" },
+  { value: "entry", label: "entry" },
+  { value: "exit", label: "exit" }
+];
+
+var emailNotificationOptions = [
+  { value: "all", label: "all" },
+  { value: "none", label: "none" }
+];
+
 var booleanOptions = [
   { value: "true", label: "true" },
   { value: "false", label: "false" }
 ];
+
 var intervalOptions = [
   { value: "60", label: "1 Minute" },
   { value: "300", label: "5 Minutes" },
   { value: "900", label: "15 Minutes" },
   { value: "86400", label: "1 Day" }
 ];
+
 var exchangeOptions = [
   { value: "NASDAQ", label: "NASDAQ" },
   { value: "AMEX", label: "AMEX" },
@@ -73,6 +87,7 @@ class EditSettingsComp extends Component {
     this.selectSellOrderTypeOption = this.selectSellOrderTypeOption.bind(this);
     this.selectPeriodOption = this.selectPeriodOption.bind(this);
     this.selectAssetListOption = this.selectAssetListOption.bind(this);
+    this.selectOption = this.selectOption.bind(this);
 
     this.onExchangeInputChange = this.onExchangeInputChange.bind(this);
 
@@ -82,6 +97,7 @@ class EditSettingsComp extends Component {
     );
 
     this.state = {
+      selectedOptions: {},
       assetListOptions: [],
       buyStrategyOptions: [],
       sellStrategyOptions: [],
@@ -258,6 +274,72 @@ class EditSettingsComp extends Component {
     this.setState({
       selectedSellOrderTypeOption: selectedSellOrderTypeOption
     });
+
+    /*****************************************************************************/
+    var marginCheckOption = marginCheckOptions.find(
+      e => e.value == this.props.settings["ALPACA_DTMC"]
+    );
+    let selectedMarginCheckOption = marginCheckOption ? marginCheckOption : {};
+    this.setState({
+      selectedOptions: {
+        ...this.state.selectedOptions,
+        ALPACA_DTMC: selectedMarginCheckOption
+      }
+    });
+
+    /*****************************************************************************/
+    var noShortingTradeOption = booleanOptions.find(
+      e => e.value == this.props.settings["ALPACA_NO_SHORTING"]
+    );
+    let selectedNoShortingTradeOption = noShortingTradeOption
+      ? noShortingTradeOption
+      : {};
+    this.setState({
+      selectedOptions: {
+        ...this.state.selectedOptions,
+        ALPACA_NO_SHORTING: selectedNoShortingTradeOption
+      }
+    });
+
+    /*****************************************************************************/
+    var suspendTradeOption = booleanOptions.find(
+      e => e.value == this.props.settings["ALPACA_SUSPEND_TRADE"]
+    );
+    let selectedSuspendTradeOption = suspendTradeOption
+      ? suspendTradeOption
+      : {};
+    this.setState({
+      selectedOptions: {
+        ...this.state.selectedOptions,
+        ALPACA_SUSPEND_TRADE: selectedSuspendTradeOption
+      }
+    });
+
+    /*****************************************************************************/
+    var emailNotificationOption = emailNotificationOptions.find(
+      e => e.value == this.props.settings["ALPACA_TRADE_CONFIRM_EMAIL"]
+    );
+    let selectedEmailNotificationOption = emailNotificationOption
+      ? emailNotificationOption
+      : {};
+    this.setState({
+      selectedOptions: {
+        ...this.state.selectedOptions,
+        ALPACA_TRADE_CONFIRM_EMAIL: selectedEmailNotificationOption
+      }
+    });
+
+    /*****************************************************************************/
+    var useMarginOption = booleanOptions.find(
+      e => e.value == this.props.settings["ALPACA_USE_MARGIN"]
+    );
+    let selectedUseMarginOption = useMarginOption ? useMarginOption : {};
+    this.setState({
+      selectedOptions: {
+        ...this.state.selectedOptions,
+        ALPACA_USE_MARGIN: selectedUseMarginOption
+      }
+    });
   }
 
   selectPeriodOption(option) {
@@ -339,6 +421,34 @@ class EditSettingsComp extends Component {
     this.props.onAddSetting("TRADE_STOCK_LIST", option.value);
   }
 
+  selectAssetListOption(option) {
+    let selectedAssetListOption = option ? option : {};
+    this.setState({
+      selectedAssetListOption: selectedAssetListOption
+    });
+    this.props.onAddSetting("TRADE_STOCK_LIST", option.value);
+  }
+
+  selectAssetListOption(option) {
+    let selectedAssetListOption = option ? option : {};
+    this.setState({
+      selectedAssetListOption: selectedAssetListOption
+    });
+    this.props.onAddSetting("TRADE_STOCK_LIST", option.value);
+  }
+
+  selectOption(settingName, option) {
+    console.log(settingName);
+    console.log(option);
+    let selectedOption = option ? option : {};
+    let selectedOptions = this.state.selectedOptions;
+    selectedOptions[settingName] = option;
+    this.setState({
+      selectedOptions: selectedOptions
+    });
+    this.props.onAddSetting(settingName, option.value);
+  }
+
   onExchangeInputChange(option) {
     let selectedExchangeOptions = option ? option : [];
     this.setState({
@@ -373,12 +483,12 @@ class EditSettingsComp extends Component {
     const steps = [
       {
         name: "Licenses",
-        component: <Step1 {...this.props} />
+        component: <LicensesStep {...this.props} />
       },
       {
         name: "Global",
         component: (
-          <Step2
+          <GlobalStep
             {...this.props}
             selectedTradingPlatformOption={
               this.state.selectedTradingPlatformOption
@@ -396,9 +506,8 @@ class EditSettingsComp extends Component {
       {
         name: "Trading",
         component: (
-          <FinalStep
+          <TradingStep
             {...this.props}
-            saveSettings={this.saveSettings}
             selectedExchangeOptions={this.state.selectedExchangeOptions}
             periodOption={this.state.periodOption}
             selectPeriodOption={this.selectPeriodOption}
@@ -417,6 +526,19 @@ class EditSettingsComp extends Component {
             selectAssetListOption={this.selectAssetListOption}
             orderTypeOptions={orderTypeOptions}
             assetListOptions={this.state.assetListOptions}
+          />
+        )
+      },
+      {
+        name: "Alcapa",
+        component: (
+          <AlpacaStep
+            {...this.props}
+            selectedOptions={this.state.selectedOptions}
+            selectOption={this.selectOption}
+            marginCheckOptions={marginCheckOptions}
+            emailNotificationOptions={emailNotificationOptions}
+            booleanOptions={booleanOptions}
           />
         )
       }
