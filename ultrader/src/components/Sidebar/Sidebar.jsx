@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import { Collapse } from "react-bootstrap";
 import { NavLink } from "react-router-dom";
 // this is used to create scrollbars on windows devices like the ones from apple devices
-import "react-perfect-scrollbar/dist/css/styles.css";
-import PerfectScrollbar from "react-perfect-scrollbar";
+import PerfectScrollbar from "perfect-scrollbar";
+import "perfect-scrollbar/css/perfect-scrollbar.css";
 
 import HeaderLinks from "components/Header/HeaderLinks.jsx";
 
@@ -47,13 +47,29 @@ class Sidebar extends Component {
     this.updateDimensions();
     // add event listener for windows resize
     window.addEventListener("resize", this.updateDimensions.bind(this));
+    if (navigator.platform.indexOf("Win") > -1) {
+      ps = new PerfectScrollbar(this.refs.sidebarWrapper, {
+        suppressScrollX: true,
+        suppressScrollY: false
+      });
+    }
   }
-  componentDidUpdate() {}
-
-  componentWillUnmount() {}
+  componentDidUpdate() {
+    if (navigator.platform.indexOf("Win") > -1) {
+      setTimeout(() => {
+        ps.update();
+      }, 350);
+    }
+  }
+  componentWillUnmount() {
+    if (navigator.platform.indexOf("Win") > -1) {
+      ps.destroy();
+    }
+  }
 
   render() {
     return (
+
       <div className="sidebar" data-color="black" data-image={image}>
         <div className="sidebar-background" style={bgImage} />
         <div className="logo">
@@ -62,7 +78,6 @@ class Sidebar extends Component {
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">
-          <PerfectScrollbar>
             <ul className="nav">
               {/* If we are on responsive, we want both links from navbar and sidebar
                             to appear in sidebar, so we render here HeaderLinks */}
@@ -139,7 +154,6 @@ class Sidebar extends Component {
                 }
               })}
             </ul>
-          </PerfectScrollbar>
         </div>
       </div>
     );

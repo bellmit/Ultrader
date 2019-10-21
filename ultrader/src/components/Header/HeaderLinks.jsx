@@ -17,6 +17,7 @@ import { alertSuccess, alertError } from "helpers/AlertHelper";
 import { parseDate, parseProfit } from "helpers/ParseHelper";
 import PerfectScrollbar from "perfect-scrollbar";
 import "perfect-scrollbar/css/perfect-scrollbar.css";
+import "assets/css/headerlinks.css";
 import {
   axiosGetWithAuth,
   handleResponse,
@@ -128,6 +129,7 @@ class HeaderLinks extends Component {
                   this.iconColor(this.props.systemStatus.bot.status)
                 }
               />
+              <p className="monitorIconText">System Status</p>
             </NavItem>
           </OverlayTrigger>
           <OverlayTrigger
@@ -145,6 +147,7 @@ class HeaderLinks extends Component {
                   this.iconColor(this.props.systemStatus.data.status)
                 }
               />
+              <p className="monitorIconText">Data Status</p>
             </NavItem>
           </OverlayTrigger>
           <OverlayTrigger
@@ -162,6 +165,7 @@ class HeaderLinks extends Component {
                   this.iconColor(this.props.systemStatus.account.status)
                 }
               />
+              <p className="monitorIconText">Account Status</p>
             </NavItem>
           </OverlayTrigger>
           <OverlayTrigger
@@ -176,11 +180,13 @@ class HeaderLinks extends Component {
               <i
                 className={
                   "fa fa-university " +
-                  this.iconColor(this.props.systemStatus.market.status)
+                  this.iconColor(this.props.systemStatus.account.status)
                 }
               />
+              <p className="monitorIconText">Market Status</p>
             </NavItem>
           </OverlayTrigger>
+
           <NavDropdown
             eventKey={3}
             title={
@@ -214,7 +220,6 @@ class HeaderLinks extends Component {
                 >
                   <div className="content">
                     <p>
-                      {" "}
                       <i className={notification.icon}></i>&nbsp;
                       {notification.message.content}
                     </p>

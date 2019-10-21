@@ -1,0 +1,12 @@
+@media (min-width: 992px){
+    .monitorIconText{
+        display:none !important;
+    }
+
+}
+@media (max-width: 992px){
+    .monitorIconText{
+        display:inline-block !important;
+    }
+
+}
