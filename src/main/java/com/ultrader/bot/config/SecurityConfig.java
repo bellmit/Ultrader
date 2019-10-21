@@ -1,5 +1,7 @@
 package com.ultrader.bot.config;
 
+import static java.util.Collections.singletonList;
+
 import com.ultrader.bot.security.CustomUserDetailsService;
 import com.ultrader.bot.security.JwtAuthenticationEntryPoint;
 import com.ultrader.bot.security.JwtAuthenticationFilter;
@@ -22,7 +24,6 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.CorsUtils;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -64,12 +65,12 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
-        List<String> allowedOrigins = Arrays.asList("*");
+        List<String> allowedOrigins = singletonList("*");
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(allowedOrigins);
         configuration.setAllowCredentials(true);
-        configuration.setAllowedHeaders(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("*"));
+        configuration.setAllowedHeaders(singletonList("*"));
+        configuration.setAllowedMethods(singletonList("*"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
@@ -114,6 +115,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/user/getUserType/**").permitAll()
                 .antMatchers("/api/user/hasUsers/**").permitAll()
                 .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString())
+                //News  Controller
+                .antMatchers("/api/news/**").hasAuthority(UserType.ADMIN.getId().toString())
+                .antMatchers("/api/news/getNewsList/**").permitAll()
                 //Strategy Controller
                 .antMatchers("/api/strategy/getStrategy/**").permitAll()
                 .antMatchers("/api/strategy/getStrategies/**").permitAll()
@@ -140,8 +144,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Bean
     CORSFilter customCorsFilter() {
-        CORSFilter filter = new CORSFilter();
-        return filter;
+        return new CORSFilter();
     }
 
     @Bean

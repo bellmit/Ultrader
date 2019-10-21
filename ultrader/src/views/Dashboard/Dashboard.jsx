@@ -1,29 +1,16 @@
 import React, { Component } from "react";
-import { Grid, Col, Row } from "react-bootstrap";
-// react component used to create charts
+import { Grid, Col, Row, Carousel } from "react-bootstrap";
 import ChartistGraph from "react-chartist";
-// react components used to create a SVG / Vector map
-import { VectorMap } from "react-jvectormap";
 
 import Card from "components/Card/Card.jsx";
-import StatsCard from "components/Card/StatsCard.jsx";
-import Tasks from "components/Tasks/Tasks.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
 import { parseMoney, parsePercentage, parseProfit } from "helpers/ParseHelper";
 import { axiosGetWithAuth } from "helpers/UrlHelper";
-import { alertSuccess, alertError } from "helpers/AlertHelper";
-
-import {
-  dataPie,
-  dataSales,
-  optionsSales,
-  responsiveSales,
-  dataBar,
-  optionsBar,
-  responsiveBar,
-  table_data
-} from "variables/Variables.jsx";
+import { alertError} from "helpers/AlertHelper";
+import { responsiveSales } from "variables/Variables.jsx";
+import newsImg from "assets/img/news.png";
+import "./../../css/news.css";
 
 class DashboardComp extends Component {
   constructor(props) {
@@ -32,13 +19,17 @@ class DashboardComp extends Component {
     this.getTotalPortfolioChart = this.getTotalPortfolioChart.bind(this);
     this.getMonthlyTotalPortfolio = this.getMonthlyTotalPortfolio.bind(this);
     this.getCards = this.getCards.bind(this);
+    this.getNews = this.getNews.bind(this);
     this.getMonthlyTotalPortfolio();
     this.getCards();
+    this.getNews();
     this.state = {
       totalPortfolioChart: {},
-      totalPortfolioUpdateDate: new Date().toLocaleString()
+      totalPortfolioUpdateDate: new Date().toLocaleString(),
+      news: []
     };
   }
+
   getTotalPortfolioChart(length, period) {
     axiosGetWithAuth(
       "/api/chart/getPortfolio?length=" + length + "&period=" + period
@@ -54,6 +45,7 @@ class DashboardComp extends Component {
         alertError(error);
       });
   }
+
   getCards() {
     axiosGetWithAuth("/api/notification/dashboard")
       .then(res => {
@@ -76,13 +68,56 @@ class DashboardComp extends Component {
         alertError(error);
       });
   }
+
   getMonthlyTotalPortfolio() {
     this.getTotalPortfolioChart(30, 86400);
   }
+
+  getNews() {
+    axiosGetWithAuth("/api/news/getNewsList?num=3")
+      .then(res => {
+        this.setState({
+          news: res.data
+        });
+      }).catch(error => {
+        console.log(error);
+      });
+  }
+
+  appendNews() {
+    if (this.state.news.length > 0) {
+      return (
+          <Row>
+            <Col sm={12}>
+              <Carousel interval={10000000} className="card card-stats">
+                {this.state.news.map(newsItem => (
+                    <Carousel.Item key={newsItem.newsId}>
+                      <img
+                        style={{margin: "auto", maxHeight: 140, width: "100%" }}
+                        src={newsImg}
+                        alt="Test img"
+                      />
+                      <Carousel.Caption style={{backgroundColor: "rgba(0,0,0, 0.4)", padding: "0px 20px", left: 0, right:0, textAlign: "left"}}>
+                        <h3>{newsItem.title}</h3>
+                      </Carousel.Caption>
+                    </Carousel.Item>
+                ))}
+              </Carousel>
+            </Col>
+          </Row>
+      );
+    } else {
+      return <Row/>
+    }
+  }
+
+
+
   render() {
     return (
       <div className="main-content">
         <Grid fluid>
+          {this.appendNews()}
           <Row>
             <Col xl={3} lg={6} sm={6}>
               <div className="card card-stats">

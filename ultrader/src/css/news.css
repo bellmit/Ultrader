@@ -1,0 +1,13 @@
+.carousel-indicators {
+    bottom: -10px !important;
+}
+
+.carousel-control {
+    width: 6% !important;
+    top: 50px !important;
+    bottom: 20px !important;
+}
+
+.carousel-control.left {
+    left: 88% !important;
+}
