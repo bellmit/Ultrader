@@ -3,11 +3,15 @@
 }
 
 .carousel-control {
-    width: 6% !important;
-    top: 50px !important;
-    bottom: 20px !important;
+    display: none;
 }
 
-.carousel-control.left {
-    left: 88% !important;
+.carousel-caption {
+    background-color: rgba(0, 0, 0, 0.4);
+    padding: 0 20px !important;
+    left: 0 !important;
+    right:0 !important;
+    bottom:0 !important;
+    height: 50%;
+    text-align: left !important;
 }

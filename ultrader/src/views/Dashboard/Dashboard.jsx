@@ -89,16 +89,16 @@ class DashboardComp extends Component {
       return (
           <Row>
             <Col sm={12}>
-              <Carousel interval={10000000} className="card card-stats">
+              <Carousel interval={5000} className="card card-stats">
                 {this.state.news.map(newsItem => (
-                    <Carousel.Item key={newsItem.newsId}>
+                    <Carousel.Item key={newsItem.newsId} onClick={()=>{ window.open(newsItem.url); }} style={{cursor: "pointer"}}>
                       <img
-                        style={{margin: "auto", maxHeight: 140, width: "100%" }}
-                        src={newsImg}
+                        style={{margin: "auto", minHeight: 100, width: "100%" }}
+                        src={newsItem.img}
                         alt="Test img"
                       />
-                      <Carousel.Caption style={{backgroundColor: "rgba(0,0,0, 0.4)", padding: "0px 20px", left: 0, right:0, textAlign: "left"}}>
-                        <h3>{newsItem.title}</h3>
+                      <Carousel.Caption>
+                        <h4 style={{marginTop: 10}}>{newsItem.title}</h4>
                       </Carousel.Caption>
                     </Carousel.Item>
                 ))}
