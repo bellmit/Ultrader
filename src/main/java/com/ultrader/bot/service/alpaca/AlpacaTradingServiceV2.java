@@ -362,22 +362,22 @@ public class AlpacaTradingServiceV2 implements TradingService {
     @Override
     public void setAccountConfiguration(List<Setting> accountConfiguration) {
         try {
-            Map<String, String> request = new HashMap<>();
-            for (Map.Entry<String, String> entry : request.entrySet()) {
-                if (entry.getKey().equals(SettingConstant.ALPACA_DTMC.getName())) {
-                    request.put("dtbp_check", entry.getValue());
+            AccountConfiguration configuration = new AccountConfiguration();
+            for (Setting setting : accountConfiguration) {
+                if (setting.getName().equals(SettingConstant.ALPACA_DTMC.getName())) {
+                    configuration.setDtbp_check(setting.getValue());
                 }
-                if (entry.getKey().equals(SettingConstant.ALPACA_SUSPEND_TRADE.getName())) {
-                    request.put("suspend_trade", entry.getValue());
+                if (setting.getName().equals(SettingConstant.ALPACA_SUSPEND_TRADE.getName())) {
+                    configuration.setSuspend_trade(setting.getValue().equalsIgnoreCase("false") ? false : true);
                 }
-                if (entry.getKey().equals(SettingConstant.ALPACA_NO_SHORTING.getName())) {
-                    request.put("no_shorting", entry.getValue());
+                if (setting.getName().equals(SettingConstant.ALPACA_NO_SHORTING.getName())) {
+                    configuration.setNo_shorting(setting.getValue().equalsIgnoreCase("false") ? false : true);
                 }
-                if (entry.getKey().equals(SettingConstant.ALPACA_TRADE_CONFIRM_EMAIL.getName())) {
-                    request.put("trade_confirm_email", entry.getValue());
+                if (setting.getName().equals(SettingConstant.ALPACA_TRADE_CONFIRM_EMAIL.getName())) {
+                    configuration.setTrade_confirm_email(setting.getValue());
                 }
             }
-            HttpEntity<Map<String,String>> entity = new HttpEntity<>(request, generateHeader());
+            HttpEntity<AccountConfiguration> entity = new HttpEntity<>(configuration, generateHeader());
             ResponseEntity<AccountConfiguration> configurationResponseEntity = client.exchange("/account/configurations", HttpMethod.PATCH, entity, AccountConfiguration.class);
             if (configurationResponseEntity.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");

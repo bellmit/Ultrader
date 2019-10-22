@@ -530,7 +530,7 @@ class EditSettingsComp extends Component {
         )
       },
       {
-        name: "Alcapa",
+        name: "Alpaca",
         component: (
           <AlpacaStep
             {...this.props}
