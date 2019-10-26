@@ -145,8 +145,13 @@ public class TradingStrategyMonitor extends Monitor {
                                 && !positions.containsKey(stock)
                                 && !openOrders.containsKey(stock)
                                 && positionNum + buyOpenOrder < holdLimit) {
+                            LOGGER.info(String.format("%s buy strategy satisfied.", stock));
                             //buy strategy satisfy & no position & hold stock < limit
-                            int buyQuantity = calculateBuyShares(buyLimit, currentPrice, account);
+                            int buyQuantity = calculateBuyShares(
+                                    buyLimit,
+                                    currentPrice,
+                                    account,
+                                    Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_USE_MARGIN.getName(), "false")));
                             if (buyQuantity > 0) {
                                 if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null)) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
@@ -154,10 +159,10 @@ public class TradingStrategyMonitor extends Monitor {
                                     LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
                                 }
                             }
-                        } else if (strategy.shouldExit(timeSeries.getEndIndex(), tradingRecord) //Check if sell satisfied
-                                && positions.containsKey(stock)
-
-                                && positions.get(stock).getQuantity() > 0) {
+                        } else if (positions.containsKey(stock)
+                                && positions.get(stock).getQuantity() > 0
+                                && strategy.shouldExit(timeSeries.getEndIndex(), tradingRecord)) {
+                            LOGGER.info(String.format("%s sell strategy satisfied.", stock));
                             //sell strategy satisfy & has position
                             if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null)) != null) {
                                 account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
@@ -199,12 +204,16 @@ public class TradingStrategyMonitor extends Monitor {
     }
 
 
-    private static int calculateBuyShares(String limit, double price, Account account) {
+    private static int calculateBuyShares(String limit, double price, Account account, Boolean maxBuyingPower) {
         double amount;
         if (limit.indexOf("%") < 0) {
             amount = Double.parseDouble(limit);
         } else {
-            amount = account.getPortfolioValue() * Double.parseDouble(limit.substring(0, limit.length() - 1)) / 100;
+            if (maxBuyingPower) {
+                amount = (account.getPortfolioValue() - account.getCash() + account.getBuyingPower()) * Double.parseDouble(limit.substring(0, limit.length() - 1)) / 100;
+            } else {
+                amount = account.getPortfolioValue() * Double.parseDouble(limit.substring(0, limit.length() - 1)) / 100;
+            }
         }
         int quantity = (int) (Math.floor(amount / price));
         if (account.getBuyingPower() < amount) {

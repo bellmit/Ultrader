@@ -226,7 +226,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
                     account.getBody().getBuying_power(),
                     account.getBody().getCash(),
                     account.getBody().getCash(),
-                    account.getBody().getPortfolio_value(),
+                    account.getBody().getEquity(),
                     account.getBody().getPattern_day_trader(),
                     account.getBody().getTrading_blocked(),
                     account.getBody().getTransfers_blocked(),

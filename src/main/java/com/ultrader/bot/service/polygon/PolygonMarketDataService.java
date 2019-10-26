@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
@@ -50,15 +51,21 @@ public class PolygonMarketDataService implements MarketDataService {
     private Connection connection;
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     private final SettingDao settingDao;
+    private final SimpleClientHttpRequestFactory clientHttpRequestFactory;
     private RateLimiter rateLimiter;
 
     public PolygonMarketDataService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
 
-        rateLimiter = RateLimiter.create(150);
+        rateLimiter = RateLimiter.create(50);
         this.settingDao = settingDao;
         this.restTemplateBuilder = restTemplateBuilder;
+        clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
+        //Connect timeout
+        clientHttpRequestFactory.setConnectTimeout(60_000);
+        //Read timeout
+        clientHttpRequestFactory.setReadTimeout(60_000);
         initService();
     }
 
@@ -73,7 +80,7 @@ public class PolygonMarketDataService implements MarketDataService {
             return;
         }
         client = restTemplateBuilder.rootUri("https://api.polygon.io").build();
-
+        client.setRequestFactory(clientHttpRequestFactory);
         threadPoolTaskExecutor = new ThreadPoolTaskExecutor();
         threadPoolTaskExecutor.setCorePoolSize(400);
         threadPoolTaskExecutor.setMaxPoolSize(1000);

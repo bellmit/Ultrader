@@ -439,7 +439,7 @@ class BacktestComp extends Component {
                           Avg. Profit % / Trade {tooltip("Averagely, profit that one trade can gain")}: {this.state.profitPerTrade}
                         </p>
                         <p>
-                          Expected Total Profit % {tooltip("Considering user current settings, such as how much spend on each trader and max position, the expect total profit can gain during the testing date range")}:{" "}
+                          Expected Total Profit % {tooltip("Considering user current settings, such as how much spend on each trader and max position, the expect total profit can gain during the testing date range and only trading stocks in the test")}:{" "}
                           {this.state.totalProfitStrategy}
                         </p>
                       </div>
