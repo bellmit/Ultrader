@@ -113,12 +113,12 @@ public class NotificationService {
      *
      * @return
      */
-    public DashboardDataMessage sendProfitNotification() {
+    public DashboardDataMessage sendProfitNotification(int period) {
         DecimalFormat df = new DecimalFormat("#.####");
         Map<String, String> map = new HashMap<>();
         LocalTime midnight = LocalTime.MIDNIGHT;
-        LocalDate today = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE));
-        LocalDateTime eastCoastMidnight = LocalDateTime.of(today, midnight);
+        LocalDate startDate = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE)).minusDays(period-1);
+        LocalDateTime eastCoastMidnight = LocalDateTime.of(startDate, midnight);
         //Convert US east coast midnight to local time
         LocalDateTime localMidnight = eastCoastMidnight.atZone(ZoneId.of(TradingUtil.TIME_ZONE)).withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
         LOGGER.debug("Aggregate trades from {}", localMidnight);
@@ -137,6 +137,8 @@ public class NotificationService {
 
             }
         }
+        map.put("PeriodDays", String.valueOf(period));
+        map.put("TotalTrades", String.valueOf(sellCount));
         map.put("TotalProfit", df.format(totalProfit));
         map.put("AverageProfit", df.format(sellCount == 0 ? 0 : (totalProfit / sellCount)));
         map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : (totalRatio / sellCount)));

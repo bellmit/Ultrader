@@ -165,7 +165,10 @@ public class TradingAccountMonitor extends Monitor {
             //Populate Dashboard Message
             notifier.sendAccountNotification(account);
             notifier.sendTradesNotification();
-            notifier.sendProfitNotification();
+            notifier.sendProfitNotification(1);
+            notifier.sendProfitNotification(7);
+            notifier.sendProfitNotification(30);
+            notifier.sendProfitNotification(365);
             notifier.sendPositionNotification();
             //Publish status
             notifier.sendMarketStatus(MarketDataMonitor.isMarketOpen());

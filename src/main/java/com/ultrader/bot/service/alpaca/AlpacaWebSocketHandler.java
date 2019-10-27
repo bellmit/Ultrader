@@ -101,7 +101,10 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
             try {
                 TradingAccountMonitor.getInstance().syncAccount();
                 notifier.sendAccountNotification(TradingAccountMonitor.getAccount());
-                notifier.sendProfitNotification();
+                notifier.sendProfitNotification(1);
+                notifier.sendProfitNotification(7);
+                notifier.sendProfitNotification(30);
+                notifier.sendProfitNotification(365);
                 notifier.sendTradesNotification();
                 notifier.sendPositionNotification();
                 notifier.sendNotification(
