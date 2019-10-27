@@ -9,12 +9,14 @@ import com.ultrader.bot.service.MarketDataService;
 import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.service.TradingService;
+import com.ultrader.bot.util.DatabaseUtil;
 import com.ultrader.bot.util.NotificationType;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.ta4j.core.BaseTimeSeries;
 import org.ta4j.core.TimeSeries;
@@ -36,6 +38,7 @@ public class MarketDataMonitor extends Monitor {
     private final SettingDao settingDao;
     private final NotificationService notifier;
     private final AssetListDao assetListDao;
+    private final JdbcTemplate jdbcTemplate;
 
     private boolean firstRun = true;
     private Date lastUpdateDate;
@@ -46,16 +49,19 @@ public class MarketDataMonitor extends Monitor {
                               final TradingPlatform tradingPlatform,
                               final SettingDao settingDao,
                               final AssetListDao assetListDao,
-                              final NotificationService notifier) {
+                              final NotificationService notifier,
+                              final JdbcTemplate jdbcTemplate) {
         super(interval);
         Validate.notNull(tradingPlatform, "tradingPlatform is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(notifier, "notifier is required");
         Validate.notNull(assetListDao, "assetListDao is required");
+        Validate.notNull(jdbcTemplate, "jdbcTemplate is required");
         this.settingDao = settingDao;
         this.tradingPlatform = tradingPlatform;
         this.notifier = notifier;
         this.assetListDao = assetListDao;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -75,6 +81,8 @@ public class MarketDataMonitor extends Monitor {
             } else {
                 if(marketOpen) {
                     marketStatusChanged = true;
+                    //Backup database after market closed
+                    DatabaseUtil.backup(jdbcTemplate);
                 }
                 marketOpen = false;
                 LOGGER.info("Market is closed now.");
@@ -223,13 +231,15 @@ public class MarketDataMonitor extends Monitor {
                             TradingPlatform tradingPlatform,
                             SettingDao settingDao,
                             AssetListDao assetListDao,
-                            NotificationService notifier) {
+                            NotificationService notifier,
+                            JdbcTemplate jdbcTemplate) {
         singleton_instance = new MarketDataMonitor(
                 interval,
                 tradingPlatform,
                 settingDao,
                 assetListDao,
-                notifier);
+                notifier,
+                jdbcTemplate);
     }
 
     public static MarketDataMonitor getInstance() throws IllegalAccessException {

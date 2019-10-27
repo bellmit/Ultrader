@@ -4,12 +4,14 @@ import com.ultrader.bot.dao.*;
 import com.ultrader.bot.service.LicenseService;
 import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingPlatform;
+import com.ultrader.bot.util.DatabaseUtil;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
@@ -46,6 +48,8 @@ public class MonitorManager implements CommandLineRunner {
     private PositionDao positionDao;
     @Autowired
     private NotificationDao notificationDao;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @Override
     public void run(String... args) throws Exception {
@@ -67,7 +71,7 @@ public class MonitorManager implements CommandLineRunner {
         threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
         //Start MarketDate Monitor
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")) * 1000;
-        MarketDataMonitor.init(interval, tradingPlatform, settingDao, assetListDao, notifier);
+        MarketDataMonitor.init(interval, tradingPlatform, settingDao, assetListDao, notifier, jdbcTemplate);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
 
 

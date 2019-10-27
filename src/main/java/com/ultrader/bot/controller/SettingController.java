@@ -4,11 +4,13 @@ import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.monitor.MonitorManager;
 import com.ultrader.bot.service.TradingPlatform;
+import com.ultrader.bot.util.DatabaseUtil;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -29,6 +31,8 @@ public class SettingController {
     private TradingPlatform tradingPlatform;
     @Autowired
     private SettingDao settingDao;
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
 
     @RequestMapping(method = RequestMethod.POST, value = "/addSettings")
     @ResponseBody
@@ -74,6 +78,8 @@ public class SettingController {
     @RequestMapping(method = RequestMethod.GET, value = "/restart")
     @ResponseBody
     public void restart() {
+        LOGGER.info("Backup database.");
+        DatabaseUtil.backup(jdbcTemplate);
         LOGGER.info("Restart Ultrader ...");
         tradingPlatform.restart();
         monitorManager.restart();
