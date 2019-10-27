@@ -116,8 +116,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/user/hasUsers/**").permitAll()
                 .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString())
                 //News  Controller
-                .antMatchers("/api/news/**").hasAuthority(UserType.ADMIN.getId().toString())
-                .antMatchers("/api/news/getNewsList/**").permitAll()
+                .antMatchers("/api/news/**").permitAll()
                 //Strategy Controller
                 .antMatchers("/api/strategy/getStrategy/**").permitAll()
                 .antMatchers("/api/strategy/getStrategies/**").permitAll()

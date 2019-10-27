@@ -180,7 +180,7 @@ class HeaderLinks extends Component {
               <i
                 className={
                   "fa fa-university " +
-                  this.iconColor(this.props.systemStatus.account.status)
+                  this.iconColor(this.props.systemStatus.market.status)
                 }
               />
               <p className="monitorIconText">Market Status</p>
