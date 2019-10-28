@@ -23,15 +23,40 @@ const initialState = {
     buyCount: 0,
     sellCount: 0
   },
-  daily: {
-    netIncome: 0,
-    averageProfit: 0,
-    averageProfitRate: 0
-  },
   positions: {
     holds: 0,
     profitStocks: 0,
     profit: 0
+  },
+  profit: {
+    "1": {
+      periodDays: 1,
+      totalTrades: 0,
+      totalProfit: 0,
+      averageProfit: 0,
+      averageProfitRatio: 0
+    },
+    "7": {
+      periodDays: 7,
+      totalTrades: 0,
+      totalProfit: 0,
+      averageProfit: 0,
+      averageProfitRatio: 0
+    },
+    "30": {
+      periodDays: 30,
+      totalTrades: 0,
+      totalProfit: 0,
+      averageProfit: 0,
+      averageProfitRatio: 0
+    },
+    "365": {
+      periodDays: 365,
+      totalTrades: 0,
+      totalProfit: 0,
+      averageProfit: 0,
+      averageProfitRatio: 0
+    }
   },
   systemStatus: {
     data: {
@@ -52,7 +77,7 @@ const initialState = {
     }
   },
   notifications: [
-  /*
+    /*
     {
       level: "error",
       message: "This is a test notification"
@@ -120,8 +145,9 @@ const global = (state = initialState, action) => {
     case ACTION_TYPES.RECEIVED_PORTFOLIO_MONITOR_MESSAGE:
       var messageBody = JSON.parse(action.response.body).data;
       var accountStatus = messageBody.IsTradingBlocked ? "error" : "success";
-      var changePercentage = messageBody.Change / (messageBody.Portfolio - messageBody.Change);
-      var signal = messageBody.Change >= 0 ? '+' : '';
+      var changePercentage =
+        messageBody.Change / (messageBody.Portfolio - messageBody.Change);
+      var signal = messageBody.Change >= 0 ? "+" : "";
       var accountStatusMessage = messageBody.IsTradingBlocked
         ? "Trading is blocked in this account."
         : "Account is able to trade.";
@@ -155,10 +181,16 @@ const global = (state = initialState, action) => {
       var messageBody = JSON.parse(action.response.body).data;
       return {
         ...state,
-        daily: {
-          netIncome: messageBody.TotalProfit,
-          averageProfit: messageBody.AverageProfit,
-          averageProfitRate: messageBody.AverageProfitRatio
+        profit: {
+          ...state.profit,
+          ["" + messageBody.PeriodDays]: {
+            ...state.profit["" + messageBody.PeriodDays],
+            periodDays: messageBody.PeriodDays,
+            totalTrades: messageBody.TotalTrades,
+            totalProfit: messageBody.TotalProfit,
+            averageProfit: messageBody.AverageProfit,
+            averageProfitRatio: messageBody.AverageProfitRatio
+          }
         }
       };
     case ACTION_TYPES.RECEIVED_POSITION_MONITOR_MESSAGE:
@@ -175,26 +207,26 @@ const global = (state = initialState, action) => {
       var messageBody = JSON.parse(action.response.body);
       var level = "info";
       var icon = "pe-7s-info";
-          switch (messageBody.type) {
-                  case 'BUY':
-                  level = '#28a745';
-                  icon = 'pe-7s-plus';
-                  break;
-                  case 'SELL':
-                  level = '#28a745';
-                  icon = 'pe-7s-less';
-                  break;
-                  case 'WARN':
-                  level = '#ffc107';
-                  icon = 'pe-7s-speaker';
-                  break;
-                  case 'ERROR':
-                  level = '#dc3545';
-                  icon = 'pe-7s-speaker';
-                  break;
-                  default:
-                  break;
-          }
+      switch (messageBody.type) {
+        case "BUY":
+          level = "#28a745";
+          icon = "pe-7s-plus";
+          break;
+        case "SELL":
+          level = "#28a745";
+          icon = "pe-7s-less";
+          break;
+        case "WARN":
+          level = "#ffc107";
+          icon = "pe-7s-speaker";
+          break;
+        case "ERROR":
+          level = "#dc3545";
+          icon = "pe-7s-speaker";
+          break;
+        default:
+          break;
+      }
       return {
         ...state,
         notifications: [
@@ -249,12 +281,24 @@ const global = (state = initialState, action) => {
             let indicatorWithTypes = indicatorTypes.find(
               el => el.classz == categoryIndicator
             );
-            let indicatorWithEachType = _.map(indicatorWithTypes.args, (args, index) => {
-              return {
-                value: { label: categoryIndicator, args: args, argName:indicatorWithTypes.argName[index], description:indicatorWithTypes.descriptions[index] },
-                label: categoryIndicator + " (" + indicatorWithTypes.argName[index] + ")"
-              };
-            });
+            let indicatorWithEachType = _.map(
+              indicatorWithTypes.args,
+              (args, index) => {
+                return {
+                  value: {
+                    label: categoryIndicator,
+                    args: args,
+                    argName: indicatorWithTypes.argName[index],
+                    description: indicatorWithTypes.descriptions[index]
+                  },
+                  label:
+                    categoryIndicator +
+                    " (" +
+                    indicatorWithTypes.argName[index] +
+                    ")"
+                };
+              }
+            );
             indicatorSelectOptionsForProp = indicatorSelectOptionsForProp.concat(
               indicatorWithEachType
             );

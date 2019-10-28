@@ -1,5 +1,6 @@
 package com.ultrader.bot.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.model.Notification;
 import com.ultrader.bot.model.websocket.DashboardDataMessage;
@@ -30,14 +31,17 @@ public class NotificationController {
     public DashboardDataMessage dashboardNotification() {
         //Populate Dashboard Message
         try {
+            ObjectMapper mapper = new ObjectMapper();
+
+
             DashboardDataMessage message = new DashboardDataMessage();
             message.setData(new HashMap<>());
             message.getData().putAll(notifier.sendAccountNotification(TradingAccountMonitor.getAccount()).getData());
             message.getData().putAll(notifier.sendTradesNotification().getData());
-            message.getData().putAll(notifier.sendProfitNotification(1).getData());
-            message.getData().putAll(notifier.sendProfitNotification(7).getData());
-            message.getData().putAll(notifier.sendProfitNotification(30).getData());
-            message.getData().putAll(notifier.sendProfitNotification(365).getData());
+            message.getData().put("1", mapper.writeValueAsString(notifier.sendProfitNotification(1).getData()));
+            message.getData().put("7", mapper.writeValueAsString(notifier.sendProfitNotification(7).getData()));
+            message.getData().put("30", mapper.writeValueAsString(notifier.sendProfitNotification(30).getData()));
+            message.getData().put("365", mapper.writeValueAsString(notifier.sendProfitNotification(365).getData()));
             message.getData().putAll(notifier.sendPositionNotification().getData());
             return message;
         } catch (Exception e) {
