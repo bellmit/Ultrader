@@ -8,7 +8,7 @@ import {
   FormGroup,
   ControlLabel
 } from "react-bootstrap";
-import { axiosPostWithAuth } from "helpers/UrlHelper";
+import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 import Card from "components/Card/Card.jsx";
@@ -33,6 +33,20 @@ class RegisterPageComp extends Component {
       passwordError: null,
       cfpasswordError: null
     };
+  }
+
+  componentDidMount() {
+    axiosGetWithAuth("/api/user/hasUsers")
+      .then(res => {
+        // if there is no users, redirect to register
+        if (res.data) {
+          window.location = "/#/pages/login-page";
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
   }
 
   handleUsernameChange(event) {
@@ -84,30 +98,28 @@ class RegisterPageComp extends Component {
     );
   }
 
-
   handleRegisterSubmit(e) {
     e.preventDefault();
     if (this.validate()) {
-
-    axiosPostWithAuth("/api/user/addRootUser", {
-      username: this.state.username,
-      passwordHash: this.state.password
-    })
-      .then(response => {
-        console.log(response);
-        let user = response.data;
-        if (user) {
-          alertSuccess("Registeration succeeded! Redirecting to login page.");
-          window.location = "/#/pages/login-page";
-        }
+      axiosPostWithAuth("/api/user/addRootUser", {
+        username: this.state.username,
+        passwordHash: this.state.password
       })
-      .catch(error => {
+        .then(response => {
+          console.log(response);
+          let user = response.data;
+          if (user) {
+            alertSuccess("Registeration succeeded! Redirecting to login page.");
+            window.location = "/#/pages/login-page";
+          }
+        })
+        .catch(error => {
           if (error.response.status == 409) {
             alertError("Username or email already in use!");
           } else {
             alertError(error);
           }
-      });
+        });
     }
   }
 
@@ -177,7 +189,8 @@ class RegisterPageComp extends Component {
                     fill
                     pullRight
                     onClick={this.handleRegisterSubmit.bind(this)}
-                    type="submit">
+                    type="submit"
+                  >
                     Register
                   </Button>
                 }

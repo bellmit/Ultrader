@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { Switch, Route } from "react-router-dom";
 
 import PagesHeader from "components/Header/PagesHeader.jsx";
+import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
+import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 // dinamically create pages routes
 import pagesRoutes from "routes/pages.jsx";
@@ -9,6 +11,14 @@ import pagesRoutes from "routes/pages.jsx";
 import bgImage from "assets/img/Bulle_und_Bär_Frankfurt.jpg";
 
 class Pages extends Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      hasUsers: true
+    };
+  }
+
   getPageClass() {
     var pageClass = "";
     switch (this.props.location.pathname) {
@@ -27,15 +37,32 @@ class Pages extends Component {
     }
     return pageClass;
   }
+
   componentWillMount() {
     if (document.documentElement.className.indexOf("nav-open") !== -1) {
       document.documentElement.classList.toggle("nav-open");
     }
   }
+
+  componentDidMount() {
+    axiosGetWithAuth("/api/user/hasUsers")
+      .then(res => {
+        if (res.data) {
+          this.setState({ hasUsers: true });
+        } else {
+          this.setState({ hasUsers: false });
+        }
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
+  }
+
   render() {
     return (
       <div>
-        <PagesHeader />
+        <PagesHeader hasUsers={this.state.hasUsers} />
         <div className="wrapper wrapper-full-page">
           <div
             className={"full-page" + this.getPageClass()}
@@ -45,11 +72,14 @@ class Pages extends Component {
             <div className="content">
               <Switch>
                 {pagesRoutes.map((prop, key) => {
+                  const Comp = prop.component;
                   return (
                     <Route
                       path={prop.path}
-                      component={prop.component}
                       key={key}
+                      render={props => (
+                        <Comp hasUsers={this.state.hasUsers} {...props} />
+                      )}
                     />
                   );
                 })}

@@ -34,27 +34,29 @@ class PagesHeader extends Component {
         <Navbar.Header>
           <Navbar.Brand>
             <NavLink to={"/dashboard"} className="nav-link">
-              {this.state.width > 429
-                ? "ULTRA TRADER"
-                : "ULTRA TRADER"}
+              {this.state.width > 429 ? "ULTRA TRADER" : "ULTRA TRADER"}
             </NavLink>
           </Navbar.Brand>
           <Navbar.Toggle onClick={this.mobileSidebarToggle} />
         </Navbar.Header>
         <Navbar.Collapse>
           <ul className="nav navbar-nav navbar-right">
-            <li className={this.activeRoute("login-page")}>
-              <NavLink to={"/pages/login-page"} className="nav-link">
-                <i className="fa fa-drivers-license-o" />
-                <p>Login</p>
-              </NavLink>
-            </li>
-            <li className={this.activeRoute("register-page")}>
-              <NavLink to={"/pages/register-page"} className="nav-link">
-                <i className="fa fa-user-circle-o" />
-                <p>Register</p>
-              </NavLink>
-            </li>
+            {this.props.hasUsers && (
+              <li className={this.activeRoute("login-page")}>
+                <NavLink to={"/pages/login-page"} className="nav-link">
+                  <i className="fa fa-drivers-license-o" />
+                  <p>Login</p>
+                </NavLink>
+              </li>
+            )}
+            {!this.props.hasUsers && (
+              <li className={this.activeRoute("register-page")}>
+                <NavLink to={"/pages/register-page"} className="nav-link">
+                  <i className="fa fa-user-circle-o" />
+                  <p>Register</p>
+                </NavLink>
+              </li>
+            )}
           </ul>
         </Navbar.Collapse>
       </Navbar>
