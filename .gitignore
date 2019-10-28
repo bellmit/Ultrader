@@ -27,3 +27,8 @@ HELP.md
 
 ### VS Code ###
 .vscode/
+
+### local ###
+data/
+logs/
+package-lock.json

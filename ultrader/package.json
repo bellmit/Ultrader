@@ -37,7 +37,9 @@
     "react-table": "6.10.3",
     "react-tagsinput": "3.19.0",
     "react-windowed-select": "^2.0.0",
+    "reactour": "^1.15.4",
     "redux": "^4.0.1",
+    "styled-components": "^4.4.0",
     "sweetalert2": "^8.14.0",
     "sweetalert2-react-content": "^1.1.0",
     "wnumb": "1.1.0"
