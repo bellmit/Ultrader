@@ -24,8 +24,9 @@ import java.util.*;
  * @author ytx1991
  */
 public class TradingAccountMonitor extends Monitor {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(TradingAccountMonitor.class);
+    private static final int CHART_UPDATE_PERIOD_SECONDS = 60;
+    private static int chartUpdateTicker = 0;
     private static TradingAccountMonitor singleton_instance = null;
     private static Map<String, Position> positions = new HashMap<>();
     private static Account account = new Account();
@@ -153,15 +154,19 @@ public class TradingAccountMonitor extends Monitor {
             if(!tradingService.checkWebSocket()) {
                 tradingService.restart();
             }
+            if (chartUpdateTicker % CHART_UPDATE_PERIOD_SECONDS == 0) {
+                List<Chart> lastOne = chartDao.getLastId();
+                long id = lastOne.size() > 0 ? (lastOne.get(0).getId()) + 1 : 1000;
+                Chart chart = new Chart();
+                chart.setDate(new Date());
+                chart.setSerialName("Portfolio");
+                chart.setValue(account.getPortfolioValue());
+                chart.setId(id);
+                chartDao.save(chart);
+                chartUpdateTicker = 0;
+            }
+            chartUpdateTicker += getInterval() / 1000;
 
-            List<Chart> lastOne = chartDao.getLastId();
-            long id = lastOne.size() > 0 ? (lastOne.get(0).getId()) + 1 : 1000;
-            Chart chart = new Chart();
-            chart.setDate(new Date());
-            chart.setSerialName("Portfolio");
-            chart.setValue(account.getPortfolioValue());
-            chart.setId(id);
-            chartDao.save(chart);
             //Populate Dashboard Message
             notifier.sendAccountNotification(account);
             notifier.sendTradesNotification();

@@ -36,13 +36,15 @@ public class StopHoldRule extends AbstractRule {
                             timeSeries.getBar(tradingRecord.getLastEntry().getIndex()).getEndTime().toEpochSecond()) > limitInSeconds;
         } else {
             //Could be back testing
-            if (tradingRecord.getLastEntry() == null) {
-                return false;
-            }
-            if (tradingRecord.getLastEntry().isBuy() &&
-                    (timeSeries.getBar(index).getEndTime().toEpochSecond() -
-                            timeSeries.getBar(tradingRecord.getLastEntry().getIndex()).getEndTime().toEpochSecond()) > limitInSeconds) {
-                return true;
+            if(tradingRecord != null) {
+                if (tradingRecord.getLastEntry() == null) {
+                    return false;
+                }
+                if (tradingRecord.getLastEntry().isBuy() &&
+                        (timeSeries.getBar(index).getEndTime().toEpochSecond() -
+                                timeSeries.getBar(tradingRecord.getLastEntry().getIndex()).getEndTime().toEpochSecond()) > limitInSeconds) {
+                    return true;
+                }
             }
             Date buyDate =TradingAccountMonitor.getPositions().get(symbol).getBuyDate();
             return (new Date().getTime() - buyDate.getTime()) / 1000 >= limitInSeconds;

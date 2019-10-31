@@ -65,7 +65,7 @@ public class NotificationService {
         map.put("Change", df.format(change));
         map.put("status", LicenseMonitor.getInstance().isValidLicense() ? account.getStatus() : "Invalid License");
         map.put("IsTradingBlock", String.valueOf(account.isTradingBlocked()));
-        LOGGER.info("Notify account update {}", map);
+        LOGGER.debug("Notify account update {}", map);
         DashboardDataMessage message = new DashboardDataMessage(map);
         notifier.convertAndSend("/topic/dashboard/account", message);
         return message;
@@ -101,7 +101,7 @@ public class NotificationService {
         map.put("BuyAmount", df.format(buy));
         map.put("SellCount", df.format(sellCount));
         map.put("BuyCount", df.format(buyCount));
-        LOGGER.info("Notify trades update {}", map);
+        LOGGER.debug("Notify trades update {}", map);
         DashboardDataMessage message = new DashboardDataMessage(map);
         notifier.convertAndSend("/topic/dashboard/trades", message);
         return message;
@@ -142,7 +142,7 @@ public class NotificationService {
         map.put("TotalProfit", df.format(totalProfit));
         map.put("AverageProfit", df.format(sellCount == 0 ? 0 : (totalProfit / sellCount)));
         map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : (totalRatio / sellCount)));
-        LOGGER.info("Notify profit update {}", map);
+        LOGGER.debug("Notify profit update {}", map);
         DashboardDataMessage message = new DashboardDataMessage(map);
         notifier.convertAndSend("/topic/dashboard/profit", message);
         return message;
@@ -193,17 +193,17 @@ public class NotificationService {
         }
     }
 
-    public void sendMarketDataStatus(String status) {
+    public void sendMarketDataStatus(String status, int validAsset, int totalAsset) {
         try {
             switch (status) {
                 case "normal":
-                    notifier.convertAndSend("/topic/status/data", new StatusMessage("normal", "Most stocks have latest data"));
+                    notifier.convertAndSend("/topic/status/data", new StatusMessage("normal", String.format("Most assets have latest data. Found %d assets, %d valid.", totalAsset, validAsset)));
                     break;
                 case "warning":
-                    notifier.convertAndSend("/topic/status/data", new StatusMessage("warning", "Some stocks don't have latest data"));
+                    notifier.convertAndSend("/topic/status/data", new StatusMessage("warning", String.format("Some assets don't have latest data. Found %d assets, %d valid.", totalAsset, validAsset)));
                     break;
                 case "error":
-                    notifier.convertAndSend("/topic/status/data", new StatusMessage("error", "Most stocks don't have latest data"));
+                    notifier.convertAndSend("/topic/status/data", new StatusMessage("error", String.format("Most assets don't have latest data. Found %d assets, %d valid.", totalAsset, validAsset)));
                     break;
             }
         } catch (Exception e) {

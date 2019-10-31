@@ -5,6 +5,7 @@ import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.ProgressMessage;
 import com.ultrader.bot.model.polygon.AggResponse;
 import com.ultrader.bot.model.polygon.Aggv2;
+import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.service.MarketDataService;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
@@ -44,7 +45,6 @@ public class PolygonMarketDataService implements MarketDataService {
     private final static int MIN_PER_TRADING_DAY = 390;
     private final static int MAX_DATA_PER_REQUEST = 5000;
     private String polygonKey;
-    private final String frequency = "A.";
     private RestTemplate client;
     private RestTemplateBuilder restTemplateBuilder;
     private Dispatcher dispatcher;
@@ -58,7 +58,7 @@ public class PolygonMarketDataService implements MarketDataService {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
 
-        rateLimiter = RateLimiter.create(50);
+        rateLimiter = RateLimiter.create(150);
         this.settingDao = settingDao;
         this.restTemplateBuilder = restTemplateBuilder;
         clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
@@ -246,7 +246,15 @@ public class PolygonMarketDataService implements MarketDataService {
     }
 
     public String getFrequency() {
-        return frequency;
+        String frequency = RepositoryUtil.getSetting(settingDao, SettingConstant.POLYGON_WS_FREQUENCY.getName(), "AUTO");
+        switch (frequency) {
+            case "MINUTE":
+                return "AM.";
+            case "SECOND":
+                return "A.";
+            default:
+                return MarketDataMonitor.timeSeriesMap.size() < 1000 ? "A." : "AM.";
+        }
     }
 
     private long getPeriodLength(long interval) {

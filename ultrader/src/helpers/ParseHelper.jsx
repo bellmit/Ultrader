@@ -7,7 +7,7 @@ export function parseDate(date) {
 }
 
 export function parsePercentage(num) {
-  return (num * 100).toFixed(1) + "%";
+  return (num * 100).toFixed(3) + "%";
 }
 
 export function parseMoney(num) {

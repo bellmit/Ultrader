@@ -1,14 +1,10 @@
 package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.AssetListDao;
-import com.ultrader.bot.dao.NotificationDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.AssetList;
-import com.ultrader.bot.model.websocket.StatusMessage;
-import com.ultrader.bot.service.MarketDataService;
 import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingPlatform;
-import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.DatabaseUtil;
 import com.ultrader.bot.util.NotificationType;
 import com.ultrader.bot.util.RepositoryUtil;
@@ -17,7 +13,6 @@ import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.ta4j.core.BaseTimeSeries;
 import org.ta4j.core.TimeSeries;
 
@@ -75,6 +70,7 @@ public class MarketDataMonitor extends Monitor {
             if(tradingPlatform.getTradingService().isMarketOpen()) {
                 if(!marketOpen) {
                     marketStatusChanged = true;
+                    TradingStrategyMonitor.getDayTradeCount().clear();
                 }
                 marketOpen = true;
                 LOGGER.info("Market is opened now.");

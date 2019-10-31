@@ -147,49 +147,7 @@ class DashboardComp extends Component {
         <Grid fluid>
           {this.appendNews()}
           <Row>
-            <Col xl={3} lg={6} sm={6}>
-              <div className="card card-stats">
-                <div className="content">
-                  <div
-                    className="row"
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      alignItems: "center"
-                    }}
-                  >
-                    <div className="col-xs-2">
-                      <div className="icon-big text-center icon-warning">
-                        <i className="pe-7s-graph3 text-danger" />
-                      </div>
-                    </div>
-                    <div className="col-xs-10">
-                      <div className="numbers">
-                        <div>
-                          <p>Positions : {this.props.positions.holds}</p>
-                          <p>
-                            Gain/Loss :{" "}
-                            {this.props.positions.profitStocks +
-                              "/" +
-                              (this.props.positions.holds -
-                                this.props.positions.profitStocks)}
-                          </p>
-                          <p>
-                            Position Profit :{" "}
-                            {parseProfit(
-                              this.props.positions.profit,
-                              this.props.portfolio.value -
-                                this.props.portfolio.buyingPower
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </Col>
-            <Col xl={3} lg={6} sm={6}>
+          <Col xl={3} lg={6} sm={6}>
               <div className="card card-stats">
                 <div className="content">
                   <div
@@ -242,6 +200,48 @@ class DashboardComp extends Component {
                   >
                     <div className="col-xs-2">
                       <div className="icon-big text-center icon-warning">
+                        <i className="pe-7s-graph3 text-danger" />
+                      </div>
+                    </div>
+                    <div className="col-xs-10">
+                      <div className="numbers">
+                        <div>
+                          <p>Positions : {this.props.positions.holds}</p>
+                          <p>
+                            Gain/Loss :{" "}
+                            {this.props.positions.profitStocks +
+                              "/" +
+                              (this.props.positions.holds -
+                                this.props.positions.profitStocks)}
+                          </p>
+                          <p>
+                            Position Profit :{" "}
+                            {parseProfit(
+                              this.props.positions.profit,
+                              this.props.portfolio.value
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Col>
+
+            <Col xl={3} lg={6} sm={6}>
+              <div className="card card-stats">
+                <div className="content">
+                  <div
+                    className="row"
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center"
+                    }}
+                  >
+                    <div className="col-xs-2">
+                      <div className="icon-big text-center icon-warning">
                         <i className="pe-7s-graph1 text-info" />
                       </div>
                     </div>
@@ -256,8 +256,8 @@ class DashboardComp extends Component {
                             )}
                           </p>
                           <p>
-                            Daily Average Profit :{" "}
-                            {parseMoney(this.props.profit["1"].averageProfit)}
+                            Daily Total Trades :{" "}
+                            {this.props.profit["1"].TotalTrades}
                           </p>
                           <p>
                             Daily Average Profit % :{" "}
@@ -285,7 +285,7 @@ class DashboardComp extends Component {
                   >
                     <div className="col-xs-2">
                       <div className="icon-big text-center icon-warning">
-                        <i className="pe-7s-graph1 text-info" />
+                        <i className="pe-7s-graph1 text-success" />
                       </div>
                     </div>
                     <div className="col-xs-10">
@@ -299,8 +299,8 @@ class DashboardComp extends Component {
                             )}
                           </p>
                           <p>
-                            Weekly Average Profit :{" "}
-                            {parseMoney(this.props.profit["7"].averageProfit)}
+                            Weekly Total Trades :{" "}
+                            {this.props.profit["7"].TotalTrades}
                           </p>
                           <p>
                             Weekly Average Profit % :{" "}
@@ -328,7 +328,7 @@ class DashboardComp extends Component {
                   >
                     <div className="col-xs-2">
                       <div className="icon-big text-center icon-warning">
-                        <i className="pe-7s-graph1 text-info" />
+                        <i className="pe-7s-graph1 text-warning" />
                       </div>
                     </div>
                     <div className="col-xs-10">
@@ -342,8 +342,8 @@ class DashboardComp extends Component {
                             )}
                           </p>
                           <p>
-                            Monthly Average Profit :{" "}
-                            {parseMoney(this.props.profit["30"].averageProfit)}
+                            Monthly Total Trades :{" "}
+                            {this.props.profit["30"].TotalTrades}
                           </p>
                           <p>
                             Monthly Average Profit % :{" "}
@@ -371,7 +371,7 @@ class DashboardComp extends Component {
                   >
                     <div className="col-xs-2">
                       <div className="icon-big text-center icon-warning">
-                        <i className="pe-7s-graph1 text-info" />
+                        <i className="pe-7s-graph1 text-danger" />
                       </div>
                     </div>
                     <div className="col-xs-10">
@@ -385,8 +385,8 @@ class DashboardComp extends Component {
                             )}
                           </p>
                           <p>
-                            Yearly Average Profit :{" "}
-                            {parseMoney(this.props.profit["365"].averageProfit)}
+                            Yearly Total Trades :{" "}
+                            {this.props.profit["365"].TotalTrades}
                           </p>
                           <p>
                             Yearly Average Profit % :{" "}

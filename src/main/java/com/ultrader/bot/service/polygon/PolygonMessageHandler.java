@@ -15,10 +15,7 @@ import org.ta4j.core.TimeSeries;
 import org.ta4j.core.num.PrecisionNum;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 
 /**
  * Web Socket handler of Polygon
@@ -46,7 +43,12 @@ public class PolygonMessageHandler implements MessageHandler {
                 //Check if need to add a new bar;
                 Instant i = null;
                 TimeSeries timeSeries = MarketDataMonitor.timeSeriesMap.get(aggregation.getSym());
+                LOGGER.debug("Update {}, last bar end {}, message end {}",
+                        aggregation.getSym(), timeSeries.getLastBar().getEndTime().toEpochSecond(), aggregation.getE() / 1000);
+                long now = LocalDateTime.now(ZoneOffset.UTC).atZone(ZoneOffset.UTC).toEpochSecond() / 1000;
                 if(timeSeries.getLastBar().getEndTime().toEpochSecond() < aggregation.getE() / 1000) {
+                    //If it's newer than the last bar
+                    //Calculate the start time of the new bar
                     long startEpoch = timeSeries.getLastBar().getEndTime().toEpochSecond();
                     while (startEpoch + interval < aggregation.getE() / 1000) {
                         startEpoch += interval;
@@ -62,13 +64,16 @@ public class PolygonMessageHandler implements MessageHandler {
                             PrecisionNum.valueOf(aggregation.getV() * aggregation.getA()));
                     timeSeries.addBar(bar);
                     LOGGER.debug("Add new bar {} in {} time series, interval {}", bar, aggregation.getSym(), interval);
-                } else {
+                } else if (now <= timeSeries.getLastBar().getEndTime().toEpochSecond()) {
+                    //Update last bar
                     Bar bar = timeSeries.getLastBar();
                     bar.addPrice(PrecisionNum.valueOf(aggregation.getO()));
                     bar.addPrice(PrecisionNum.valueOf(aggregation.getH()));
                     bar.addPrice(PrecisionNum.valueOf(aggregation.getL()));
                     bar.addPrice(PrecisionNum.valueOf(aggregation.getC()));
                     bar.addTrade(PrecisionNum.valueOf(aggregation.getV()), PrecisionNum.valueOf(aggregation.getA()));
+                } else {
+                    LOGGER.error("Unexpected data for {}, Now Epoch {}, Last Bar End Epoch {}", aggregation.getSym(), now, timeSeries.getLastBar().getEndTime().toEpochSecond());
                 }
 
             } else {

@@ -75,7 +75,7 @@ public enum RuleType {
     IsFallingRule("IsFallingRule", "Is Falling Rule",
             new String[]{
                     TradingUtil.translateToString(NUM_INDICATOR, INTEGER),
-                    TradingUtil.translateToString(NUM_INDICATOR, INTEGER, NUMBER)},
+                    TradingUtil.translateToString(NUM_INDICATOR, INTEGER, DOUBLE)},
             new String[]{
                     "Satisfied when ALL the values of the indicator are decreasing within a number of data points.",
                     "Satisfied when there are a Percentage of values of the indicator are decreasing within a number of data points."},
@@ -86,7 +86,7 @@ public enum RuleType {
     IsRisingRule("IsRisingRule", "Is Rising Rule",
             new String[]{
                     TradingUtil.translateToString(NUM_INDICATOR, INTEGER),
-                    TradingUtil.translateToString(NUM_INDICATOR, INTEGER, NUMBER)},
+                    TradingUtil.translateToString(NUM_INDICATOR, INTEGER, DOUBLE)},
             new String[]{
                     "Satisfied when ALL the values of the indicator are increasing within a number of data points.)",
                     "Satisfied when there are a Percentage (0 to 1) of values of the indicator are increasing within a number of data points."},

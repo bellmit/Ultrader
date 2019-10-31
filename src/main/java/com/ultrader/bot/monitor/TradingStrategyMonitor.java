@@ -24,6 +24,7 @@ import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Order strategy monitor
@@ -34,12 +35,14 @@ public class TradingStrategyMonitor extends Monitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(TradingStrategyMonitor.class);
     private static TradingStrategyMonitor singleton_instance = null;
     private static Map<String, com.ultrader.bot.model.Order> openOrders = new HashMap<>();
+    private static final Map<String, Integer> dayTradeCount = new HashMap<>();
     private static Object lock = new Object();
     private final SettingDao settingDao;
     private final StrategyDao strategyDao;
     private final RuleDao ruleDao;
     private final TradingService tradingService;
     private final NotificationService notifier;
+
 
     private TradingStrategyMonitor(long interval, final TradingService tradingService, final SettingDao settingDao, final StrategyDao strategyDao, final RuleDao ruleDao, final NotificationService notifier) {
         super(interval);
@@ -141,11 +144,13 @@ public class TradingStrategyMonitor extends Monitor {
                     }
 
                     try {
-                        if (strategy.shouldEnter(timeSeries.getEndIndex())
+                        if (!dayTradeCount.containsKey(stock)
                                 && !positions.containsKey(stock)
                                 && !openOrders.containsKey(stock)
-                                && positionNum + buyOpenOrder < holdLimit) {
-                            LOGGER.info(String.format("%s buy strategy satisfied.", stock));
+                                && positionNum + buyOpenOrder < holdLimit
+                                && strategy.shouldEnter(timeSeries.getEndIndex())) {
+                            LOGGER.info(String.format("%s buy strategy satisfied. ", stock));
+                            TradingUtil.printSatisfaction(strategyDao, ruleDao, buyStrategyId, timeSeries);
                             //buy strategy satisfy & no position & hold stock < limit
                             int buyQuantity = calculateBuyShares(
                                     buyLimit,
@@ -163,10 +168,12 @@ public class TradingStrategyMonitor extends Monitor {
                                 && positions.get(stock).getQuantity() > 0
                                 && strategy.shouldExit(timeSeries.getEndIndex(), tradingRecord)) {
                             LOGGER.info(String.format("%s sell strategy satisfied.", stock));
+                            TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries);
                             //sell strategy satisfy & has position
                             if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null)) != null) {
                                 account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
                                 positionNum--;
+                                dayTradeCount.put(stock, 1);
                                 LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
                             }
 
@@ -181,12 +188,16 @@ public class TradingStrategyMonitor extends Monitor {
             }
             LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
                     vailidCount, noTimeSeries, notLongEnough, notNewEnough);
+            int totalAsset = 0;
+            for (Set<String> assets : MarketDataMonitor.getInstance().getAvailableStock().values()) {
+                totalAsset += assets.size();
+            }
             if (MarketDataMonitor.timeSeriesMap.size() * 0.1 > vailidCount) {
-                notifier.sendMarketDataStatus("error");
+                notifier.sendMarketDataStatus("error", vailidCount, totalAsset);
             } else if (MarketDataMonitor.timeSeriesMap.size() * 0.5 > vailidCount) {
-                notifier.sendMarketDataStatus("warning");
+                notifier.sendMarketDataStatus("warning", vailidCount, totalAsset);
             } else {
-                notifier.sendMarketDataStatus("normal");
+                notifier.sendMarketDataStatus("normal", vailidCount, totalAsset);
             }
 
 
@@ -201,6 +212,10 @@ public class TradingStrategyMonitor extends Monitor {
 
     public static Object getLock() {
         return lock;
+    }
+
+    public static Map<String, Integer> getDayTradeCount() {
+        return dayTradeCount;
     }
 
 
