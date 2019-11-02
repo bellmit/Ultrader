@@ -33,3 +33,10 @@
 .tooltip.right .tooltip-inner:after {
 	border-right: 11px solid #fff;
 }
+
+.reactour__helper {
+	--reactour-accent: #5cb7b7;
+	line-height: 1.3;
+	color: #2d2323;
+	padding: 24px 40px 24px 30px;
+}

@@ -1,28 +1,24 @@
 import React, { Component } from "react";
 import {
-  Navbar,
   Nav,
   NavItem,
   NavDropdown,
   MenuItem,
-  FormGroup,
-  FormControl,
-  InputGroup,
   OverlayTrigger,
   Tooltip
 } from "react-bootstrap";
-import Card from "components/Card/Card.jsx";
+
+import TourBox from "components/TourBox/TourBox.jsx";
 import { logout } from "helpers/AuthHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
-import { parseDate, parseProfit } from "helpers/ParseHelper";
+import { parseDate } from "helpers/ParseHelper";
 import PerfectScrollbar from "perfect-scrollbar";
 import "perfect-scrollbar/css/perfect-scrollbar.css";
 import "assets/css/headerlinks.css";
-import {
-  axiosGetWithAuth,
-  handleResponse,
-  getAuthHeader
-} from "helpers/UrlHelper";
+import { axiosGetWithAuth } from "helpers/UrlHelper";
+import {disableBodyScroll, enableBodyScroll} from "body-scroll-lock";
+import Tour from "reactour";
+
 var ps;
 class HeaderLinks extends Component {
   constructor(props) {
@@ -33,6 +29,10 @@ class HeaderLinks extends Component {
     this.readNotification = this.readNotification.bind(this);
     this.getNotification = this.getNotification.bind(this);
     this.getNotification();
+
+    this.state = {
+      isTourOpen: false
+    };
   }
 
   getNotification() {
@@ -110,6 +110,18 @@ class HeaderLinks extends Component {
       })
       .catch(error => {});
   }
+
+  disableBody = target => disableBodyScroll(target);
+  enableBody = target => enableBodyScroll(target);
+
+  closeTour = () => {
+    this.setState({ isTourOpen: false });
+  };
+
+  openTour = () => {
+    this.setState({ isTourOpen: true });
+  };
+
   render() {
     return (
       <div>
@@ -123,13 +135,15 @@ class HeaderLinks extends Component {
             }
           >
             <NavItem>
-              <i
-                className={
-                  "fa fa-rocket " +
-                  this.iconColor(this.props.systemStatus.bot.status)
-                }
-              />
-              <p className="monitorIconText">System Status</p>
+              <TourBox data-tour="tour-bot-status">
+                <i
+                  className={
+                    "fa fa-rocket " +
+                    this.iconColor(this.props.systemStatus.bot.status)
+                  }
+                />
+                <p className="monitorIconText">System Status</p>
+              </TourBox>
             </NavItem>
           </OverlayTrigger>
           <OverlayTrigger
@@ -141,12 +155,14 @@ class HeaderLinks extends Component {
             }
           >
             <NavItem>
-              <i
-                className={
-                  "fa fa-database " +
-                  this.iconColor(this.props.systemStatus.data.status)
-                }
-              />
+              <TourBox data-tour="tour-data-status">
+                <i
+                  className={
+                    "fa fa-database " +
+                    this.iconColor(this.props.systemStatus.data.status)
+                  }
+                />
+              </TourBox>
               <p className="monitorIconText">Data Status</p>
             </NavItem>
           </OverlayTrigger>
@@ -159,12 +175,14 @@ class HeaderLinks extends Component {
             }
           >
             <NavItem>
-              <i
-                className={
-                  "fa fa-user " +
-                  this.iconColor(this.props.systemStatus.account.status)
-                }
-              />
+              <TourBox data-tour="tour-account-status">
+                <i
+                  className={
+                    "fa fa-user " +
+                    this.iconColor(this.props.systemStatus.account.status)
+                  }
+                />
+              </TourBox>
               <p className="monitorIconText">Account Status</p>
             </NavItem>
           </OverlayTrigger>
@@ -177,12 +195,14 @@ class HeaderLinks extends Component {
             }
           >
             <NavItem>
-              <i
-                className={
-                  "fa fa-university " +
-                  this.iconColor(this.props.systemStatus.market.status)
-                }
-              />
+              <TourBox data-tour="tour-market-status">
+                <i
+                  className={
+                    "fa fa-university " +
+                    this.iconColor(this.props.systemStatus.market.status)
+                  }
+                />
+              </TourBox>
               <p className="monitorIconText">Market Status</p>
             </NavItem>
           </OverlayTrigger>
@@ -191,7 +211,9 @@ class HeaderLinks extends Component {
             eventKey={3}
             title={
               <div>
-                <i className="fa fa-bell-o" />
+                <TourBox data-tour="tour-notifications-status">
+                  <i className="fa fa-bell-o" />
+                </TourBox>
                 <span className="notification">
                   {
                     this.props.notifications.filter(this.isNewNotification)
@@ -258,6 +280,9 @@ class HeaderLinks extends Component {
             <MenuItem eventKey={4.1}>
               <i className="pe-7s-mail" /> Messages
             </MenuItem>
+            <MenuItem eventKey={4.2} onClick={this.openTour}>
+              <i className="pe-7s-help1" /> Tour Guide
+            </MenuItem>
 
             <MenuItem divider />
             <MenuItem eventKey={4.3} onClick={this.reboot}>
@@ -272,8 +297,47 @@ class HeaderLinks extends Component {
             </MenuItem>
           </NavDropdown>
         </Nav>
+        <Tour
+            onRequestClose={this.closeTour}
+            steps={tourConfig}
+            isOpen={this.state.isTourOpen}
+            maskClassName="mask"
+            className="helper"
+            rounded={5}
+            accentColor="5cb7b7"
+            onAfterOpen={this.disableBody}
+            onBeforeClose={this.enableBody}
+        />
       </div>
     );
   }
 }
+
+const tourConfig = [
+  {
+    selector: '[data-tour="welcome"]',
+    content: `Welcome to Ultrader.`
+  },
+  {
+    selector: '[data-tour="tour-bot-status"]',
+    content: `You can check bot running status here.`
+  },
+  {
+    selector: '[data-tour="tour-data-status"]',
+    content: `You can check data sync status here.`
+  },
+  {
+    selector: '[data-tour="tour-account-status"]',
+    content: `You can check account update status here.`
+  },
+  {
+    selector: '[data-tour="tour-market-status"]',
+    content: `You can check market status here.`
+  },
+  {
+    selector: '[data-tour="tour-notifications-status"]',
+    content: `Click to see trade records.`
+  }
+];
+
 export default HeaderLinks;
