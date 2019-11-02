@@ -72,7 +72,7 @@ public class TradingStrategyMonitor extends Monitor {
     }
 
     @Override
-    void scan() {
+    synchronized void scan() {
         try {
 
             if (!LicenseMonitor.getInstance().isValidLicense()) {
@@ -158,10 +158,10 @@ public class TradingStrategyMonitor extends Monitor {
                                     account,
                                     Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_USE_MARGIN.getName(), "false")));
                             if (buyQuantity > 0) {
+                                LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
                                 if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null)) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
                                     positionNum++;
-                                    LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
                                 }
                             }
                         } else if (positions.containsKey(stock)
@@ -170,11 +170,12 @@ public class TradingStrategyMonitor extends Monitor {
                             LOGGER.info(String.format("%s sell strategy satisfied.", stock));
                             TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries);
                             //sell strategy satisfy & has position
+                            LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
                             if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null)) != null) {
                                 account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
                                 positionNum--;
                                 dayTradeCount.put(stock, 1);
-                                LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
+
                             }
 
                         }

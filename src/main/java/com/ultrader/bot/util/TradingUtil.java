@@ -5,6 +5,7 @@ import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.BackTestingResult;
 import com.ultrader.bot.model.StrategyParameter;
 
+import com.ultrader.bot.monitor.TradingAccountMonitor;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +101,14 @@ public class TradingUtil {
                     newRule = generateTradingRule(ruleDao, ruleId, stock, parameters, backfill, path);
                     path.remove(path.size() - 1);
                     if (printSatisfy) {
-                        LOGGER.info("Stock:{}, Rid:{},  Name:{}, Satisfied:{}", stock.getName(), ruleId, rule.getName(), newRule.isSatisfied(stock.getEndIndex()));
+                        TradingRecord tradingRecord = null;
+                        if (TradingAccountMonitor.getPositions().containsKey(stock.getName())) {
+                            tradingRecord = new BaseTradingRecord();
+                            tradingRecord.enter(1,
+                                    PrecisionNum.valueOf(TradingAccountMonitor.getPositions().get(stock).getAverageCost()),
+                                    PrecisionNum.valueOf(TradingAccountMonitor.getPositions().get(stock).getQuantity()));
+                        }
+                        LOGGER.info("Stock:{}, Rid:{},  Name:{}, Satisfied:{}", stock.getName(), ruleId, rule.getName(), newRule.isSatisfied(stock.getEndIndex(), tradingRecord));
                     }
                 }
 
@@ -323,6 +331,8 @@ public class TradingUtil {
                     }
                 } else if (argType.equals(INTEGER)) {
                     values[i] = Integer.parseInt(argStr[1]);
+                } else if (argType.equals(DOUBLE)) {
+                    values[i] = Double.parseDouble(argStr[1]);
                 } else if (argType.equals(BOOLEAN)) {
                     values[i] = Boolean.parseBoolean(argStr[1]);
                 } else if (argType.equals(CLOSE_PRICE)) {

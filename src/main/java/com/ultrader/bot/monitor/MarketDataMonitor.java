@@ -60,7 +60,7 @@ public class MarketDataMonitor extends Monitor {
     }
 
     @Override
-    void scan() {
+    synchronized void scan() {
         long start = System.currentTimeMillis();
         try {
             String platform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX");

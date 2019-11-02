@@ -134,7 +134,7 @@ public class TradingAccountMonitor extends Monitor {
     }
 
     @Override
-    void scan() {
+    synchronized void scan() {
         try {
             if (!LicenseMonitor.getInstance().isValidLicense()) {
                 LOGGER.error("Invalid license or expired license");

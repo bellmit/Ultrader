@@ -270,7 +270,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             return responseOrder;
         } catch (Exception e) {
             LOGGER.error("Failed to call /orders api.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Stock " + order.getSymbol() + " Error " + e.getMessage(), NotificationType.ERROR.name());
             return null;
         }
     }
