@@ -154,7 +154,7 @@ public class TradingStrategyMonitor extends Monitor {
                         for (int i = timeSeries.getBeginIndex(); i <= timeSeries.getEndIndex(); i++) {
                             if (timeSeries.getBar(i).getEndTime().isAfter(buyDate)) {
                                 tradingRecord.enter(i, PrecisionNum.valueOf(positions.get(stock).getAverageCost()), PrecisionNum.valueOf(positions.get(stock).getQuantity()));
-                                LOGGER.info("Stock {}, Buy Date {}, set index {}, {}", stock, buyDate, i, timeSeries.getBar(i).getEndTime());
+                                LOGGER.debug("Stock {}, Buy Date {}, set index {}, {}", stock, buyDate, i, timeSeries.getBar(i).getEndTime());
                                 break;
                             }
                         }
@@ -162,7 +162,7 @@ public class TradingStrategyMonitor extends Monitor {
                             tradingRecord.enter(timeSeries.getEndIndex(), PrecisionNum.valueOf(positions.get(stock).getAverageCost()), PrecisionNum.valueOf(positions.get(stock).getQuantity()));
                         }
                     }
-                    
+
                     try {
                         if (!dayTradeCount.containsKey(stock)
                                 && !positions.containsKey(stock)

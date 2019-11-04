@@ -57,6 +57,12 @@ public class TradingAccountMonitor extends Monitor {
         this.orderDao = orderDao;
         this.chartDao = chartDao;
         this.positionDao = positionDao;
+        //Load missing orders
+        try {
+            orderDao.saveAll(tradingService.getHistoryOrders(null, null));
+        } catch (Exception e) {
+            LOGGER.error("Load history orders failed.");
+        }
     }
 
     public static void init(long interval,

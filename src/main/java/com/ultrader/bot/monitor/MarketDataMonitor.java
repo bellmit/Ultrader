@@ -1,6 +1,7 @@
 package com.ultrader.bot.monitor;
 
 import com.ultrader.bot.dao.AssetListDao;
+import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.AssetList;
 import com.ultrader.bot.service.NotificationService;
@@ -32,6 +33,7 @@ public class MarketDataMonitor extends Monitor {
     private final NotificationService notifier;
     private final AssetListDao assetListDao;
     private final JdbcTemplate jdbcTemplate;
+    private final OrderDao orderDao;
 
     private boolean firstRun = true;
     private Date lastUpdateDate;
@@ -43,18 +45,21 @@ public class MarketDataMonitor extends Monitor {
                               final SettingDao settingDao,
                               final AssetListDao assetListDao,
                               final NotificationService notifier,
-                              final JdbcTemplate jdbcTemplate) {
+                              final JdbcTemplate jdbcTemplate,
+                              final OrderDao orderDao) {
         super(interval);
         Validate.notNull(tradingPlatform, "tradingPlatform is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(notifier, "notifier is required");
         Validate.notNull(assetListDao, "assetListDao is required");
         Validate.notNull(jdbcTemplate, "jdbcTemplate is required");
+        Validate.notNull(orderDao, "orderDao is required");
         this.settingDao = settingDao;
         this.tradingPlatform = tradingPlatform;
         this.notifier = notifier;
         this.assetListDao = assetListDao;
         this.jdbcTemplate = jdbcTemplate;
+        this.orderDao = orderDao;
     }
 
     @Override
@@ -76,6 +81,11 @@ public class MarketDataMonitor extends Monitor {
                 if(marketOpen) {
                     marketStatusChanged = true;
                     //Backup database after market closed
+                    try {
+                        orderDao.saveAll(tradingPlatform.getTradingService().getHistoryOrders(null, null));
+                    } catch (Exception e) {
+                        LOGGER.error("Load history orders failed.");
+                    }
                     DatabaseUtil.backup(jdbcTemplate);
                 }
                 marketOpen = false;
@@ -233,14 +243,16 @@ public class MarketDataMonitor extends Monitor {
                             SettingDao settingDao,
                             AssetListDao assetListDao,
                             NotificationService notifier,
-                            JdbcTemplate jdbcTemplate) {
+                            JdbcTemplate jdbcTemplate,
+                            OrderDao orderDao) {
         singleton_instance = new MarketDataMonitor(
                 interval,
                 tradingPlatform,
                 settingDao,
                 assetListDao,
                 notifier,
-                jdbcTemplate);
+                jdbcTemplate,
+                orderDao);
     }
 
     public static MarketDataMonitor getInstance() throws IllegalAccessException {

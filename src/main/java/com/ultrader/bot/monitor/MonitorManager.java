@@ -73,7 +73,7 @@ public class MonitorManager implements CommandLineRunner {
         threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
         //Start MarketDate Monitor
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")) * 1000;
-        MarketDataMonitor.init(interval, tradingPlatform, settingDao, assetListDao, notifier, jdbcTemplate);
+        MarketDataMonitor.init(interval, tradingPlatform, settingDao, assetListDao, notifier, jdbcTemplate, orderDao);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
 
 
