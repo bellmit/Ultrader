@@ -55,6 +55,8 @@ public enum SettingConstant {
     TRADE_BUY_ORDER_TYPE("TRADE_BUY_ORDER_TYPE"),
     //Sell order type, limit, market, etc
     TRADE_SELL_ORDER_TYPE("TRADE_SELL_ORDER_TYPE"),
+    //Sell order type, limit, market, etc
+    TRADE_MARKET_TREND("TRADE_MARKET_TREND"),
     //The max bars that indicator can use to calculate
     INDICATOR_MAX_LENGTH("INDICATOR_MAX_LENGTH"),
     //both, entry, or exit. Controls Day Trading Margin Call (DTMC) checks.

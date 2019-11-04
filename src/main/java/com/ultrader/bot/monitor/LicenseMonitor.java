@@ -58,17 +58,17 @@ public class LicenseMonitor extends Monitor {
             }
             if(StringUtils.isEmpty(ultraderKey) || StringUtils.isEmpty(ultraderSecret) || StringUtils.isEmpty(tradingKey)) {
                 LOGGER.error("Missing key settings.");
-                notifier.sendNotification("License Failure","Cannot find Ultra Trader key in your setting.", NotificationType.ERROR.name());
+                notifier.sendNotification("License Failure","Cannot find Ultra Trader key in your setting.", NotificationType.ERROR);
                 validLicense = false;
                 return;
             }
             validLicense = licenseService.verifyLicense(ultraderKey, ultraderSecret, tradingKey, platformName);
             if (!validLicense) {
-                notifier.sendNotification("License Failure","Cannot verify your Ultra Trader license. Please check if your license is expired.", NotificationType.WARN.name());
+                notifier.sendNotification("License Failure","Cannot verify your Ultra Trader license. Please check if your license is expired.", NotificationType.WARN);
             }
         } catch (Exception e) {
             LOGGER.error("Verify license failed.",e);
-            notifier.sendNotification("License Failure","Cannot verify your Ultra Trader license. Your trading will be blocked.", NotificationType.ERROR.name());
+            notifier.sendNotification("License Failure","Cannot verify your Ultra Trader license. Your trading will be blocked.", NotificationType.ERROR);
         }
 
     }

@@ -101,11 +101,10 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
             try {
                 TradingAccountMonitor.getInstance().syncAccount();
                 notifier.sendAccountNotification(TradingAccountMonitor.getAccount());
-                notifier.sendProfitNotification(1);
-                notifier.sendProfitNotification(7);
-                notifier.sendProfitNotification(30);
-                notifier.sendProfitNotification(365);
-                notifier.sendTradesNotification();
+                notifier.sendProfitNotification(1, true);
+                notifier.sendProfitNotification(7, true);
+                notifier.sendProfitNotification(30, true);
+                notifier.sendProfitNotification(365, true);
                 notifier.sendPositionNotification();
                 notifier.sendNotification(
                         "Stock Trade",
@@ -114,7 +113,7 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
                         order.getSymbol(),
                         order.getAveragePrice(),
                         order.getQuantity()),
-                        order.getSide().equalsIgnoreCase(com.ultrader.bot.model.alpaca.Order.BUY) ? NotificationType.BUY.name() : NotificationType.SELL.name());
+                        order.getSide().equalsIgnoreCase(com.ultrader.bot.model.alpaca.Order.BUY) ? NotificationType.BUY : NotificationType.SELL);
             } catch (Exception e) {
                 LOG.error("Sending notification failed", e);
             }

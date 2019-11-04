@@ -110,7 +110,7 @@ public class TradingAccountMonitor extends Monitor {
         for (Position position : positionMap.values()) {
             if(!existedStock.contains(position.getSymbol())) {
                 //Add New stocks
-                List<Order> orders =orderDao.findLastTradeBySymbol(position.getSymbol());
+                List<Order> orders = orderDao.findLastTradeBySymbol(position.getSymbol(), LocalDateTime.now());
                 if (orders.size() > 0 && orders.get(0).getSide().equals(com.ultrader.bot.model.alpaca.Order.BUY)) {
                     position.setBuyDate(orders.get(0).getCloseDate());
                 } else {
@@ -169,11 +169,10 @@ public class TradingAccountMonitor extends Monitor {
 
             //Populate Dashboard Message
             notifier.sendAccountNotification(account);
-            notifier.sendTradesNotification();
-            notifier.sendProfitNotification(1);
-            notifier.sendProfitNotification(7);
-            notifier.sendProfitNotification(30);
-            notifier.sendProfitNotification(365);
+            notifier.sendProfitNotification(1, false);
+            notifier.sendProfitNotification(7, false);
+            notifier.sendProfitNotification(30, false);
+            notifier.sendProfitNotification(365, false);
             notifier.sendPositionNotification();
             //Publish status
             notifier.sendMarketStatus(MarketDataMonitor.isMarketOpen());
@@ -182,7 +181,7 @@ public class TradingAccountMonitor extends Monitor {
             notifier.sendNotification(
                     "Account Update Failure",
                     "Cannot update your trading account, please check your account and reboot the bot.",
-                    NotificationType.ERROR.name());
+                    NotificationType.ERROR);
         }
     }
 

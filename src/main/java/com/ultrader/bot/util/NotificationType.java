@@ -6,6 +6,7 @@ package com.ultrader.bot.util;
 public enum NotificationType {
     BUY,
     SELL,
+    INFO,
     ERROR,
     WARN;
 }

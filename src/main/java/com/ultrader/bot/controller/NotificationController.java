@@ -37,11 +37,10 @@ public class NotificationController {
             DashboardDataMessage message = new DashboardDataMessage();
             message.setData(new HashMap<>());
             message.getData().putAll(notifier.sendAccountNotification(TradingAccountMonitor.getAccount()).getData());
-            message.getData().putAll(notifier.sendTradesNotification().getData());
-            message.getData().put("1", mapper.writeValueAsString(notifier.sendProfitNotification(1).getData()));
-            message.getData().put("7", mapper.writeValueAsString(notifier.sendProfitNotification(7).getData()));
-            message.getData().put("30", mapper.writeValueAsString(notifier.sendProfitNotification(30).getData()));
-            message.getData().put("365", mapper.writeValueAsString(notifier.sendProfitNotification(365).getData()));
+            message.getData().put("1", mapper.writeValueAsString(notifier.sendProfitNotification(1, false).getData()));
+            message.getData().put("7", mapper.writeValueAsString(notifier.sendProfitNotification(7, false).getData()));
+            message.getData().put("30", mapper.writeValueAsString(notifier.sendProfitNotification(30, false).getData()));
+            message.getData().put("365", mapper.writeValueAsString(notifier.sendProfitNotification(365, false).getData()));
             message.getData().putAll(notifier.sendPositionNotification().getData());
             return message;
         } catch (Exception e) {

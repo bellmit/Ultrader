@@ -105,8 +105,8 @@ public class TradingUtil {
                         if (TradingAccountMonitor.getPositions().containsKey(stock.getName())) {
                             tradingRecord = new BaseTradingRecord();
                             tradingRecord.enter(1,
-                                    PrecisionNum.valueOf(TradingAccountMonitor.getPositions().get(stock).getAverageCost()),
-                                    PrecisionNum.valueOf(TradingAccountMonitor.getPositions().get(stock).getQuantity()));
+                                    PrecisionNum.valueOf(TradingAccountMonitor.getPositions().get(stock.getName()).getAverageCost()),
+                                    PrecisionNum.valueOf(TradingAccountMonitor.getPositions().get(stock.getName()).getQuantity()));
                         }
                         LOGGER.info("Stock:{}, Rid:{},  Name:{}, Satisfied:{}", stock.getName(), ruleId, rule.getName(), newRule.isSatisfied(stock.getEndIndex(), tradingRecord));
                     }

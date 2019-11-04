@@ -5,10 +5,7 @@ import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.AssetList;
 import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingPlatform;
-import com.ultrader.bot.util.DatabaseUtil;
-import com.ultrader.bot.util.NotificationType;
-import com.ultrader.bot.util.RepositoryUtil;
-import com.ultrader.bot.util.SettingConstant;
+import com.ultrader.bot.util.*;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +25,7 @@ public class MarketDataMonitor extends Monitor {
     private static final Logger LOGGER = LoggerFactory.getLogger(MarketDataMonitor.class);
     private static MarketDataMonitor singleton_instance = null;
     private static boolean marketOpen = false;
+    private static MarketTrend marketTrend = MarketTrend.NORMAL;
 
     private final TradingPlatform tradingPlatform;
     private final SettingDao settingDao;
@@ -88,6 +86,9 @@ public class MarketDataMonitor extends Monitor {
             if(marketStatusChanged || firstRun) {
                 availableStocks = tradingPlatform.getTradingService().getAvailableStocks();
             }
+            //Update the market trend
+            marketTrend = tradingPlatform.getMarketDataService().getMarketTrend(getInterval());
+            LOGGER.info("Updated market trend {}", marketTrend.name());
             //Get the list of stocks need to update
             Set<String> stockInExchange = new HashSet<>();
             //Filter by exchange
@@ -198,7 +199,7 @@ public class MarketDataMonitor extends Monitor {
             notifier.sendNotification(
                     "MarketData Service Failure",
                     "Market data updated failed. Try to reboot your bot or check the log.",
-                    NotificationType.ERROR.name());
+                    NotificationType.ERROR);
         }
         firstRun = false;
         long end = System.currentTimeMillis();
@@ -208,7 +209,7 @@ public class MarketDataMonitor extends Monitor {
             notifier.sendNotification(
                     "MarketData Service Failure",
                     "The bot cannot update all the stocks in one trading period. Try to reduce the stocks you want to monitor or increase the trade period",
-                    NotificationType.ERROR.name());
+                    NotificationType.ERROR);
 
         }
     }
@@ -221,6 +222,10 @@ public class MarketDataMonitor extends Monitor {
     }
     public static boolean isMarketOpen() {
         return marketOpen;
+    }
+
+    public static MarketTrend getMarketTrend() {
+        return marketTrend;
     }
 
     public static void init(long interval,

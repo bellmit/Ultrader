@@ -33,6 +33,8 @@ public class MonitorManager implements CommandLineRunner {
     @Autowired
     private SettingDao  settingDao;
     @Autowired
+    private ConditionalSettingDao conditionalSettingDao;
+    @Autowired
     private StrategyDao strategyDao;
     @Autowired
     private RuleDao ruleDao;
@@ -77,7 +79,7 @@ public class MonitorManager implements CommandLineRunner {
 
         //Start Trading strategy monitor
         Thread.sleep(10000);
-        TradingStrategyMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, strategyDao, ruleDao, notifier);
+        TradingStrategyMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, conditionalSettingDao, strategyDao, ruleDao, notifier);
         threadPoolTaskExecutor.execute(TradingStrategyMonitor.getInstance());
     }
 

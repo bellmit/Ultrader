@@ -9,6 +9,7 @@ import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.monitor.LicenseMonitor;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
 import com.ultrader.bot.util.ChartType;
+import com.ultrader.bot.util.NotificationType;
 import com.ultrader.bot.util.TradingUtil;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
@@ -18,10 +19,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.text.DecimalFormat;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 
 @Service("NotificationService")
@@ -32,6 +30,7 @@ public class NotificationService {
     private final OrderDao orderDao;
     private final SimpMessagingTemplate notifier;
     private final NotificationDao notificationDao;
+    private Map<Integer, DashboardDataMessage> profitMessageCache = new HashMap<>();
 
     @Autowired
     public NotificationService(OrderDao orderDao, ChartDao chartDao, NotificationDao notificationDao, SimpMessagingTemplate notifier) {
@@ -113,39 +112,65 @@ public class NotificationService {
      *
      * @return
      */
-    public DashboardDataMessage sendProfitNotification(int period) {
-        DecimalFormat df = new DecimalFormat("#.####");
-        Map<String, String> map = new HashMap<>();
-        LocalTime midnight = LocalTime.MIDNIGHT;
-        LocalDate startDate = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE)).minusDays(period-1);
-        LocalDateTime eastCoastMidnight = LocalDateTime.of(startDate, midnight);
-        //Convert US east coast midnight to local time
-        LocalDateTime localMidnight = eastCoastMidnight.atZone(ZoneId.of(TradingUtil.TIME_ZONE)).withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
-        LOGGER.debug("Aggregate trades from {}", localMidnight);
-        List<Order> orders = orderDao.findAllOrdersByDate(localMidnight, LocalDateTime.now());
-        double totalProfit = 0, totalRatio = 0;
-        int sellCount = 0;
-        for (Order order : orders) {
-            if (order.getSide().equals("sell")) {
-                List<Order> trades = orderDao.findLastTradeBySymbol(order.getSymbol());
-                if (trades.size() == 2 && trades.get(0).getQuantity() == trades.get(1).getQuantity()) {
-                    //There is a buy/sell pair and has same quantity
-                    totalProfit += (trades.get(0).getAveragePrice() - trades.get(1).getAveragePrice()) * trades.get(0).getQuantity();
-                    sellCount++;
-                    totalRatio += trades.get(0).getAveragePrice() / trades.get(1).getAveragePrice() - 1;
-                }
+    public DashboardDataMessage sendProfitNotification(int period, boolean refresh) {
+        if (refresh || !profitMessageCache.containsKey(period)) {
+            DecimalFormat df = new DecimalFormat("#.####");
+            Map<String, String> map = new HashMap<>();
+            LocalTime midnight = LocalTime.MIDNIGHT;
+            LocalDate startDate = LocalDate.now(ZoneId.of(TradingUtil.TIME_ZONE)).minusDays(period-1);
+            LocalDateTime eastCoastMidnight = LocalDateTime.of(startDate, midnight);
+            //Convert US east coast midnight to local time
+            LocalDateTime localMidnight = eastCoastMidnight.atZone(ZoneId.of(TradingUtil.TIME_ZONE)).withZoneSameInstant(ZoneId.systemDefault()).toLocalDateTime();
+            LOGGER.debug("Aggregate trades from {}", localMidnight);
+            List<Order> orders = orderDao.findAllOrdersByDate(localMidnight, LocalDateTime.now());
+            double totalProfit = 0, totalRatio = 0;
+            int sellCount = 0;
+            for (int i = 0; i < orders.size(); i++) {
+                Order sellOrder = orders.get(i);
+                if (sellOrder.getSide().equals("sell")) {
+                    Order buyOrder = null;
+                    for (int j = i + 1; j < orders.size(); j++) {
+                        if (orders.get(j).getSide().equals("buy") && orders.get(j).getSymbol().equals(sellOrder.getSymbol())) {
+                            buyOrder = orders.get(j);
+                            break;
+                        }
+                    }
+                    if (buyOrder == null) {
+                        Instant instant = Instant.ofEpochSecond(sellOrder.getCloseDate().getTime() / 1000 + 1);
+                        LocalDateTime sellDate = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
+                        List<Order> trade = orderDao.findLastTradeBySymbol(sellOrder.getSymbol(), sellDate);
+                        if (trade.size() == 2 && trade.get(1).getSide().equals("buy")) {
+                            buyOrder = trade.get(1);
+                        } else {
+                            LOGGER.error("Cannot find buy order for {}, sell date {}", sellOrder, sellDate);
+                        }
+                    }
 
+                    if (buyOrder != null) {
+                        //There is a buy/sell pair and has same quantity
+                        LOGGER.debug("Stock {}, buy price {}, sell price{}, profit {}, total {}", sellOrder.getSymbol(), buyOrder.getAveragePrice(), sellOrder.getAveragePrice(), sellOrder.getQuantity(), totalProfit);
+                        totalProfit += (sellOrder.getAveragePrice() - buyOrder.getAveragePrice()) * sellOrder.getQuantity();
+                        sellCount++;
+                        totalRatio += sellOrder.getAveragePrice() / buyOrder.getAveragePrice() - 1;
+                    }
+
+                }
             }
+            map.put("PeriodDays", String.valueOf(period));
+            map.put("TotalTrades", String.valueOf(sellCount));
+            map.put("TotalProfit", df.format(totalProfit));
+            map.put("AverageProfit", df.format(sellCount == 0 ? 0 : (totalProfit / sellCount)));
+            map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : (totalRatio / sellCount)));
+            LOGGER.debug("Notify profit update {}", map);
+            DashboardDataMessage message = new DashboardDataMessage(map);
+            profitMessageCache.put(period, message);
+            notifier.convertAndSend("/topic/dashboard/profit", message);
+            return message;
+        } else {
+            notifier.convertAndSend("/topic/dashboard/profit", profitMessageCache.get(period));
+            return profitMessageCache.get(period);
         }
-        map.put("PeriodDays", String.valueOf(period));
-        map.put("TotalTrades", String.valueOf(sellCount));
-        map.put("TotalProfit", df.format(totalProfit));
-        map.put("AverageProfit", df.format(sellCount == 0 ? 0 : (totalProfit / sellCount)));
-        map.put("AverageProfitRatio", df.format(sellCount == 0 ? 0 : (totalRatio / sellCount)));
-        LOGGER.debug("Notify profit update {}", map);
-        DashboardDataMessage message = new DashboardDataMessage(map);
-        notifier.convertAndSend("/topic/dashboard/profit", message);
-        return message;
+
     }
 
     public DashboardDataMessage sendPositionNotification() {
@@ -166,11 +191,11 @@ public class NotificationService {
         return message;
     }
 
-    public void sendNotification(String title, String content, String type) {
+    public void sendNotification(String title, String content, NotificationType type) {
         try {
             Notification notification = new Notification(
                     UUID.randomUUID().toString(),
-                    type,
+                    type.name(),
                     content,
                     title,
                     new Date());

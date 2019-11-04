@@ -74,7 +74,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             if(alpacaKey.equals("") || alpacaSecret.equals("")) {
                 //It can be the first time setup
                 LOGGER.warn("Cannot find Alpaca API key, please check your config");
-                notifier.sendNotification("Setting Missing", "Cannot find Alpaca Live trading API key/secret, please check your setting", NotificationType.ERROR.name());
+                notifier.sendNotification("Setting Missing", "Cannot find Alpaca Live trading API key/secret, please check your setting", NotificationType.ERROR);
             } else {
                 client = restTemplateBuilder.rootUri("https://api.alpaca.markets/v2").build();
                 client.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
@@ -92,7 +92,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             if(alpacaKey.equals("") || alpacaSecret.equals("")) {
                 //It can be the first time setup
                 LOGGER.warn("Cannot find Alpaca Paper API key, please check your config");
-                notifier.sendNotification("Setting Missing", "Cannot find Alpaca Paper trading API key/secret, please check your setting", NotificationType.ERROR.name());
+                notifier.sendNotification("Setting Missing", "Cannot find Alpaca Paper trading API key/secret, please check your setting", NotificationType.ERROR);
             } else {
                 client = restTemplateBuilder.rootUri("https://paper-api.alpaca.markets/v2").build();
                 client.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
@@ -106,7 +106,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             }
         } else {
             LOGGER.error("Illegal trading platform {}", plaformName);
-            notifier.sendNotification("Trading Platform Error", "Illegal trading plaform " + plaformName, NotificationType.ERROR.name());
+            notifier.sendNotification("Trading Platform Error", "Illegal trading plaform " + plaformName, NotificationType.ERROR);
         }
     }
 
@@ -150,14 +150,14 @@ public class AlpacaTradingServiceV2 implements TradingService {
             ResponseEntity<Clock> clock = client.exchange("/clock", HttpMethod.GET, entity, Clock.class);
             if (clock.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
-                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca clock API, Error " + clock.getStatusCode().toString(), NotificationType.ERROR.name());
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca clock API, Error " + clock.getStatusCode().toString(), NotificationType.ERROR);
                 return false;
             }
             LOGGER.debug(clock.getBody().toString());
             return clock.getBody().getIs_open();
         } catch (Exception e) {
             LOGGER.error("Failed to call /clock api.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca clock API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca clock API, Error " + e.getMessage(), NotificationType.ERROR);
             return false;
         }
     }
@@ -168,7 +168,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             ResponseEntity<Asset[]> stocks = client.exchange("/assets?status=active", HttpMethod.GET, entity, Asset[].class);
             if (stocks.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
-                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca clock API, Error " + stocks.getStatusCode().toString(), NotificationType.ERROR.name());
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca clock API, Error " + stocks.getStatusCode().toString(), NotificationType.ERROR);
                 return new HashMap<>();
             }
             Map<String, Set<String>> exchangeStockMap = new HashMap<>();
@@ -183,7 +183,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             return exchangeStockMap;
         } catch (Exception e) {
             LOGGER.error("Failed to call /assets api.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca asset API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca asset API, Error " + e.getMessage(), NotificationType.ERROR);
             return new HashMap<>();
         }
     }
@@ -195,7 +195,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             ResponseEntity<com.ultrader.bot.model.alpaca.Position[]> positions = client.exchange("/positions", HttpMethod.GET, entity, com.ultrader.bot.model.alpaca.Position[].class);
             if (positions.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
-                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca positions API, Error " + positions.getStatusCode().toString(), NotificationType.ERROR.name());
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca positions API, Error " + positions.getStatusCode().toString(), NotificationType.ERROR);
                 return null;
             }
             Map<String, Position> positionMap = new HashMap<>();
@@ -205,7 +205,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             return positionMap;
         } catch (Exception e) {
             LOGGER.error("Failed to call /positions api.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca positions API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca positions API, Error " + e.getMessage(), NotificationType.ERROR);
             return null;
         }
     }
@@ -217,7 +217,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             ResponseEntity<com.ultrader.bot.model.alpaca.Account> account = client.exchange("/account", HttpMethod.GET, entity, com.ultrader.bot.model.alpaca.Account.class);
             if (account.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
-                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account API, Error " + account.getStatusCode().toString(), NotificationType.ERROR.name());
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account API, Error " + account.getStatusCode().toString(), NotificationType.ERROR);
                 return null;
             }
             return new Account(account.getBody().getId(),
@@ -233,7 +233,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
                     account.getBody().getAccount_blocked());
         } catch (Exception e) {
             LOGGER.error("Failed to call /account api.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account API, Error " + e.getMessage(), NotificationType.ERROR);
             return null;
         }
     }
@@ -255,7 +255,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             ResponseEntity<com.ultrader.bot.model.alpaca.Order> orderResponseEntity = client.exchange("/orders", HttpMethod.POST, entity, com.ultrader.bot.model.alpaca.Order.class);
             if (orderResponseEntity.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
-                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + orderResponseEntity.getStatusCode().toString(), NotificationType.ERROR.name());
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + orderResponseEntity.getStatusCode().toString(), NotificationType.ERROR);
                 return null;
             }
             Order responseOrder = new Order(
@@ -270,7 +270,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             return responseOrder;
         } catch (Exception e) {
             LOGGER.error("Failed to call /orders api.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Stock " + order.getSymbol() + " Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Stock " + order.getSymbol() + " Error " + e.getMessage(), NotificationType.ERROR);
             return null;
         }
     }
@@ -282,7 +282,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             ResponseEntity<com.ultrader.bot.model.alpaca.Order[]> orders = client.exchange("/orders?limit=500", HttpMethod.GET, entity, com.ultrader.bot.model.alpaca.Order[].class);
             if (orders.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
-                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + orders.getStatusCode().toString(), NotificationType.ERROR.name());
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + orders.getStatusCode().toString(), NotificationType.ERROR);
                 return null;
             }
             Map<String, Order> orderMap = new HashMap<>();
@@ -300,7 +300,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             return orderMap;
         } catch (Exception e) {
             LOGGER.error("Failed to get open orders.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + e.getMessage(), NotificationType.ERROR);
             return null;
         }
     }
@@ -312,7 +312,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             ResponseEntity<com.ultrader.bot.model.alpaca.Order[]> orders = client.exchange("/orders?limit=500&status=closed", HttpMethod.GET, entity, com.ultrader.bot.model.alpaca.Order[].class);
             if (orders.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
-                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + orders.getStatusCode().toString(), NotificationType.ERROR.name());
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + orders.getStatusCode().toString(), NotificationType.ERROR);
                 return null;
             }
             List<Order> orderList = new ArrayList<>();
@@ -331,7 +331,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             return orderList;
         } catch (Exception e) {
             LOGGER.error("Failed to get open orders.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca order API, Error " + e.getMessage(), NotificationType.ERROR);
             return null;
         }
     }
@@ -343,7 +343,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             ResponseEntity<AccountConfiguration> configurationResponseEntity = client.exchange("/account/configurations", HttpMethod.GET, entity, AccountConfiguration.class);
             if (configurationResponseEntity.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
-                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + configurationResponseEntity.getStatusCode().toString(), NotificationType.ERROR.name());
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + configurationResponseEntity.getStatusCode().toString(), NotificationType.ERROR);
                 return null;
             }
             List<Setting> settings = new ArrayList<>();
@@ -354,7 +354,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
             return settings;
         } catch (Exception e) {
             LOGGER.error("Failed to get account configuration.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + e.getMessage(), NotificationType.ERROR);
             return null;
         }
     }
@@ -381,12 +381,12 @@ public class AlpacaTradingServiceV2 implements TradingService {
             ResponseEntity<AccountConfiguration> configurationResponseEntity = client.exchange("/account/configurations", HttpMethod.PATCH, entity, AccountConfiguration.class);
             if (configurationResponseEntity.getStatusCode().is4xxClientError()) {
                 LOGGER.error("Invalid Alpaca key, please check you key and secret");
-                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + configurationResponseEntity.getStatusCode().toString(), NotificationType.ERROR.name());
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + configurationResponseEntity.getStatusCode().toString(), NotificationType.ERROR);
             }
             return;
         } catch (Exception e) {
             LOGGER.error("Failed to get account configuration.", e);
-            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + e.getMessage(), NotificationType.ERROR.name());
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account/configurations API, Error " + e.getMessage(), NotificationType.ERROR);
             return;
         }
     }

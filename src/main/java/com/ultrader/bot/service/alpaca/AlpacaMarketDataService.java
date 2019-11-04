@@ -5,13 +5,13 @@ import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.ProgressMessage;
 import com.ultrader.bot.model.alpaca.Bar;
 import com.ultrader.bot.service.MarketDataService;
+import com.ultrader.bot.util.MarketTrend;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingUtil;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
@@ -19,18 +19,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import org.ta4j.core.BaseBar;
+import org.ta4j.core.BaseTimeSeries;
+import org.ta4j.core.Rule;
 import org.ta4j.core.TimeSeries;
-import org.ta4j.core.num.Num;
+import org.ta4j.core.indicators.EMAIndicator;
+import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.PrecisionNum;
+import org.ta4j.core.trading.rules.IsFallingRule;
+import org.ta4j.core.trading.rules.IsRisingRule;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Alpaca Market data API
@@ -141,6 +144,33 @@ public class AlpacaMarketDataService implements MarketDataService {
             startDate = currentDate;
         } while (currentDate.isBefore(endDate));
 
+    }
+
+    @Override
+    public MarketTrend getMarketTrend(Long interval) {
+        TimeSeries index = new BaseTimeSeries("SPY");
+        index.setMaximumBarCount(Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "100")) * 2);
+        try {
+            updateTimeSeries(Collections.singletonList(index), interval);
+            Rule bullRule = new IsRisingRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, 0.80);
+            Rule superBullRule = new IsRisingRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, 0.90);
+            Rule bearRule = new IsFallingRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, 0.80);
+            Rule superBearRule = new IsFallingRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, 0.90);
+            if (superBullRule.isSatisfied(index.getEndIndex())) {
+                return MarketTrend.SUPER_BULL;
+            } else if (bullRule.isSatisfied(index.getEndIndex())) {
+                return MarketTrend.BULL;
+            } else if (superBearRule.isSatisfied(index.getEndIndex())) {
+                return MarketTrend.SUPER_BEAR;
+            } else if (bearRule.isSatisfied(index.getEndIndex())) {
+                return MarketTrend.BEAR;
+            } else {
+                return MarketTrend.NORMAL;
+            }
+        } catch (Exception e) {
+            LOGGER.error("Update market index failed. You trading setting may not switch based on the market.", e);
+            return MarketTrend.NORMAL;
+        }
     }
 
     @Override
