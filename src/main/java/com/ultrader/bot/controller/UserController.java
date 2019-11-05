@@ -34,6 +34,7 @@ public class UserController {
     public User save(@RequestBody User user) {
         try {
             user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
+            user.setRoleId(UserType.READ_ONLY_USER.getId().toString());
             User savedUser = userDao.save(user);
             return savedUser;
         } catch (Exception e) {

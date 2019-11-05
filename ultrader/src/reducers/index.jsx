@@ -3,6 +3,7 @@ import authentication from './Authentication/Authentication';
 import global from './layouts/Dashboard';
 import greetingMonitor from './Monitors/GreetingMonitor';
 import rules from './Rules/Rules';
+import users from './Users/Users';
 import settings from './Settings/Settings';
 import strategies from './Strategies/Strategies';
 import positions from './Positions/Positions';
@@ -17,6 +18,7 @@ export default combineReducers({
   authentication,
   global,
   rules,
+  users,
   strategies,
   positions,
   assetLists,

@@ -93,7 +93,7 @@ class RegisterPageComp extends Component {
   validate() {
     return (
       this.state.username &&
-      this.state.password.length > 6 &&
+      this.state.password.length >= 6 &&
       this.state.cfpassword == this.state.password
     );
   }

@@ -3,9 +3,8 @@ import SettingsWizard from "containers/Settings/SettingsWizard.jsx";
 import EditSettings from "containers/Settings/EditSettings.jsx";
 
 import GreetingMonitor from "containers/Monitors/GreetingMonitor.jsx";
-import AddRule from "containers/Rules/AddRule.jsx";
 import Rules from "containers/Rules/Rules.jsx";
-import AddStrategy from "containers/Strategies/AddStrategy.jsx";
+import Users from "containers/Users/Users.jsx";
 import Strategies from "containers/Strategies/Strategies.jsx";
 import Positions from "containers/Positions/Positions.jsx";
 import AssetLists from "containers/AssetLists/AssetLists.jsx";
@@ -21,6 +20,12 @@ var dashboardRoutes = [
     icon: "pe-7s-display1",
     component: Dashboard
   },
+    {
+      path: "/users",
+      name: "Users",
+      icon: "pe-7s-users",
+      component: Users
+    },
   {
     path: "/settings/editSettings",
     name: "Settings",
