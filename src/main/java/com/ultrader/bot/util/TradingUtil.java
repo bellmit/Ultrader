@@ -49,14 +49,15 @@ public class TradingUtil {
             TimeSeries stock,
             Queue<StrategyParameter> parameters,
             boolean backfill) {
-        return generateTradingStrategy(strategyDao, ruleDao, strategyId, stock, parameters, backfill, false);
+        return generateTradingStrategy(strategyDao, ruleDao, strategyId, stock, parameters, backfill, null, false);
     }
 
     public static void printSatisfaction(StrategyDao strategyDao,
                                          RuleDao ruleDao,
                                          long strategyId,
-                                         TimeSeries stock) {
-        generateTradingStrategy(strategyDao, ruleDao, strategyId, stock, null, false, true);
+                                         TimeSeries stock,
+                                         TradingRecord tradingRecord) {
+        generateTradingStrategy(strategyDao, ruleDao, strategyId, stock, null, false, tradingRecord, true);
     }
 
     /**
@@ -77,6 +78,7 @@ public class TradingUtil {
             TimeSeries stock,
             Queue<StrategyParameter> parameters,
             boolean backfill,
+            TradingRecord tradingRecord,
             boolean printSatisfy) {
         try {
             Validate.notNull(strategyDao, "strategyDao is required");
@@ -93,7 +95,7 @@ public class TradingUtil {
                 if (str.indexOf("S") == 0) {
                     //This is a sub strategy, generate it recursively
                     long subStrategyId = Long.parseLong(str.replaceAll("\\D+", ""));
-                    newRule = generateTradingStrategy(strategyDao, ruleDao, subStrategyId, stock, parameters, backfill, printSatisfy);
+                    newRule = generateTradingStrategy(strategyDao, ruleDao, subStrategyId, stock, parameters, backfill, tradingRecord, printSatisfy);
                 } else {
                     long ruleId = Long.parseLong(str.replaceAll("\\D+", ""));
                     com.ultrader.bot.model.Rule rule = ruleDao.findById(ruleId).get();
@@ -101,13 +103,6 @@ public class TradingUtil {
                     newRule = generateTradingRule(ruleDao, ruleId, stock, parameters, backfill, path);
                     path.remove(path.size() - 1);
                     if (printSatisfy) {
-                        TradingRecord tradingRecord = null;
-                        if (TradingAccountMonitor.getPositions().containsKey(stock.getName())) {
-                            tradingRecord = new BaseTradingRecord();
-                            tradingRecord.enter(1,
-                                    PrecisionNum.valueOf(TradingAccountMonitor.getPositions().get(stock.getName()).getAverageCost()),
-                                    PrecisionNum.valueOf(TradingAccountMonitor.getPositions().get(stock.getName()).getQuantity()));
-                        }
                         LOGGER.info("Stock:{}, Rid:{},  Name:{}, Satisfied:{}", stock.getName(), ruleId, rule.getName(), newRule.isSatisfied(stock.getEndIndex(), tradingRecord));
                     }
                 }

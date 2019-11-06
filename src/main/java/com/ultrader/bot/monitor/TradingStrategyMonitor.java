@@ -170,7 +170,7 @@ public class TradingStrategyMonitor extends Monitor {
                                 && positionNum + buyOpenOrder < holdLimit
                                 && strategy.shouldEnter(timeSeries.getEndIndex())) {
                             LOGGER.info(String.format("%s buy strategy satisfied. ", stock));
-                            TradingUtil.printSatisfaction(strategyDao, ruleDao, buyStrategyId, timeSeries);
+                            TradingUtil.printSatisfaction(strategyDao, ruleDao, buyStrategyId, timeSeries, null);
                             //buy strategy satisfy & no position & hold stock < limit
                             int buyQuantity = calculateBuyShares(
                                     buyLimit,
@@ -188,7 +188,7 @@ public class TradingStrategyMonitor extends Monitor {
                                 && positions.get(stock).getQuantity() > 0
                                 && strategy.shouldExit(timeSeries.getEndIndex(), tradingRecord)) {
                             LOGGER.info(String.format("%s sell strategy satisfied.", stock));
-                            TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries);
+                            TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries, tradingRecord);
                             //sell strategy satisfy & has position
                             LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
                             if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null)) != null) {

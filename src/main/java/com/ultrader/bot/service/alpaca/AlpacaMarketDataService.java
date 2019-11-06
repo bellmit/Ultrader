@@ -28,6 +28,7 @@ import org.ta4j.core.TimeSeries;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.PrecisionNum;
+import org.ta4j.core.trading.rules.InSlopeRule;
 import org.ta4j.core.trading.rules.IsFallingRule;
 import org.ta4j.core.trading.rules.IsRisingRule;
 
@@ -152,10 +153,11 @@ public class AlpacaMarketDataService implements MarketDataService {
         index.setMaximumBarCount(Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "100")) * 2);
         try {
             updateTimeSeries(Collections.singletonList(index), interval);
-            Rule bullRule = new IsRisingRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, 0.80);
-            Rule superBullRule = new IsRisingRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, 0.90);
-            Rule bearRule = new IsFallingRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, 0.80);
-            Rule superBearRule = new IsFallingRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, 0.90);
+            double onePercent = index.getLastBar().getClosePrice().doubleValue() / 100;
+            Rule bullRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, PrecisionNum.valueOf(onePercent), PrecisionNum.valueOf(1.5 * onePercent));
+            Rule superBullRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, PrecisionNum.valueOf(1.5 * onePercent), PrecisionNum.valueOf(100 * onePercent));
+            Rule bearRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, PrecisionNum.valueOf(-1.5 * onePercent), PrecisionNum.valueOf(-1 * onePercent));
+            Rule superBearRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, PrecisionNum.valueOf(-90 * onePercent), PrecisionNum.valueOf(-1.5 * onePercent));
             if (superBullRule.isSatisfied(index.getEndIndex())) {
                 return MarketTrend.SUPER_BULL;
             } else if (bullRule.isSatisfied(index.getEndIndex())) {
