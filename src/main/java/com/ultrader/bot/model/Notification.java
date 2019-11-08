@@ -23,9 +23,9 @@ public class Notification {
     private String id;
     @Column(name="type", updatable=false, nullable=false)
     private String type;
-    @Column(name="content", updatable=false, nullable=false)
+    @Column(name="content", updatable=false, nullable=false, length = 3000)
     private String content;
-    @Column(name="title", updatable=false, nullable=false)
+    @Column(name="title", updatable=false, nullable=false, length = 100)
     private String title;
     @Column(name="date")
     private Date date;

@@ -81,11 +81,6 @@ public class MarketDataMonitor extends Monitor {
                 if(marketOpen) {
                     marketStatusChanged = true;
                     //Backup database after market closed
-                    try {
-                        orderDao.saveAll(tradingPlatform.getTradingService().getHistoryOrders(null, null));
-                    } catch (Exception e) {
-                        LOGGER.error("Load history orders failed.");
-                    }
                     DatabaseUtil.backup(jdbcTemplate);
                 }
                 marketOpen = false;
@@ -95,6 +90,16 @@ public class MarketDataMonitor extends Monitor {
             //Get all stocks info, only do this once in a same trading day or on the first run
             if(marketStatusChanged || firstRun) {
                 availableStocks = tradingPlatform.getTradingService().getAvailableStocks();
+            }
+            //Sync history orders
+            try {
+                orderDao.saveAll(tradingPlatform.getTradingService().getHistoryOrders(null, null));
+                notifier.sendProfitNotification(1, true);
+                notifier.sendProfitNotification(7, true);
+                notifier.sendProfitNotification(30, true);
+                notifier.sendProfitNotification(365, true);
+            } catch (Exception e) {
+                LOGGER.error("Load history orders failed.");
             }
             //Update the market trend
             marketTrend = tradingPlatform.getMarketDataService().getMarketTrend(getInterval());
@@ -127,6 +132,8 @@ public class MarketDataMonitor extends Monitor {
                     watchList.add(stock);
                 }
             }
+            //Add current positions, ignore the filters
+            TradingAccountMonitor.getPositions().keySet().stream().forEach(s -> watchList.add(s));
             LOGGER.info(String.format("Found %d stocks need to update.", watchList.size()));
             synchronized (lock) {
                 //Update

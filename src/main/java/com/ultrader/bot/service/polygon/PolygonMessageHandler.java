@@ -72,12 +72,14 @@ public class PolygonMessageHandler implements MessageHandler {
                     bar.addPrice(PrecisionNum.valueOf(aggregation.getL()));
                     bar.addPrice(PrecisionNum.valueOf(aggregation.getC()));
                     bar.addTrade(PrecisionNum.valueOf(aggregation.getV()), PrecisionNum.valueOf(aggregation.getA()));
+                    LOGGER.debug("Update bar {}", bar);
                 } else {
                     LOGGER.error("Unexpected data for {}, Now Epoch {}, Last Bar End Epoch {}", aggregation.getSym(), now, timeSeries.getLastBar().getEndTime().toEpochSecond());
                 }
 
             } else {
                 LOGGER.error("Cannot find time series for {} when updating", aggregation.getSym());
+                service.unsubscribe(aggregation.getSym());
             }
 
         } catch (Exception e) {

@@ -134,6 +134,12 @@ public class TradingStrategyMonitor extends Monitor {
                 if (ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).toEpochSecond() - timeSeries.getLastBar().getEndTime().toEpochSecond() > tradeInterval * 3) {
                     LOGGER.debug("Skip {} trading strategy since time series is not update to date {} {}", stock, new Date().getTime(), timeSeries.getLastBar().getEndTime().toEpochSecond());
                     notNewEnough++;
+                    if (MarketDataMonitor.isMarketOpen()) {
+                        //If it is trading time, reset the times series
+                        TimeSeries newTimeSeries = new BaseTimeSeries(timeSeries.getName());
+                        newTimeSeries.setMaximumBarCount(timeSeries.getMaximumBarCount());
+                        timeSeries = newTimeSeries;
+                    }
                     continue;
                 }
                 vailidCount++;
@@ -161,6 +167,7 @@ public class TradingStrategyMonitor extends Monitor {
                         if (timeSeries.getLastBar().getEndTime().isBefore(buyDate)) {
                             tradingRecord.enter(timeSeries.getEndIndex(), PrecisionNum.valueOf(positions.get(stock).getAverageCost()), PrecisionNum.valueOf(positions.get(stock).getQuantity()));
                         }
+                        //TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries, tradingRecord);
                     }
 
                     try {

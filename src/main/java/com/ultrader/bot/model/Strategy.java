@@ -19,10 +19,10 @@ public class Strategy {
     @GeneratedValue
     private long id;
 
-    @Column(name="name", nullable=false)
+    @Column(name="name", nullable=false, length = 50)
     private String name;
 
-    @Column(name="description")
+    @Column(name="description", length = 100)
     private String description;
 
     /**
@@ -31,6 +31,6 @@ public class Strategy {
     @Column(name="type", nullable=false)
     private String type;
 
-    @Column(name="rule_formula", nullable=false)
+    @Column(name="rule_formula", nullable=false, length = 1000)
     private String formula;
 }

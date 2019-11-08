@@ -130,7 +130,7 @@ public class NotificationService {
                 if (sellOrder.getSide().equals("sell")) {
                     Order buyOrder = null;
                     for (int j = i + 1; j < orders.size(); j++) {
-                        if (orders.get(j).getSide().equals("buy") && orders.get(j).getSymbol().equals(sellOrder.getSymbol())) {
+                        if (orders.get(j).getSide().equals("buy") && orders.get(j).getSymbol().equals(sellOrder.getSymbol()) && orders.get(j).getQuantity() == sellOrder.getQuantity()) {
                             buyOrder = orders.get(j);
                             break;
                         }
@@ -139,7 +139,7 @@ public class NotificationService {
                         Instant instant = Instant.ofEpochSecond(sellOrder.getCloseDate().getTime() / 1000 + 1);
                         LocalDateTime sellDate = LocalDateTime.ofInstant(instant, ZoneId.systemDefault());
                         List<Order> trade = orderDao.findLastTradeBySymbol(sellOrder.getSymbol(), sellDate);
-                        if (trade.size() == 2 && trade.get(1).getSide().equals("buy")) {
+                        if (trade.size() == 2 && trade.get(1).getSide().equals("buy") && sellOrder.getQuantity() == trade.get(1).getQuantity()) {
                             buyOrder = trade.get(1);
                         } else {
                             LOGGER.error("Cannot find buy order for {}, sell date {}", sellOrder, sellDate);
