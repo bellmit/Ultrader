@@ -251,18 +251,21 @@ public class TradingStrategyMonitor extends Monitor {
         if (!currentTrend.equals(MarketDataMonitor.getMarketTrend().name())) {
             notifier.sendNotification("Market Trend Changed", String.format("Market trend changed from %s to %s.", currentTrend, MarketDataMonitor.getMarketTrend().name()), NotificationType.INFO);
             //Change trading setting
-            List<ConditionalSetting> settings = conditionalSettingDao.findByMarketTrend(MarketDataMonitor.getMarketTrend().name());
+            List<ConditionalSetting> conditionalSettings = conditionalSettingDao.findByMarketTrend(MarketDataMonitor.getMarketTrend().name());
+            List<ConditionalSetting> defaultSettings = conditionalSettingDao.findByMarketTrend(MarketDataMonitor.getMarketTrend().name());
+            //Merge settings
             List<Setting> changes = new ArrayList<>();
-            for (ConditionalSetting setting : settings) {
-                if (setting.getSettingName().equals(SettingConstant.TRADE_BUY_STRATEGY.getName())||
-                        setting.getSettingName().equals(SettingConstant.TRADE_SELL_STRATEGY.getName())||
-                        setting.getSettingName().equals(SettingConstant.TRADE_VOLUME_LIMIT_MIN.getName())||
-                        setting.getSettingName().equals(SettingConstant.TRADE_VOLUME_LIMIT_MAX.getName())||
-                        setting.getSettingName().equals(SettingConstant.TRADE_PRICE_LIMIT_MIN.getName())||
-                        setting.getSettingName().equals(SettingConstant.TRADE_PRICE_LIMIT_MAX.getName())||
-                        setting.getSettingName().equals(SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName())||
-                        setting.getSettingName().equals(SettingConstant.TRADE_BUY_MAX_LIMIT.getName())) {
-                    changes.add(new Setting(setting.getSettingName(), setting.getSettingValue()));
+            for (ConditionalSetting defaultSetting : defaultSettings) {
+                if (!ConditionalSetting.getSupportSettings().contains(defaultSetting.getSettingName())) {
+                    //Unsupport setting
+                    continue;
+                }
+                //Check if there is override
+                Optional<ConditionalSetting> override = conditionalSettings.stream().filter(c -> c.getSettingName().equals(defaultSetting.getSettingName())).findFirst();
+                if (override.isPresent()) {
+                    changes.add(new Setting(override.get().getSettingName(), override.get().getSettingValue()));
+                } else {
+                    changes.add(new Setting(defaultSetting.getSettingName(), defaultSetting.getSettingValue()));
                 }
             }
             changes.add(new Setting(SettingConstant.TRADE_MARKET_TREND.getName(), MarketDataMonitor.getMarketTrend().name()));
