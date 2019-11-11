@@ -16,6 +16,8 @@ import logoText from "assets/img/banner.png";
 
 import dashboardRoutes from "routes/dashboard.jsx";
 
+import TourBox from "components/TourBox/TourBox.jsx";
+
 const bgImage = { backgroundImage: "url(" + image + ")" };
 
 var ps;
@@ -86,7 +88,7 @@ class Sidebar extends Component {
                             here we render the links in the sidebar
                             if the link is simple, we make a simple link, if not,
                             we have to create a collapsible group,
-                            with the speciffic parent button and with it's children which are the links
+                            with the specific parent button and with it's children which are the links
                         */}
               {dashboardRoutes.map((prop, key) => {
                 var st = {};
@@ -145,8 +147,10 @@ class Sidebar extends Component {
                           className="nav-link"
                           activeClassName="active"
                         >
-                          <i className={prop.icon} />
-                          <p>{prop.name}</p>
+                          <TourBox data-tour={prop.tour}>
+                            <i className={prop.icon} />
+                            <p>{prop.name}</p>
+                          </TourBox>
                         </NavLink>
                       </li>
                     );

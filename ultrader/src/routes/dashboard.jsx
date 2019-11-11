@@ -28,6 +28,7 @@ var dashboardRoutes = [
     },
   {
     path: "/settings/editSettings",
+    tour: "tour-settings",
     name: "Settings",
     icon: "pe-7s-config",
     component: EditSettings

@@ -1,9 +1,9 @@
 import React, { Component } from "react";
 import {
+  MenuItem,
   Nav,
   NavItem,
   NavDropdown,
-  MenuItem,
   OverlayTrigger,
   Tooltip
 } from "react-bootstrap";
@@ -16,7 +16,7 @@ import PerfectScrollbar from "perfect-scrollbar";
 import "perfect-scrollbar/css/perfect-scrollbar.css";
 import "assets/css/headerlinks.css";
 import { axiosGetWithAuth } from "helpers/UrlHelper";
-import {disableBodyScroll, enableBodyScroll} from "body-scroll-lock";
+import { disableBodyScroll, enableBodyScroll } from "body-scroll-lock";
 import Tour from "reactour";
 
 var ps;
@@ -38,12 +38,12 @@ class HeaderLinks extends Component {
   getNotification() {
     axiosGetWithAuth("/api/notification/getNotifications?length=10")
       .then(res => {
-        var notifications = res.data.reverse();
-        for (var i in notifications) {
-          var notification = {};
-          var messageBody = notifications[i];
-          var level = "info";
-          var icon = "pe-7s-info";
+        let notifications = res.data.reverse();
+        for (let i in notifications) {
+          let notification = {};
+          let messageBody = notifications[i];
+          let level = "info";
+          let icon = "pe-7s-info";
           switch (messageBody.type) {
             case "BUY":
               level = "#28a745";
@@ -76,9 +76,11 @@ class HeaderLinks extends Component {
         alertError(error);
       });
   }
+
   isNewNotification(notification) {
     return notification.new;
   }
+
   iconColor(status) {
     switch (status) {
       case "error":
@@ -93,19 +95,22 @@ class HeaderLinks extends Component {
         return;
     }
   }
+
   readNotification() {
     for (var i in this.props.notifications) {
       this.props.notifications[i].new = false;
     }
   }
+
   componentDidMount() {
     if (navigator.platform.indexOf("Win") > -1) {
       ps = new PerfectScrollbar(".dropdown-menu");
     }
   }
+
   reboot() {
     axiosGetWithAuth("/api/setting/restart")
-      .then(res => {
+      .then(() => {
         alertSuccess("Reboot Ultrader Successfully!");
       })
       .catch(error => {});
@@ -125,17 +130,17 @@ class HeaderLinks extends Component {
   render() {
     return (
       <div>
-        <Nav pullRight>
-          <OverlayTrigger
-            placement="bottom"
-            overlay={
-              <Tooltip id="rocket-tooltip">
-                {this.props.systemStatus.bot.detail}
-              </Tooltip>
-            }
-          >
-            <NavItem>
-              <TourBox data-tour="tour-bot-status">
+        <Nav id="statusNav" pullRight>
+          <TourBox id="statusTourStep" data-tour="tour-statuses">
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="rocket-tooltip">
+                  {this.props.systemStatus.bot.detail}
+                </Tooltip>
+              }
+            >
+              <NavItem>
                 <i
                   className={
                     "fa fa-rocket " +
@@ -143,159 +148,153 @@ class HeaderLinks extends Component {
                   }
                 />
                 <p className="monitorIconText">System Status</p>
-              </TourBox>
-            </NavItem>
-          </OverlayTrigger>
-          <OverlayTrigger
-            placement="bottom"
-            overlay={
-              <Tooltip id="circle-tooltip">
-                {this.props.systemStatus.data.detail}
-              </Tooltip>
-            }
-          >
-            <NavItem>
-              <TourBox data-tour="tour-data-status">
+              </NavItem>
+            </OverlayTrigger>
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="circle-tooltip">
+                  {this.props.systemStatus.data.detail}
+                </Tooltip>
+              }
+            >
+              <NavItem>
                 <i
                   className={
                     "fa fa-database " +
                     this.iconColor(this.props.systemStatus.data.status)
                   }
                 />
-              </TourBox>
-              <p className="monitorIconText">Data Status</p>
-            </NavItem>
-          </OverlayTrigger>
-          <OverlayTrigger
-            placement="bottom"
-            overlay={
-              <Tooltip id="globe-tooltip">
-                {this.props.systemStatus.account.detail}
-              </Tooltip>
-            }
-          >
-            <NavItem>
-              <TourBox data-tour="tour-account-status">
+                <p className="monitorIconText">Data Status</p>
+              </NavItem>
+            </OverlayTrigger>
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="globe-tooltip">
+                  {this.props.systemStatus.account.detail}
+                </Tooltip>
+              }
+            >
+              <NavItem>
                 <i
                   className={
                     "fa fa-user " +
                     this.iconColor(this.props.systemStatus.account.status)
                   }
                 />
-              </TourBox>
-              <p className="monitorIconText">Account Status</p>
-            </NavItem>
-          </OverlayTrigger>
-          <OverlayTrigger
-            placement="bottom"
-            overlay={
-              <Tooltip id="university-tooltip">
-                {this.props.systemStatus.market.detail}
-              </Tooltip>
-            }
-          >
-            <NavItem>
-              <TourBox data-tour="tour-market-status">
+                <p className="monitorIconText">Account Status</p>
+              </NavItem>
+            </OverlayTrigger>
+            <OverlayTrigger
+              placement="bottom"
+              overlay={
+                <Tooltip id="university-tooltip">
+                  {this.props.systemStatus.market.detail}
+                </Tooltip>
+              }
+            >
+              <NavItem>
                 <i
                   className={
                     "fa fa-university " +
                     this.iconColor(this.props.systemStatus.market.status)
                   }
                 />
-              </TourBox>
-              <p className="monitorIconText">Market Status</p>
-            </NavItem>
-          </OverlayTrigger>
+                <p className="monitorIconText">Market Status</p>
+              </NavItem>
+            </OverlayTrigger>
 
-          <NavDropdown
-            eventKey={3}
-            title={
-              <div>
-                <TourBox data-tour="tour-notifications-status">
-                  <i className="fa fa-bell-o" />
-                </TourBox>
-                <span className="notification">
-                  {
-                    this.props.notifications.filter(this.isNewNotification)
-                      .length
-                  }
-                </span>
-                <p className="hidden-md hidden-lg">
-                  Notifications
-                  <b className="caret" />
-                </p>
-              </div>
-            }
-            noCaret
-            onClick={this.readNotification}
-            id="basic-nav-dropdown-2"
-          >
-            {this.props.notifications.reverse().map((notification, i) => (
-              <MenuItem eventKey={"3." + i} key={"3." + i}>
-                <div
-                  className="card"
-                  style={{
-                    color: "white",
-                    backgroundColor: notification.level,
-                    marginBottom: "5px"
-                  }}
-                >
-                  <div className="content">
-                    <p>
-                      <i className={notification.icon}></i>&nbsp;
-                      {notification.message.content}
-                    </p>
-                  </div>
-                  <div className="footer">
-                    <hr />
-                    <div className="stats" style={{ color: "white" }}>
-                      <div>
-                        <i className="fa fa-clock-o"></i>{" "}
-                        {parseDate(notification.message.date)}{" "}
-                        <span style={{ float: "right" }}>
-                          {notification.new ? "New" : ""}
-                        </span>
+            <NavDropdown
+              eventKey={3}
+              title={
+                <div>
+                  <TourBox data-tour="tour-notifications-status">
+                    <i className="fa fa-bell-o" />
+                  </TourBox>
+                  <span className="notification">
+                    {
+                      this.props.notifications.filter(this.isNewNotification)
+                        .length
+                    }
+                  </span>
+                  <p className="hidden-md hidden-lg">
+                    Notifications
+                    <b className="caret" />
+                  </p>
+                </div>
+              }
+              noCaret
+              onClick={this.readNotification}
+              id="basic-nav-dropdown-2"
+            >
+              {this.props.notifications.reverse().map((notification, i) => (
+                <MenuItem eventKey={"3." + i} key={"3." + i}>
+                  <div
+                    className="card"
+                    style={{
+                      color: "white",
+                      backgroundColor: notification.level,
+                      marginBottom: "5px"
+                    }}
+                  >
+                    <div className="content">
+                      <p>
+                        <i className={notification.icon}></i>&nbsp;
+                        {notification.message.content}
+                      </p>
+                    </div>
+                    <div className="footer">
+                      <hr />
+                      <div className="stats" style={{ color: "white" }}>
+                        <div>
+                          <i className="fa fa-clock-o"></i>{" "}
+                          {parseDate(notification.message.date)}{" "}
+                          <span style={{ float: "right" }}>
+                            {notification.new ? "New" : ""}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
+                </MenuItem>
+              ))}
+            </NavDropdown>
+            <NavDropdown
+              eventKey={4}
+              title={
+                <div>
+                  <i className="fa fa-cog" />
+                  <p className="hidden-md hidden-lg">
+                    More
+                    <b className="caret" />
+                  </p>
+                </div>
+              }
+              noCaret
+              id="basic-nav-dropdown-3"
+              bsClass="dropdown-with-icons dropdown"
+            >
+              <MenuItem eventKey={4.1}>
+                <i className="pe-7s-mail" /> Messages
+              </MenuItem>
+              <MenuItem eventKey={4.2} onClick={this.openTour}>
+                <i className="pe-7s-help1" /> Tour Guide
+              </MenuItem>
+
+              <MenuItem divider />
+              <MenuItem eventKey={4.3} onClick={this.reboot}>
+                <div className="text-danger">
+                  <i className="pe-7s-refresh" /> Reboot
                 </div>
               </MenuItem>
-            ))}
-          </NavDropdown>
-          <NavDropdown
-            eventKey={4}
-            title={
-              <div>
-                <i className="fa fa-cog" />
-                <p className="hidden-md hidden-lg">
-                  More
-                  <b className="caret" />
-                </p>
-              </div>
-            }
-            noCaret
-            id="basic-nav-dropdown-3"
-            bsClass="dropdown-with-icons dropdown"
-          >
-            <MenuItem eventKey={4.1}>
-              <i className="pe-7s-mail" /> Messages
-            </MenuItem>
-            <MenuItem eventKey={4.2} onClick={this.openTour}>
-              <i className="pe-7s-help1" /> Tour Guide
-            </MenuItem>
-
-            <MenuItem divider />
-            <MenuItem eventKey={4.3} onClick={this.reboot}>
-              <div className="text-danger">
-                <i className="pe-7s-refresh" /> Reboot
-              </div>
-            </MenuItem>
-            <MenuItem eventKey={4.4} onClick={logout}>
-              <div className="text-danger">
-                <i className="pe-7s-door-lock" /> Log out
-              </div>
-            </MenuItem>
-          </NavDropdown>
+              <MenuItem eventKey={4.4} onClick={logout}>
+                <div className="text-danger">
+                  <i className="pe-7s-door-lock" /> Log out
+                </div>
+              </MenuItem>
+            </NavDropdown>
+          </TourBox>
         </Nav>
         <Tour
             onRequestClose={this.closeTour}
@@ -315,28 +314,36 @@ class HeaderLinks extends Component {
 
 const tourConfig = [
   {
-    selector: '[data-tour="welcome"]',
+    selector: '[data-tour="tour-welcome"]',
     content: `Welcome to Ultrader.`
   },
   {
-    selector: '[data-tour="tour-bot-status"]',
-    content: `You can check bot running status here.`
+    selector: '[data-tour="tour-statuses"]',
+    content: `You can check the tool status here.`
   },
+  // {
+  //   selector: '[data-tour="tour-bot-status"]',
+  //   content: `You can check bot running status here.`
+  // },
+  // {
+  //   selector: '[data-tour="tour-data-status"]',
+  //   content: `You can check data sync status here.`
+  // },
+  // {
+  //   selector: '[data-tour="tour-account-status"]',
+  //   content: `You can check account update status here.`
+  // },
+  // {
+  //   selector: '[data-tour="tour-market-status"]',
+  //   content: `You can check market status here.`
+  // },
+  // {
+  //   selector: '[data-tour="tour-notifications-status"]',
+  //   content: `Click to see trade records.`
+  // },
   {
-    selector: '[data-tour="tour-data-status"]',
-    content: `You can check data sync status here.`
-  },
-  {
-    selector: '[data-tour="tour-account-status"]',
-    content: `You can check account update status here.`
-  },
-  {
-    selector: '[data-tour="tour-market-status"]',
-    content: `You can check market status here.`
-  },
-  {
-    selector: '[data-tour="tour-notifications-status"]',
-    content: `Click to see trade records.`
+    selector: '[data-tour="tour-settings"]',
+    content: `Please configure your registered Ultrader key/secret and Alpaca key/secret in SETTINGS.`
   }
 ];
 
