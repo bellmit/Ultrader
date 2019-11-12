@@ -15,6 +15,8 @@ class SettingsWizard extends Component {
         strategyTemplateOptions={this.props.strategyTemplateOptions}
         onAddSetting={this.props.onAddSetting}
         onRetrievedStrategyTemplate={this.props.onRetrievedStrategyTemplate}
+
+        {...this.props}
       />
     );
   }

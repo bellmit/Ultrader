@@ -14,6 +14,8 @@ class Backtest extends Component {
         progress={this.props.progress}
         onBacktestSuccess={this.props.onBacktestSuccess}
         onBacktestStarted={this.props.onBacktestStarted}
+
+        {...this.props}
       />
     );
   }

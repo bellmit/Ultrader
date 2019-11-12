@@ -10,6 +10,9 @@ class LoginPage extends Component {
   render() {
     return (
       <LoginPageComp
+        onLoginSuccess={this.props.onLoginSuccess}
+
+        {...this.props}
       />
     );
   }
@@ -22,6 +25,11 @@ const mapStateToProps = state => {
 
 const mapDispatchToProps = dispatch => {
   return {
+      onLoginSuccess: (user) =>
+        dispatch({
+          type: ACTION_TYPES.LOGIN_SUCCESS,
+          user: user
+        })
   };
 };
 

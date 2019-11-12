@@ -13,6 +13,8 @@ class Positions extends Component {
         positions={this.props.positions}
 
         onGetPositionsSuccess={this.props.onGetPositionsSuccess}
+
+        {...this.props}
       />
     );
   }

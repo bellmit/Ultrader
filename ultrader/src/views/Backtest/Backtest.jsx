@@ -16,6 +16,7 @@ import {
 import Select from "react-select";
 
 import Card from "components/Card/Card.jsx";
+import PrivateButton from "components/CustomButton/CustomPrivateButton.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
@@ -313,21 +314,26 @@ class BacktestComp extends Component {
           <Card
             content={
               <div>
-                  <div  className={'alert alert-warning'}>
+                <div className={"alert alert-warning"}>
                   <strong>Warning!</strong>
                   <p>
-                    Test longer date range or more assets will cost more system resource and impact the Ultrader functions if the memory is not sufficient.
+                    Test longer date range or more assets will cost more system
+                    resource and impact the Ultrader functions if the memory is
+                    not sufficient.
                   </p>
                   <p>
-                  Please choose appropriate date range and asset list and test on hosts which have bigger memory.
-                  It's recommended to run the back test after the market is closed.
+                    Please choose appropriate date range and asset list and test
+                    on hosts which have bigger memory. It's recommended to run
+                    the back test after the market is closed.
                   </p>
-                  </div>
+                </div>
 
                 <Collapse in={this.state.showInputs}>
                   <form onSubmit={this.search}>
                     <FormGroup>
-                      <ControlLabel>Start Date {tooltip("Start date of the testing data")}</ControlLabel>
+                      <ControlLabel>
+                        Start Date {tooltip("Start date of the testing data")}
+                      </ControlLabel>
                       <Datetime
                         id="startDate"
                         inputProps={{ placeholder: "Test Start Date" }}
@@ -337,7 +343,9 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>End Date {tooltip("End date of the testing data")}</ControlLabel>
+                      <ControlLabel>
+                        End Date {tooltip("End date of the testing data")}
+                      </ControlLabel>
                       <Datetime
                         id="endDate"
                         inputProps={{ placeholder: "Test End Date" }}
@@ -347,7 +355,10 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trading Period {tooltip("Trading period used in the testing")}</ControlLabel>
+                      <ControlLabel>
+                        Trading Period{" "}
+                        {tooltip("Trading period used in the testing")}
+                      </ControlLabel>
                       <Select
                         placeholder="One bar represent how long"
                         name="intervalInput"
@@ -358,7 +369,10 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Test Asset List {tooltip("Asset List will be used in the testing")}</ControlLabel>
+                      <ControlLabel>
+                        Test Asset List{" "}
+                        {tooltip("Asset List will be used in the testing")}
+                      </ControlLabel>
                       <Select
                         placeholder="Choose a created Asset List"
                         name="tradingStockList"
@@ -369,7 +383,10 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Test Buy Strategy {tooltip("Buy strategy will be used in the testing")}</ControlLabel>
+                      <ControlLabel>
+                        Test Buy Strategy{" "}
+                        {tooltip("Buy strategy will be used in the testing")}
+                      </ControlLabel>
                       <Select
                         placeholder="Trade Buy Strategy"
                         name="buyStrategy"
@@ -382,7 +399,10 @@ class BacktestComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Test Sell Strategy {tooltip("Sell strategy will be used in the testing")}</ControlLabel>
+                      <ControlLabel>
+                        Test Sell Strategy{" "}
+                        {tooltip("Sell strategy will be used in the testing")}
+                      </ControlLabel>
                       <Select
                         placeholder="Trade Sell Strategy"
                         name="sellStrategy"
@@ -394,17 +414,19 @@ class BacktestComp extends Component {
                         }
                       />
                     </FormGroup>
-                    <Button
+                    <PrivateButton
+                      {...this.props}
+                      requiredRoleId={2}
                       fill
                       disabled={this.state.inTesting}
                       onClick={this.search.bind(this)}
                       color="info"
                       style={{ textAlign: "center" }}
-                      type="submit">
+                      type="submit"
+                    >
                       Test
-                    </Button>
+                    </PrivateButton>
                   </form>
-
                 </Collapse>
                 <div style={{ textAlign: "center" }}>
                   <Button
@@ -427,20 +449,34 @@ class BacktestComp extends Component {
                     title="Trading Strategy Summary"
                     content={
                       <div>
-                        <p>Total Trades{tooltip("Sum of trades during the testing")}: {this.state.totalTrades}</p>
                         <p>
-                          Avg. Profitable Trades % {tooltip("Averagely, possibility of one trade can make profit")}:{" "}
-                          {this.state.profitTradesRatio}
+                          Total Trades
+                          {tooltip("Sum of trades during the testing")}:{" "}
+                          {this.state.totalTrades}
                         </p>
                         <p>
-                          Avg. Holding Days/ Asset {tooltip("Average holding days for each asset")}: {this.state.avgHoldingDays}
+                          Avg. Profitable Trades %{" "}
+                          {tooltip(
+                            "Averagely, possibility of one trade can make profit"
+                          )}
+                          : {this.state.profitTradesRatio}
                         </p>
                         <p>
-                          Avg. Profit % / Trade {tooltip("Averagely, profit that one trade can gain")}: {this.state.profitPerTrade}
+                          Avg. Holding Days/ Asset{" "}
+                          {tooltip("Average holding days for each asset")}:{" "}
+                          {this.state.avgHoldingDays}
                         </p>
                         <p>
-                          Expected Total Profit % {tooltip("Considering user current settings, such as how much spend on each trader and max position, the expect total profit can gain during the testing date range and only trading stocks in the test")}:{" "}
-                          {this.state.totalProfitStrategy}
+                          Avg. Profit % / Trade{" "}
+                          {tooltip("Averagely, profit that one trade can gain")}
+                          : {this.state.profitPerTrade}
+                        </p>
+                        <p>
+                          Expected Total Profit %{" "}
+                          {tooltip(
+                            "Considering user current settings, such as how much spend on each trader and max position, the expect total profit can gain during the testing date range and only trading stocks in the test"
+                          )}
+                          : {this.state.totalProfitStrategy}
                         </p>
                       </div>
                     }
@@ -451,16 +487,36 @@ class BacktestComp extends Component {
                     title="Buy and Hold Summary"
                     content={
                       <div>
-                        <p>Total Assets {tooltip("How many asset used in the testing")}: {this.state.totalStocks}</p>
                         <p>
-                          Profitable Asset % {tooltip("If holding the asset, how many percentages asset will be profitable.")}: {this.state.profitStockRatio}
-                        </p>
-                        <p>Holding Days {tooltip("Holding days = testing data days")}: {this.state.holdingDays}</p>
-                        <p>
-                          Avg. Profit % / Asset {tooltip("The profit that one asset can gain, averagely")}: {this.state.profitPerStock}
+                          Total Assets{" "}
+                          {tooltip("How many asset used in the testing")}:{" "}
+                          {this.state.totalStocks}
                         </p>
                         <p>
-                          Expected Total Profit % {tooltip("If spend same amount of money on each asset, the expected profit can gain.")}: {this.state.totalProfitHold}
+                          Profitable Asset %{" "}
+                          {tooltip(
+                            "If holding the asset, how many percentages asset will be profitable."
+                          )}
+                          : {this.state.profitStockRatio}
+                        </p>
+                        <p>
+                          Holding Days{" "}
+                          {tooltip("Holding days = testing data days")}:{" "}
+                          {this.state.holdingDays}
+                        </p>
+                        <p>
+                          Avg. Profit % / Asset{" "}
+                          {tooltip(
+                            "The profit that one asset can gain, averagely"
+                          )}
+                          : {this.state.profitPerStock}
+                        </p>
+                        <p>
+                          Expected Total Profit %{" "}
+                          {tooltip(
+                            "If spend same amount of money on each asset, the expected profit can gain."
+                          )}
+                          : {this.state.totalProfitHold}
                         </p>
                       </div>
                     }

@@ -11,6 +11,8 @@ class AddUser extends Component {
     return (
       <AddUserComp
         onAddUserSuccess={this.props.onAddUserSuccess}
+
+        {...this.props}
       />
     );
   }

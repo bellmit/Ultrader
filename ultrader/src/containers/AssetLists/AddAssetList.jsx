@@ -14,6 +14,8 @@ class AddAssetList extends Component {
         assets={this.props.assets}
         assetOptions={this.props.assetOptions}
         onAddAssetListSuccess={this.props.onAddAssetListSuccess}
+
+        {...this.props}
       />
     );
   }

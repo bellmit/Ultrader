@@ -16,6 +16,8 @@ class Strategies extends Component {
         onGetStrategiesSuccess={this.props.onGetStrategiesSuccess}
         onGetRulesSuccess={this.props.onGetRulesSuccess}
         onDeleteStrategySuccess={this.props.onDeleteStrategySuccess}
+
+        {...this.props}
       />
     );
   }

@@ -16,6 +16,8 @@ class AssetLists extends Component {
         onGetAssetListsSuccess={this.props.onGetAssetListsSuccess}
         onDeleteAssetListSuccess={this.props.onDeleteAssetListSuccess}
         onGetAllAssetsSuccess={this.props.onGetAllAssetsSuccess}
+
+        {...this.props}
       />
     );
   }

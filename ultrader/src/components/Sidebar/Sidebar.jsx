@@ -5,6 +5,8 @@ import { NavLink } from "react-router-dom";
 import PerfectScrollbar from "perfect-scrollbar";
 import "perfect-scrollbar/css/perfect-scrollbar.css";
 
+import { checkRolePermission } from "helpers/AuthHelper";
+
 import HeaderLinks from "components/Header/HeaderLinks.jsx";
 
 // backgroundImage for Sidebar
@@ -71,28 +73,35 @@ class Sidebar extends Component {
 
   render() {
     return (
-
       <div className="sidebar" data-color="black" data-image={image}>
         <div className="sidebar-background" style={bgImage} />
         <div className="logo">
-          <a href="http://www.ultraderbot.com" className="simple-text logo-normal">
-              <img src={logoText} alt="Ultrader" style={{height:40, width:244}}/>
+          <a
+            href="http://www.ultraderbot.com"
+            className="simple-text logo-normal"
+          >
+            <img
+              src={logoText}
+              alt="Ultrader"
+              style={{ height: 40, width: 244 }}
+            />
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">
-            <ul className="nav">
-              {/* If we are on responsive, we want both links from navbar and sidebar
+          <ul className="nav">
+            {/* If we are on responsive, we want both links from navbar and sidebar
                             to appear in sidebar, so we render here HeaderLinks */}
-              {this.state.width <= 992 ? <HeaderLinks {...this.props} /> : null}
-              {/*
+            {this.state.width <= 992 ? <HeaderLinks {...this.props} /> : null}
+            {/*
                             here we render the links in the sidebar
                             if the link is simple, we make a simple link, if not,
                             we have to create a collapsible group,
                             with the specific parent button and with it's children which are the links
                         */}
-              {dashboardRoutes.map((prop, key) => {
-                var st = {};
-                st[prop["state"]] = !this.state[prop.state];
+            {dashboardRoutes.map((prop, key) => {
+              var st = {};
+              st[prop["state"]] = !this.state[prop.state];
+              if (checkRolePermission(this.props.user, prop.requiredRoleId)) {
                 if (prop.collapse) {
                   return (
                     <li className={this.activeRoute(prop.path)} key={key}>
@@ -112,25 +121,32 @@ class Sidebar extends Component {
                       <Collapse in={this.state[prop.state]}>
                         <ul className="nav">
                           {prop.views.map((prop, key) => {
-                            return (
-                              <li
-                                className={this.activeRoute(prop.path)}
-                                key={key}
-                              >
-                                <NavLink
-                                  to={prop.path}
-                                  className="nav-link"
-                                  activeClassName="active"
+                            if (
+                              checkRolePermission(
+                                this.props.user,
+                                prop.requiredRoleId
+                              )
+                            ) {
+                              return (
+                                <li
+                                  className={this.activeRoute(prop.path)}
+                                  key={key}
                                 >
-                                  <span className="sidebar-mini">
-                                    {prop.mini}
-                                  </span>
-                                  <span className="sidebar-normal">
-                                    {prop.name}
-                                  </span>
-                                </NavLink>
-                              </li>
-                            );
+                                  <NavLink
+                                    to={prop.path}
+                                    className="nav-link"
+                                    activeClassName="active"
+                                  >
+                                    <span className="sidebar-mini">
+                                      {prop.mini}
+                                    </span>
+                                    <span className="sidebar-normal">
+                                      {prop.name}
+                                    </span>
+                                  </NavLink>
+                                </li>
+                              );
+                            }
                           })}
                         </ul>
                       </Collapse>
@@ -156,8 +172,9 @@ class Sidebar extends Component {
                     );
                   }
                 }
-              })}
-            </ul>
+              }
+            })}
+          </ul>
         </div>
       </div>
     );

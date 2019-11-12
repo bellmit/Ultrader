@@ -10,6 +10,8 @@ class RegisterPage extends Component {
   render() {
     return (
       <RegisterPageComp
+
+        {...this.props}
       />
     );
   }

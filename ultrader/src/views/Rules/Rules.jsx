@@ -5,6 +5,7 @@ import { Grid, Row, Col, Modal } from "react-bootstrap";
 
 import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
+import PrivateButton from "components/CustomButton/CustomPrivateButton.jsx";
 import axios from "axios";
 
 import AddRule from "containers/Rules/AddRule.jsx";
@@ -16,7 +17,7 @@ import { alertSuccess, alertError } from "helpers/AlertHelper";
 class RulesComp extends Component {
   constructor(props) {
     super(props);
-
+    console.log(props);
     this.handleShowAdd = this.handleShowAdd.bind(this);
     this.handleCloseAdd = this.handleCloseAdd.bind(this);
     this.handleShowEdit = this.handleShowEdit.bind(this);
@@ -92,13 +93,15 @@ class RulesComp extends Component {
                 title={
                   <div>
                     Rules
-                    <Button
+                    <PrivateButton
                       className="add_button"
                       variant="primary"
                       onClick={this.handleShowAdd}
+                      {...this.props}
+                      requiredRoleId={2}
                     >
                       Add Rule
-                    </Button>
+                    </PrivateButton>
                   </div>
                 }
                 content={
@@ -154,7 +157,9 @@ class RulesComp extends Component {
                           },
                           Cell: row => (
                             <div>
-                              <Button
+                              <PrivateButton
+                                {...this.props}
+                                requiredRoleId={2}
                                 onClick={() => {
                                   this.editRule(row);
                                 }}
@@ -163,8 +168,10 @@ class RulesComp extends Component {
                                 icon
                               >
                                 <i className="fa fa-edit" />
-                              </Button>
-                              <Button
+                              </PrivateButton>
+                              <PrivateButton
+                                {...this.props}
+                                requiredRoleId={2}
                                 onClick={() => {
                                   this.deleteRule(row);
                                 }}
@@ -173,7 +180,7 @@ class RulesComp extends Component {
                                 icon
                               >
                                 <i className="fa fa-times" />
-                              </Button>
+                              </PrivateButton>
                             </div>
                           ),
                           sortable: false,

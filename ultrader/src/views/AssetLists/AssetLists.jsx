@@ -4,7 +4,7 @@ import ReactTable from "react-table";
 import { Grid, Row, Col, Modal } from "react-bootstrap";
 
 import Card from "components/Card/Card.jsx";
-import Button from "components/CustomButton/CustomButton.jsx";
+import PrivateButton from "components/CustomButton/CustomPrivateButton.jsx";
 import axios from "axios";
 
 import AddAssetList from "containers/AssetLists/AddAssetList.jsx";
@@ -100,13 +100,15 @@ class AssetListsComp extends Component {
                 title={
                   <div>
                     Asset Lists
-                    <Button
+                    <PrivateButton
+                      {...this.props}
+                      requiredRoleId={2}
                       className="add_button"
                       variant="primary"
                       onClick={this.handleShowAdd}
                     >
                       Add AssetList
-                    </Button>
+                    </PrivateButton>
                   </div>
                 }
                 content={
@@ -158,7 +160,9 @@ class AssetListsComp extends Component {
                           },
                           Cell: row => (
                             <div>
-                              <Button
+                              <PrivateButton
+                                {...this.props}
+                                requiredRoleId={2}
                                 onClick={() => {
                                   this.editAssetList(row);
                                 }}
@@ -167,8 +171,10 @@ class AssetListsComp extends Component {
                                 icon
                               >
                                 <i className="fa fa-edit" />
-                              </Button>
-                              <Button
+                              </PrivateButton>
+                              <PrivateButton
+                                {...this.props}
+                                requiredRoleId={2}
                                 onClick={() => {
                                   this.deleteAssetList(row);
                                 }}
@@ -177,7 +183,7 @@ class AssetListsComp extends Component {
                                 icon
                               >
                                 <i className="fa fa-times" />
-                              </Button>
+                              </PrivateButton>
                             </div>
                           ),
                           sortable: false,

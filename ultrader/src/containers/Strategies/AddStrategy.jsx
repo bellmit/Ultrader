@@ -14,6 +14,8 @@ class AddStrategy extends Component {
         rules={this.props.rules}
         onGetRulesSuccess={this.props.onGetRulesSuccess}
         onAddStrategySuccess={this.props.onAddStrategySuccess}
+
+        {...this.props}
       />
     );
   }

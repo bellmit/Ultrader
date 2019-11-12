@@ -12,6 +12,8 @@ class EditUser extends Component {
       <EditUserComp
         user={this.props.user}
         onEditUserSuccess={this.props.onEditUserSuccess}
+
+        {...this.props}
       />
     );
   }

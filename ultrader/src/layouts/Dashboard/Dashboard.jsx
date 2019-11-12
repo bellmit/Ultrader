@@ -23,6 +23,7 @@ import Stomp from "stompjs";
 import axios from "axios";
 import { parseDate, parseProfit } from "helpers/ParseHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
+import { checkRolePermission } from "helpers/AuthHelper";
 
 import {
   axiosGetWithAuth,
@@ -314,29 +315,48 @@ class DashboardComp extends Component {
           <Header {...this.props} />
           <Switch>
             {dashboardRoutes.map((prop, key) => {
-              if (prop.collapse) {
-                return prop.views.map((prop, key) => {
-                  return (
-                    <Route
-                      path={prop.path}
-                      component={prop.component}
-                      key={key}
-                    />
-                  );
-                });
-              } else {
-                if (prop.redirect)
-                  return (
-                    <Redirect from={prop.path} to={prop.pathTo} key={key} />
-                  );
-                else
-                  return (
-                    <Route
-                      path={prop.path}
-                      component={prop.component}
-                      key={key}
-                    />
-                  );
+              if (checkRolePermission(this.props.user, prop.requiredRoleId)) {
+                if (prop.collapse) {
+                  return prop.views.map((prop, key) => {
+                    if (
+                      checkRolePermission(this.props.user, prop.requiredRoleId)
+                    ) {
+                      const Comp = prop.component;
+                      return (
+                        <Route
+                          path={prop.path}
+                          render={props => (
+                            <Comp
+                              {...props}
+                              requiredRoleId={prop.requiredRoleId}
+                            />
+                          )}
+                          key={key}
+                        />
+                      );
+                    }
+                  });
+                } else {
+                  if (prop.redirect)
+                    return (
+                      <Redirect from={prop.path} to={prop.pathTo} key={key} />
+                    );
+                  else {
+                    const Comp = prop.component;
+                    return (
+                      <Route
+                        path={prop.path}
+                        render={props => (
+                          <Comp
+                            {...props}
+                            requiredRoleId={prop.requiredRoleId}
+                          />
+                        )}
+                        key={key}
+                      />
+                    );
+                  }
+                }
               }
             })}
           </Switch>

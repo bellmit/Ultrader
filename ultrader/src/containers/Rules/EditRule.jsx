@@ -20,6 +20,8 @@ class EditRule extends Component {
         categoryIndicatorMap={this.props.categoryIndicatorMap}
         indicatorSelectOptions={this.props.indicatorSelectOptions}
         onEditRuleSuccess={this.props.onEditRuleSuccess}
+
+        {...this.props}
       />
     );
   }

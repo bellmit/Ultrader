@@ -12,6 +12,8 @@ class PendingOrders extends Component {
       <PendingOrdersComp
         pendingOrders={this.props.pendingOrders}
         onGetPendingOrdersSuccess={this.props.onGetPendingOrdersSuccess}
+
+        {...this.props}
       />
     );
   }

@@ -16,6 +16,8 @@ class EditAssetList extends Component {
         assets={this.props.assets}
         assetOptions={this.props.assetOptions}
         onEditAssetListSuccess={this.props.onEditAssetListSuccess}
+
+        {...this.props}
       />
     );
   }

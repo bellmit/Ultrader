@@ -301,7 +301,6 @@ export default class EditRuleComp extends React.Component {
   }
 
   saveRule() {
-    console.log(this.state);
     if (this.validate()) {
       let formulaParts = this.state.ruleFieldValues.map((value, i) => {
         return this.getStringForRuleFieldValue(value);

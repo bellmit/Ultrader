@@ -6,13 +6,15 @@ var pagesRoutes = [
     path: "/pages/login-page",
     name: "Login Page",
     mini: "LP",
-    component: LoginPage
+    component: LoginPage,
+    requiredRoleId: 3
   },
   {
     path: "/pages/register-page",
     name: "Register",
     mini: "RP",
-    component: RegisterPage
+    component: RegisterPage,
+    requiredRoleId: 3
   }
 ];
 

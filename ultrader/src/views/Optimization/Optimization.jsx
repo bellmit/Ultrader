@@ -16,12 +16,13 @@ import {
 import Select from "react-select";
 
 import Card from "components/Card/Card.jsx";
+import PrivateButton from "components/CustomButton/CustomPrivateButton.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 import { tooltip } from "helpers/TooltipHelper";
-import { parseDate,parseProfit } from "helpers/ParseHelper";
+import { parseDate, parseProfit } from "helpers/ParseHelper";
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
 
@@ -148,7 +149,6 @@ class OptimizationComp extends Component {
     });
   }
 
-
   selectBuyStrategyOption(option) {
     let selectedBuyStrategyOption = option ? option : {};
     this.setState({
@@ -178,11 +178,17 @@ class OptimizationComp extends Component {
   }
 
   showBestParameters() {
-    var table = []
-    var parameters = this.props.optimization.bestParameters.parameters.split("|");
+    var table = [];
+    var parameters = this.props.optimization.bestParameters.parameters.split(
+      "|"
+    );
     var names = this.props.optimization.parameterNames.split("|");
     for (var i in names) {
-        table.push(<p>{names[i]} : {parameters[i]}</p>);
+      table.push(
+        <p>
+          {names[i]} : {parameters[i]}
+        </p>
+      );
     }
     return table;
   }
@@ -217,11 +223,12 @@ class OptimizationComp extends Component {
       .catch(error => {
         this.setState({ inTesting: false });
         if (error.indexOf("411")) {
-          alertError("Insufficient training data, please add more assets or increase the data range.");
+          alertError(
+            "Insufficient training data, please add more assets or increase the data range."
+          );
         } else {
           alertError(error);
         }
-
       });
   }
 
@@ -277,20 +284,25 @@ class OptimizationComp extends Component {
           <Card
             content={
               <div>
-                  <div className={'alert alert-warning'}>
+                <div className={"alert alert-warning"}>
                   <strong>Warning!</strong>
                   <p>
-                    Use longer date range or more assets will cost more system resource and impact the Ultrader functions if the memory is not sufficient.
+                    Use longer date range or more assets will cost more system
+                    resource and impact the Ultrader functions if the memory is
+                    not sufficient.
                   </p>
                   <p>
-                  Please choose appropriate date range and asset list and optimize on hosts which have bigger memory.
-                  It's recommended to run the optimization after the market is closed.
+                    Please choose appropriate date range and asset list and
+                    optimize on hosts which have bigger memory. It's recommended
+                    to run the optimization after the market is closed.
                   </p>
-                  </div>
+                </div>
                 <Collapse in={this.state.showInputs}>
                   <form onSubmit={this.search}>
                     <FormGroup>
-                      <ControlLabel>Start Date {tooltip("Start date of the training data")}</ControlLabel>
+                      <ControlLabel>
+                        Start Date {tooltip("Start date of the training data")}
+                      </ControlLabel>
                       <Datetime
                         id="startDate"
                         inputProps={{ placeholder: "Test Start Date" }}
@@ -300,7 +312,9 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>End Date {tooltip("End date of the training data")}</ControlLabel>
+                      <ControlLabel>
+                        End Date {tooltip("End date of the training data")}
+                      </ControlLabel>
                       <Datetime
                         id="endDate"
                         inputProps={{ placeholder: "Test End Date" }}
@@ -310,7 +324,10 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trading Period {tooltip("Trading period used in the training")}</ControlLabel>
+                      <ControlLabel>
+                        Trading Period{" "}
+                        {tooltip("Trading period used in the training")}
+                      </ControlLabel>
                       <Select
                         placeholder="One bar represent how long"
                         name="intervalInput"
@@ -321,7 +338,12 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Asset List {tooltip("Assets in the list will be regarded as the training data")}</ControlLabel>
+                      <ControlLabel>
+                        Asset List{" "}
+                        {tooltip(
+                          "Assets in the list will be regarded as the training data"
+                        )}
+                      </ControlLabel>
                       <Select
                         placeholder="Choose a created Asset List"
                         name="tradingStockList"
@@ -332,7 +354,10 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Buy Strategy {tooltip("Buy strategy will be used in the training")}</ControlLabel>
+                      <ControlLabel>
+                        Trade Buy Strategy{" "}
+                        {tooltip("Buy strategy will be used in the training")}
+                      </ControlLabel>
                       <Select
                         placeholder="Trade Buy Strategy"
                         name="buyStrategy"
@@ -345,7 +370,10 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Trade Sell Strategy {tooltip("Sell strategy will be used in the training")}</ControlLabel>
+                      <ControlLabel>
+                        Trade Sell Strategy{" "}
+                        {tooltip("Sell strategy will be used in the training")}
+                      </ControlLabel>
                       <Select
                         placeholder="Trade Sell Strategy"
                         name="sellStrategy"
@@ -358,38 +386,52 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Optimization Iteration {tooltip("The maximum iterations you want to optimize the parameter. Bigger number will cost more time to training and provide better result. Recommend value 10 - 20.")}</ControlLabel>
+                      <ControlLabel>
+                        Optimization Iteration{" "}
+                        {tooltip(
+                          "The maximum iterations you want to optimize the parameter. Bigger number will cost more time to training and provide better result. Recommend value 10 - 20."
+                        )}
+                      </ControlLabel>
                       <FormControl
                         id="iteration"
                         value={this.state.iteration}
                         onChange={e => {
-                           this.setState({ iteration: e.target.value });
+                          this.setState({ iteration: e.target.value });
                         }}
                         type="text"
                         placeholder="e.g. 10"
-                    />
+                      />
                     </FormGroup>
                     <FormGroup>
-                      <ControlLabel>Optimization Goal{tooltip("The criterion of the optimization trying to maximize.")}</ControlLabel>
+                      <ControlLabel>
+                        Optimization Goal
+                        {tooltip(
+                          "The criterion of the optimization trying to maximize."
+                        )}
+                      </ControlLabel>
                       <Select
                         placeholder="Choose one optimization goal"
                         name="optimizationGoal"
                         options={optimizationGoalOption}
                         value={this.state.selectedOptimizationGoalOption}
                         id="optimizationGoalSelect"
-                        onChange={option => this.selectOptimizationGoalOption(option)}
-
+                        onChange={option =>
+                          this.selectOptimizationGoalOption(option)
+                        }
                       />
                     </FormGroup>
-                    <Button
+                    <PrivateButton
+                      {...this.props}
+                      requiredRoleId={2}
                       fill
                       disabled={this.state.inTesting}
                       onClick={this.search.bind(this)}
                       color="info"
                       style={{ textAlign: "center" }}
-                      type="submit">
+                      type="submit"
+                    >
                       Optimize
-                    </Button>
+                    </PrivateButton>
                   </form>
                 </Collapse>
                 <div style={{ textAlign: "center" }}>
@@ -405,108 +447,110 @@ class OptimizationComp extends Component {
               </div>
             }
           />
-          {this.props.optimization.results && this.props.optimization.results.length > 0 && (
-            <div>
-              <Row>
-                <Col md={12} xs={12}>
-                  <Card
-                    title="Best Parameter Combination"
-                    content={
-                      <div>
+          {this.props.optimization.results &&
+            this.props.optimization.results.length > 0 && (
+              <div>
+                <Row>
+                  <Col md={12} xs={12}>
+                    <Card
+                      title="Best Parameter Combination"
+                      content={
+                        <div>
+                          <ReactTable
+                            data={this.props.optimization.bestParameters}
+                            filterable
+                            columns={[
+                              {
+                                Header: "Strategy Name",
+                                accessor: "strategyName"
+                              },
+                              {
+                                Header: "Rule Name",
+                                accessor: "ruleName"
+                              },
+                              {
+                                Header: "Parameter Type",
+                                accessor: "parameterType"
+                              },
+                              {
+                                Header: "Value",
+                                accessor: "value"
+                              }
+                            ]}
+                            defaultPageSize={5}
+                            showPaginationTop
+                            showPaginationBottom={false}
+                            className="-striped -highlight"
+                          />
+                        </div>
+                      }
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col md={12}>
+                    <Card
+                      title="Optimization Details"
+                      content={
                         <ReactTable
-                        data={this.props.optimization.bestParameters}
-                        filterable
-                        columns={[
-                          {
-                            Header: "Strategy Name",
-                            accessor: "strategyName"
-                          },
-                          {
-                            Header: "Rule Name",
-                            accessor: "ruleName"
-                          },
-                          {
-                            Header: "Parameter Type",
-                            accessor: "parameterType"
-                          },
-                          {
-                            Header: "Value",
-                            accessor: "value"
-                          }
-                        ]}
-                        defaultPageSize={5}
-                        showPaginationTop
-                        showPaginationBottom={false}
-                        className="-striped -highlight"
-                      />
-                      </div>
-                    }
-                  />
-                </Col>
-              </Row>
-              <Row>
-                <Col md={12}>
-                  <Card
-                    title="Optimization Details"
-                    content={
-                      <ReactTable
-                        data={this.props.optimization.results}
-                        filterable
-                        columns={[
-                          {
-                            Header: "Iteration",
-                            accessor: "iteration"
-                          },
-                          {
-                            Header: this.state.selectedOptimizationGoalOption.label,
-                            accessor: "optimizationGoal",
-                            Cell: cell => parseFloat(cell.value).toFixed(6)
-                          },
-                          {
-                            Header: this.props.optimization.parameterNames,
-                            accessor: "parameters"
-                          },
-                          {
-                            Header: "Trades",
-                            accessor: "backtest.tradingCount"
-                          },
-                          {
-                            Header: "Profitable Trades %",
-                            accessor: "backtest.profitTradesRatio",
-                            Cell: cell => parseFloat(cell.value).toFixed(6)
-                          },
-                          {
-                            Header: "Reward/Risk %",
-                            accessor: "backtest.rewardRiskRatio",
-                            Cell: cell => parseFloat(cell.value).toFixed(6)
-                          },
-                          {
-                            Header: "Buy and Hold %",
-                            accessor: "backtest.buyAndHold",
-                            Cell: cell => parseFloat(cell.value).toFixed(6)
-                          },
-                          {
-                            Header: "Total Profit %",
-                            accessor: "backtest.totalProfit",
-                            Cell: cell => parseFloat(cell.value).toFixed(6)
-                          },
-                          {
-                            Header: "Average Holding Days",
-                            accessor: "backtest.averageHoldingDays",
-                            Cell: cell => parseFloat(cell.value).toFixed(1)
-                          }
-                        ]}
-                        defaultPageSize={20}
-                        showPaginationTop
-                        showPaginationBottom={false}
-                        className="-striped -highlight"
-                      />
-                    }
-                  />
-                </Col>
-              </Row>
-            </div>
-          )}
+                          data={this.props.optimization.results}
+                          filterable
+                          columns={[
+                            {
+                              Header: "Iteration",
+                              accessor: "iteration"
+                            },
+                            {
+                              Header: this.state.selectedOptimizationGoalOption
+                                .label,
+                              accessor: "optimizationGoal",
+                              Cell: cell => parseFloat(cell.value).toFixed(6)
+                            },
+                            {
+                              Header: this.props.optimization.parameterNames,
+                              accessor: "parameters"
+                            },
+                            {
+                              Header: "Trades",
+                              accessor: "backtest.tradingCount"
+                            },
+                            {
+                              Header: "Profitable Trades %",
+                              accessor: "backtest.profitTradesRatio",
+                              Cell: cell => parseFloat(cell.value).toFixed(6)
+                            },
+                            {
+                              Header: "Reward/Risk %",
+                              accessor: "backtest.rewardRiskRatio",
+                              Cell: cell => parseFloat(cell.value).toFixed(6)
+                            },
+                            {
+                              Header: "Buy and Hold %",
+                              accessor: "backtest.buyAndHold",
+                              Cell: cell => parseFloat(cell.value).toFixed(6)
+                            },
+                            {
+                              Header: "Total Profit %",
+                              accessor: "backtest.totalProfit",
+                              Cell: cell => parseFloat(cell.value).toFixed(6)
+                            },
+                            {
+                              Header: "Average Holding Days",
+                              accessor: "backtest.averageHoldingDays",
+                              Cell: cell => parseFloat(cell.value).toFixed(1)
+                            }
+                          ]}
+                          defaultPageSize={20}
+                          showPaginationTop
+                          showPaginationBottom={false}
+                          className="-striped -highlight"
+                        />
+                      }
+                    />
+                  </Col>
+                </Row>
+              </div>
+            )}
         </Grid>
       </div>
     );

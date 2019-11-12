@@ -18,6 +18,8 @@ class AddRule extends Component {
         categoryIndicatorMap={this.props.categoryIndicatorMap}
         indicatorSelectOptions={this.props.indicatorSelectOptions}
         onAddRuleSuccess={this.props.onAddRuleSuccess}
+
+        {...this.props}
       />
     );
   }

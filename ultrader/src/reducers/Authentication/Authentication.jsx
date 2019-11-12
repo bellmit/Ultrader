@@ -5,11 +5,6 @@ const initialState = user ? { loggedIn: true, user } : {};
 
 const authentication = (state = initialState, action) => {
   switch (action.type) {
-    case ACTION_TYPES.LOGIN_REQUEST:
-      return {
-        loggingIn: true,
-        user: action.user
-      };
     case ACTION_TYPES.LOGIN_SUCCESS:
       return {
         loggedIn: true,

@@ -61,9 +61,14 @@ class LoginPageComp extends Component {
           alertError("Invalid Username or Password!");
         } else {
           let userObj = {
-            token: user.data.accessToken
+            token: user.data.accessToken,
+            roleId: user.data.roleId
+          };
+          let userStateObj = {
+            roleId: user.data.roleId
           };
           localStorage.setItem("user", JSON.stringify(userObj));
+          this.props.onLoginSuccess(userStateObj);
           if (user.data.setup) {
             window.location = "/#/Dashboard";
           } else {

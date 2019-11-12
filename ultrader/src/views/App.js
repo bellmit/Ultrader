@@ -7,30 +7,12 @@ import { HashRouter, Route, Switch } from "react-router-dom";
 
 import indexRoutes from "../routes/index.jsx";
 
-
-
 class AppComp extends Component {
   constructor(props) {
     super(props);
   }
 
   componentDidMount() {}
-
-  render() {
-    return (
-      <div>
-        <HashRouter>
-          <Switch>
-            {indexRoutes.map((prop, key) => {
-              return (
-                <Route path={prop.path} component={prop.component} key={key} />
-              );
-            })}
-          </Switch>
-        </HashRouter>
-      </div>
-    );
-  }
 
   render() {
     const mainRouteComponents = indexRoutes.map((prop, key) =>

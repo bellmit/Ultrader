@@ -4,7 +4,7 @@ import ReactTable from "react-table";
 import { Grid, Row, Col } from "react-bootstrap";
 
 import Card from "components/Card/Card.jsx";
-import Button from "components/CustomButton/CustomButton.jsx";
+import PrivateButton from "components/CustomButton/CustomPrivateButton.jsx";
 import axios from "axios";
 
 import { confirmAlert } from "react-confirm-alert"; // Import
@@ -58,11 +58,15 @@ class PositionsComp extends Component {
             onClick: () => {
               axiosPostWithAuth("/api/order/liquid?assets=" + symbols)
                 .then(res => {
-                      alertSuccess("Successfully sent the request to sell the selected assets: " + symbols);
-                      this.loadData();
-                       })
-                .catch(error => { alertError(error);});
-
+                  alertSuccess(
+                    "Successfully sent the request to sell the selected assets: " +
+                      symbols
+                  );
+                  this.loadData();
+                })
+                .catch(error => {
+                  alertError(error);
+                });
             }
           },
           {
@@ -107,13 +111,15 @@ class PositionsComp extends Component {
                 title={
                   <div>
                     Positions
-                    <Button
+                    <PrivateButton
+                      {...this.props}
+                      requiredRoleId={2}
                       className="add_button"
                       variant="primary"
                       onClick={this.manualSell}
                     >
                       Liquid Selected Assets
-                    </Button>
+                    </PrivateButton>
                   </div>
                 }
                 content={

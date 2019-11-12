@@ -11,6 +11,8 @@ class GreetingMonitor extends Component {
     return (
       <GreetingMonitorComp
         monitorMessages={this.props.monitorMessages}
+
+        {...this.props}
       />
     );
   }

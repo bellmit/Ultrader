@@ -18,44 +18,51 @@ var dashboardRoutes = [
     path: "/dashboard",
     name: "Dashboard",
     icon: "pe-7s-display1",
-    component: Dashboard
+    component: Dashboard,
+    requiredRoleId: 3
   },
-    {
-      path: "/users",
-      name: "Users",
-      icon: "pe-7s-users",
-      component: Users
-    },
+  {
+    path: "/users",
+    name: "Users",
+    icon: "pe-7s-users",
+    component: Users,
+    requiredRoleId: 1
+  },
   {
     path: "/settings/editSettings",
     tour: "tour-settings",
     name: "Settings",
     icon: "pe-7s-config",
-    component: EditSettings
+    component: EditSettings,
+    requiredRoleId: 2
   },
   {
     path: "/rules",
     name: "Rules",
     icon: "pe-7s-copy-file",
-    component: Rules
+    component: Rules,
+    requiredRoleId: 3
   },
   {
     path: "/strategies",
     name: "Strategies",
     icon: "pe-7s-file",
-    component: Strategies
+    component: Strategies,
+    requiredRoleId: 3
   },
   {
     path: "/positions",
     name: "Positions",
     icon: "pe-7s-portfolio",
-    component: Positions
+    component: Positions,
+    requiredRoleId: 3
   },
   {
     path: "/assetLists",
     name: "Asset Lists",
     icon: "pe-7s-note2",
-    component: AssetLists
+    component: AssetLists,
+    requiredRoleId: 3
   },
   {
     collapse: true,
@@ -63,18 +70,21 @@ var dashboardRoutes = [
     name: "Orders",
     state: "openOrders",
     icon: "pe-7s-cash",
+    requiredRoleId: 3,
     views: [
       {
         path: "/orders/pendingOrders",
         name: "Pending Orders",
         mini: "PO",
-        component: PendingOrders
+        component: PendingOrders,
+        requiredRoleId: 3
       },
       {
         path: "/orders/historyOrders",
         name: "History Orders",
         mini: "HO",
-        component: HistoryOrders
+        component: HistoryOrders,
+        requiredRoleId: 3
       }
     ]
   },
@@ -82,13 +92,15 @@ var dashboardRoutes = [
     path: "/backtest",
     name: "Backtest",
     icon: "pe-7s-science",
-    component: Backtest
+    component: Backtest,
+    requiredRoleId: 2
   },
   {
     path: "/optimization",
     name: "Optimization",
     icon: "pe-7s-target",
-    component: Optimization
+    component: Optimization,
+    requiredRoleId: 2
   },
 
   { redirect: true, path: "/", pathTo: "/dashboard", name: "Dashboard" }

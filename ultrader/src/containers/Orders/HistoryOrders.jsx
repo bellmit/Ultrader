@@ -12,6 +12,8 @@ class HistoryOrders extends Component {
       <HistoryOrdersComp
         historyOrders={this.props.historyOrders}
         onGetHistoryOrdersSuccess={this.props.onGetHistoryOrdersSuccess}
+
+        {...this.props}
       />
     );
   }

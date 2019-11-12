@@ -1,7 +1,9 @@
 package com.ultrader.bot.controller;
 
+import com.ultrader.bot.config.BotUser;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.UserDao;
+import com.ultrader.bot.model.User;
 import com.ultrader.bot.payload.model.JwtAuthenticationResponse;
 import com.ultrader.bot.payload.model.LoginRequest;
 import com.ultrader.bot.security.JwtTokenProvider;
@@ -50,6 +52,10 @@ public class AuthController {
                 )
         );
 
+        BotUser userPrincipal = (BotUser) authentication.getPrincipal();
+
+        User user = userDao.findById(userPrincipal.getId()).get();
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         String jwt = tokenProvider.generateToken(authentication);
@@ -58,7 +64,7 @@ public class AuthController {
                 || RepositoryUtil.getSetting(settingDao, SettingConstant.BOT_SECRET.getName(), "").isEmpty()) {
             isSetup = false;
         }
-        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt,"Bearer", isSetup));
+        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt,"Bearer", isSetup, user.getRoleId()));
     }
 
 }

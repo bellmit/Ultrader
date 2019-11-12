@@ -13,6 +13,8 @@ class Users extends Component {
         users={this.props.users}
         onGetUsersSuccess={this.props.onGetUsersSuccess}
         onDeleteUserSuccess={this.props.onDeleteUserSuccess}
+
+        {...this.props}
       />
     );
   }

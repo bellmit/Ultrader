@@ -4,7 +4,7 @@ import ReactTable from "react-table";
 import { Grid, Row, Col, Modal } from "react-bootstrap";
 
 import Card from "components/Card/Card.jsx";
-import Button from "components/CustomButton/CustomButton.jsx";
+import PrivateButton from "components/CustomButton/CustomPrivateButton.jsx";
 import axios from "axios";
 
 import AddStrategy from "containers/Strategies/AddStrategy.jsx";
@@ -138,13 +138,15 @@ class StrategiesComp extends Component {
                 title={
                   <div>
                     Strategies
-                    <Button
+                    <PrivateButton
+                      {...this.props}
+                      requiredRoleId={2}
                       className="add_button"
                       variant="primary"
                       onClick={this.handleShowAdd}
                     >
                       Add Strategy
-                    </Button>
+                    </PrivateButton>
                   </div>
                 }
                 content={
@@ -201,7 +203,9 @@ class StrategiesComp extends Component {
                           },
                           Cell: row => (
                             <div>
-                              <Button
+                              <PrivateButton
+                                {...this.props}
+                                requiredRoleId={2}
                                 onClick={() => {
                                   this.editStrategy(row);
                                 }}
@@ -210,8 +214,10 @@ class StrategiesComp extends Component {
                                 icon
                               >
                                 <i className="fa fa-edit" />
-                              </Button>
-                              <Button
+                              </PrivateButton>
+                              <PrivateButton
+                                {...this.props}
+                                requiredRoleId={2}
                                 onClick={() => {
                                   this.deleteStrategy(row);
                                 }}
@@ -220,7 +226,7 @@ class StrategiesComp extends Component {
                                 icon
                               >
                                 <i className="fa fa-times" />
-                              </Button>
+                              </PrivateButton>
                             </div>
                           ),
                           sortable: false,

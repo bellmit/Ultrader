@@ -14,6 +14,8 @@ class Optimization extends Component {
         progress={this.props.progress}
         onOptimizationSuccess={this.props.onOptimizationSuccess}
         onOptimizationStarted={this.props.onOptimizationStarted}
+
+        {...this.props}
       />
     );
   }

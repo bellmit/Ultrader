@@ -15,6 +15,8 @@ class EditStrategy extends Component {
         rules={this.props.rules}
         onGetRulesSuccess={this.props.onGetRulesSuccess}
         onEditStrategySuccess={this.props.onEditStrategySuccess}
+
+        {...this.props}
       />
     );
   }

@@ -14,6 +14,7 @@ class Dashboard extends Component {
   render() {
     return (
       <DashboardComp
+        user={this.props.user}
         systemStatus={this.props.systemStatus}
         monitorMessages={this.props.monitorMessages}
         ruleTypes={this.props.ruleTypes}
@@ -71,6 +72,7 @@ class Dashboard extends Component {
 
 const mapStateToProps = state => {
   return {
+    user: state.authentication.user,
     systemStatus: state.global.systemStatus,
     monitorMessages: state.global.monitorMessages,
     ruleTypes: state.global.ruleTypes,

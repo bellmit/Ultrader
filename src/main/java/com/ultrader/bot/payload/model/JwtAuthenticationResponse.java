@@ -11,4 +11,5 @@ public class JwtAuthenticationResponse {
     private String accessToken;
     private String tokenType = "Bearer";
     private boolean isSetup = true;
+    private String roleId;
 }

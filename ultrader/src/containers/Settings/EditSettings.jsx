@@ -17,6 +17,8 @@ class EditSettings extends Component {
         onAddSetting={this.props.onAddSetting}
         onGetSettingsSuccess={this.props.onGetSettingsSuccess}
         onRetrievedStrategyTemplate={this.props.onRetrievedStrategyTemplate}
+
+        {...this.props}
       />
     );
   }
