@@ -19,7 +19,7 @@ var dictionary = {
     "TradePriceLimitMin": "Don't trade stocks which prices are lower than this value. -1 for no limit.",
     "TradeVolumeLimitMax": "Don't trade stocks which volume per trade period are higher than this value. -1 for no limit.",
     "TradeVolumeLimitMin": "Don't trade stocks which volume per trade period are lower than this value. -1 for no limit.",
-    "TradeBuyLimitMax": "Buying power spend on each trade. If it ends with % then each trade spends that many percents of the portfolio.",
+    "TradeBuyLimitMax": "Buying power spend on each trade. If it ends with % then each trade spends that many percents of the buying power (margin may include).",
     "TradeHoldLimitMax": "How many stocks you can hold at a same time.",
     "BuyStrategy": "Strategy for buying stocks.",
     "SellStrategy": "Strategy for selling stocks.",

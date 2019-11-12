@@ -108,13 +108,14 @@ public class TradingStrategyMonitor extends Monitor {
             int tradeInterval = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"));
             LOGGER.info("Buy order type {}, Sell order type {}", buyOrderType, sellOrderType);
 
-            int vailidCount = 0;
+            int validCount = 0;
             int noTimeSeries = 0;
             int notLongEnough = 0;
             int notNewEnough = 0;
             //update trading strategy
             Long buyStrategyId = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_STRATEGY.getName(), "-1"));
             Long sellStrategyId = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_SELL_STRATEGY.getName(), "-1"));
+            int sellCount = 0;
             for (Map.Entry<String, TimeSeries> entry : MarketDataMonitor.timeSeriesMap.entrySet()) {
                 String stock = entry.getKey();
                 TimeSeries timeSeries = entry.getValue();
@@ -142,7 +143,7 @@ public class TradingStrategyMonitor extends Monitor {
                     }
                     continue;
                 }
-                vailidCount++;
+                validCount++;
 
                 //Check if buy satisfied
                 if (MarketDataMonitor.isMarketOpen()) {
@@ -169,12 +170,12 @@ public class TradingStrategyMonitor extends Monitor {
                         }
                         //TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries, tradingRecord);
                     }
-
                     try {
                         if (!dayTradeCount.containsKey(stock)
                                 && !positions.containsKey(stock)
                                 && !openOrders.containsKey(stock)
                                 && positionNum + buyOpenOrder < holdLimit
+                                && account.getPortfolioValue() > account.getInitialMargin()
                                 && strategy.shouldEnter(timeSeries.getEndIndex())) {
                             LOGGER.info(String.format("%s buy strategy satisfied. ", stock));
                             TradingUtil.printSatisfaction(strategyDao, ruleDao, buyStrategyId, timeSeries, null);
@@ -201,6 +202,7 @@ public class TradingStrategyMonitor extends Monitor {
                             if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null)) != null) {
                                 account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
                                 positionNum--;
+                                sellCount++;
                                 dayTradeCount.put(stock, 1);
 
                             }
@@ -214,21 +216,14 @@ public class TradingStrategyMonitor extends Monitor {
 
                 }
             }
+            if (sellCount == 0
+                    && account.getInitialMargin() > account.getPortfolioValue()
+                    && MarketDataMonitor.isMarketOpen()) {
+                coverMarginCall(positions.values().stream().findFirst(), sellOrderType);
+            }
             LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
-                    vailidCount, noTimeSeries, notLongEnough, notNewEnough);
-            int totalAsset = 0;
-            for (Set<String> assets : MarketDataMonitor.getInstance().getAvailableStock().values()) {
-                totalAsset += assets.size();
-            }
-            if (MarketDataMonitor.timeSeriesMap.size() * 0.1 > vailidCount) {
-                notifier.sendMarketDataStatus("error", vailidCount, totalAsset);
-            } else if (MarketDataMonitor.timeSeriesMap.size() * 0.5 > vailidCount) {
-                notifier.sendMarketDataStatus("warning", vailidCount, totalAsset);
-            } else {
-                notifier.sendMarketDataStatus("normal", vailidCount, totalAsset);
-            }
-
-
+                    validCount, noTimeSeries, notLongEnough, notNewEnough);
+            checkMarketData(validCount);
         } catch (Exception e) {
             LOGGER.error("Failed to execute trading strategy.", e);
         }
@@ -246,6 +241,37 @@ public class TradingStrategyMonitor extends Monitor {
         return dayTradeCount;
     }
 
+    private void coverMarginCall(Optional<Position> position, String sellOrderType) {
+        //Avoid margin call, randomly sell 1 position
+        if (position.isPresent()) {
+            LOGGER.info("Selling {} because of margin call.", position.get().getSymbol());
+            tradingService.postOrder(new com.ultrader.bot.model.Order("", position.get().getSymbol(), "sell", sellOrderType, position.get().getQuantity(), position.get().getCurrentPrice(), "", null));
+            notifier.sendNotification("Cover Margin Call", "Selling " + position.get().getSymbol() + " to cover margin call.", NotificationType.WARN);
+        } else {
+            LOGGER.warn("No position can sell to cover, please check your trading account ASAP");
+            notifier.sendNotification("Cover Margin Call", "No position can sell to cover, please check your trading account ASAP", NotificationType.WARN);
+        }
+    }
+
+    private void checkMarketData(int validCount) {
+
+        int totalAsset = 0;
+        try {
+            for (Set<String> assets : MarketDataMonitor.getInstance().getAvailableStock().values()) {
+                totalAsset += assets.size();
+            }
+        } catch (IllegalAccessException e) {
+            LOGGER.error("Cannot access available stocks", e);
+        }
+        if (MarketDataMonitor.timeSeriesMap.size() * 0.1 > validCount) {
+            notifier.sendMarketDataStatus("error", validCount, totalAsset);
+        } else if (MarketDataMonitor.timeSeriesMap.size() * 0.5 > validCount) {
+            notifier.sendMarketDataStatus("warning", validCount, totalAsset);
+        } else {
+            notifier.sendMarketDataStatus("normal", validCount, totalAsset);
+        }
+
+    }
     private void marketAdaptation() {
         String currentTrend = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_MARKET_TREND.getName(), "NORMAL");
         if (!currentTrend.equals(MarketDataMonitor.getMarketTrend().name())) {

@@ -21,6 +21,8 @@ public class Account {
     private double cash;
     private double cashWithdrawable;
     private double portfolioValue;
+    private double maintenanceMargin;
+    private double initialMargin;
     private boolean isDayTrader;
     private boolean isTradingBlocked;
     private boolean isTransfersBlocked;

@@ -49,7 +49,7 @@ class AlpacaStep extends Component {
             </FormGroup>
             <FormGroup>
               <ControlLabel>
-                No Shorting Trade {tooltip("NoShortingTrade")}
+                No Shorting Trade {tooltip("NoShortingTrade")} <a href="https://docs.alpaca.markets/trading-on-alpaca/margin-and-shorting/">Read Before Enable</a>
               </ControlLabel>
               <Select
                 placeholder="No Shorting Trade"
@@ -93,7 +93,7 @@ class AlpacaStep extends Component {
               />
             </FormGroup>
             <FormGroup>
-              <ControlLabel>Use Margin {tooltip("UseMargin")}</ControlLabel>
+              <ControlLabel>Use Margin {tooltip("UseMargin")}  <a href="https://docs.alpaca.markets/trading-on-alpaca/margin-and-shorting/">Read Before Enable</a></ControlLabel>
               <Select
                 placeholder="Use Margin"
                 name="useMargin"
