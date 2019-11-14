@@ -10,7 +10,7 @@ class EditUser extends Component {
   render() {
     return (
       <EditUserComp
-        user={this.props.user}
+        editUser={this.props.editUser}
         onEditUserSuccess={this.props.onEditUserSuccess}
 
         {...this.props}

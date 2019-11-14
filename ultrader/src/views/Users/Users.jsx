@@ -127,7 +127,7 @@ class UsersComp extends Component {
                       <Modal.Header closeButton />
                       <Modal.Body>
                         <EditUser
-                          user={this.state.selectedUser}
+                          editUser={this.state.selectedUser}
                           index={this.state.selectedUserIndex}
                         />
                       </Modal.Body>

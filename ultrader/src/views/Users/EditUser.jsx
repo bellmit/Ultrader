@@ -30,7 +30,7 @@ export default class EditUserComp extends React.Component {
     this.validate = this.validate.bind(this);
     this.state = {
       // Register
-      username: props.user.username,
+      username: props.editUser.username,
       password: "",
       cfpassword: "",
       usernameError: null,

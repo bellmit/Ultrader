@@ -328,6 +328,7 @@ class DashboardComp extends Component {
                           render={props => (
                             <Comp
                               {...props}
+                              {...this.props}
                               requiredRoleId={prop.requiredRoleId}
                             />
                           )}
@@ -349,6 +350,7 @@ class DashboardComp extends Component {
                         render={props => (
                           <Comp
                             {...props}
+                            {...this.props}
                             requiredRoleId={prop.requiredRoleId}
                           />
                         )}

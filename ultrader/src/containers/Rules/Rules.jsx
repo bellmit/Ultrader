@@ -10,7 +10,6 @@ class Rules extends Component {
   render() {
     return (
       <RulesComp
-        user={this.props.user}
         rules={this.props.rules}
         onGetRulesSuccess={this.props.onGetRulesSuccess}
         onDeleteRuleSuccess={this.props.onDeleteRuleSuccess}
@@ -23,8 +22,7 @@ class Rules extends Component {
 
 const mapStateToProps = state => {
   return {
-    rules: state.rules.rules,
-    user: state.authentication.user
+    rules: state.rules.rules
   };
 };
 
