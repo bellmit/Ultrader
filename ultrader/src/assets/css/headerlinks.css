@@ -10,3 +10,7 @@
     }
 
 }
+
+.navbar-default .navbar-nav > div > li > a:not(.btn) {
+    color: #9A9A9A;
+}
