@@ -3,14 +3,47 @@
         display:none !important;
     }
 
+    #statusTourStep > li {
+        display: inline-block;
+        margin: 0;
+    }
 }
 @media (max-width: 992px){
     .monitorIconText{
         display:inline-block !important;
     }
 
+    .sidebar .sidebar-wrapper > .nav > div .nav li > a {
+        line-height: 30px;
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin: 5px 15px;
+    }
+
+    .sidebar .nav li > a, .bootstrap-navbar .nav li > a, .off-canvas-sidebar .navbar-collapse .nav li > a {
+        padding-bottom: 5px;
+        padding-top: 5px;
+        color: #FFFFFF !important;
+    }
+
+    #statusTourStep > li {
+        display: block;
+        margin: 0;
+    }
 }
 
 .navbar-default .navbar-nav > div > li > a:not(.btn) {
     color: #9A9A9A;
 }
+
+.nav li>a {
+    position: relative;
+    display: block;
+    padding: 10px 15px;
+}
+
+#statusNav {
+    margin: 10px 0;
+}
+

@@ -41,13 +41,3 @@
 	color: #2d2323;
 	padding: 34px 40px 24px 30px;
 }
-
-#statusNav {
-	margin: 10px 0;
-}
-
-#statusTourStep > li {
-	display: inline-block;
-	margin: 0;
-	padding: 10px 15px;
-}
