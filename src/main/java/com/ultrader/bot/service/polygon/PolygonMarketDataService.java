@@ -202,10 +202,10 @@ public class PolygonMarketDataService implements MarketDataService {
         try {
             updateTimeSeries(Collections.singletonList(index), interval);
             double onePercent = index.getLastBar().getClosePrice().doubleValue() / 100;
-            Rule bullRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, PrecisionNum.valueOf(onePercent), PrecisionNum.valueOf(1.5 * onePercent));
-            Rule superBullRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, PrecisionNum.valueOf(1.5 * onePercent), PrecisionNum.valueOf(100 * onePercent));
-            Rule bearRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, PrecisionNum.valueOf(-1.5 * onePercent), PrecisionNum.valueOf(-1 * onePercent));
-            Rule superBearRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 14), 100, PrecisionNum.valueOf(-90 * onePercent), PrecisionNum.valueOf(-1.5 * onePercent));
+            Rule bullRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 50), 90, PrecisionNum.valueOf(0.5 * onePercent), PrecisionNum.valueOf(0.85 * onePercent));
+            Rule superBullRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 50), 90, PrecisionNum.valueOf(0.85 * onePercent), PrecisionNum.valueOf(100 * onePercent));
+            Rule bearRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 50), 90, PrecisionNum.valueOf(-0.85 * onePercent), PrecisionNum.valueOf(-0.5 * onePercent));
+            Rule superBearRule = new InSlopeRule(new EMAIndicator(new ClosePriceIndicator(index), 50), 90, PrecisionNum.valueOf(-90 * onePercent), PrecisionNum.valueOf(-0.85 * onePercent));
             if (superBullRule.isSatisfied(index.getEndIndex())) {
                 return MarketTrend.SUPER_BULL;
             } else if (bullRule.isSatisfied(index.getEndIndex())) {
