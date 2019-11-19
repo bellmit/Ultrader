@@ -217,7 +217,7 @@ public class TradingStrategyMonitor extends Monitor {
                 }
             }
             if (sellCount == 0
-                    && account.getInitialMargin() > account.getPortfolioValue()
+                    && account.getMaintenanceMargin() > account.getPortfolioValue()
                     && MarketDataMonitor.isMarketOpen()) {
                 coverMarginCall(positions.values().stream().findFirst(), sellOrderType);
             }
