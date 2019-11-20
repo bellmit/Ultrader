@@ -205,11 +205,13 @@ class BacktestComp extends Component {
       amount = parseFloat(parseFloat(amount) / this.props.portfolio.value);
     }
     var holds = parseInt(this.state.holdLimit);
+    var estimateTrades = this.state.holdingDays / (avgHoldingDays / hasTrade) * holds;
+    estimateTrades = estimateTrades > totalTrades ? totalTrades : estimateTrades;
     this.state.totalProfitStrategy =
       (
         (Math.pow(
           ((profitPerTrade / totalTrades) * amount) / 100 + 1,
-          totalTrades
+          estimateTrades
         ) -
           1) *
         100
@@ -422,8 +424,7 @@ class BacktestComp extends Component {
                       onClick={this.search.bind(this)}
                       color="info"
                       style={{ textAlign: "center" }}
-                      type="submit"
-                    >
+                      type="submit">
                       Test
                     </PrivateButton>
                   </form>

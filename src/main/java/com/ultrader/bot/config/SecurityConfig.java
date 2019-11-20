@@ -105,7 +105,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/api/order/getClosedOrders/**").permitAll()
                 .antMatchers("/api/order/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
                 //Chart Controller
-                .antMatchers("/api/chart/**").permitAll()
+                .antMatchers("/api/chart/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
                 //Position Controller
                 .antMatchers("/api/position/**").permitAll()
                 //Notification Controller

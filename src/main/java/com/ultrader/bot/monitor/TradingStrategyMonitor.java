@@ -218,6 +218,7 @@ public class TradingStrategyMonitor extends Monitor {
             }
             if (sellCount == 0
                     && account.getMaintenanceMargin() > account.getPortfolioValue()
+                    && RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_AUTO_COVER.getName(), "true").equals("true")
                     && MarketDataMonitor.isMarketOpen()) {
                 coverMarginCall(positions.values().stream().findFirst(), sellOrderType);
             }
@@ -278,7 +279,7 @@ public class TradingStrategyMonitor extends Monitor {
             notifier.sendNotification("Market Trend Changed", String.format("Market trend changed from %s to %s.", currentTrend, MarketDataMonitor.getMarketTrend().name()), NotificationType.INFO);
             //Change trading setting
             List<ConditionalSetting> conditionalSettings = conditionalSettingDao.findByMarketTrend(MarketDataMonitor.getMarketTrend().name());
-            List<ConditionalSetting> defaultSettings = conditionalSettingDao.findByMarketTrend(MarketDataMonitor.getMarketTrend().name());
+            List<ConditionalSetting> defaultSettings = conditionalSettingDao.findByMarketTrend(MarketTrend.NORMAL.name());
             //Merge settings
             List<Setting> changes = new ArrayList<>();
             for (ConditionalSetting defaultSetting : defaultSettings) {

@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import { Grid, Col, Row, Carousel } from "react-bootstrap";
+import { Grid, Col, Row, Carousel, Nav, NavItem, Tab} from "react-bootstrap";
 import ChartistGraph from "react-chartist";
 
 import Card from "components/Card/Card.jsx";
@@ -12,31 +12,90 @@ import { responsiveSales } from "variables/Variables.jsx";
 import newsImg from "assets/img/news.png";
 import "./../../css/news.css";
 
+var portfolioChartOptions = {
+    showArea: false,
+    height: "245px",
+    axisX: {showGrid: false},
+    lineSmooth: true,
+    showLine: true,
+    showPoint: true,
+    fullWidth: true,
+    chartPadding: {right: 5}
+    };
+var profitChartOptions = {
+    showArea: false,
+    height: "245px",
+    axisX: {showGrid: false},
+    lineSmooth: true,
+    showLine: true,
+    showPoint: true,
+    fullWidth: true,
+    chartPadding: {right: 5}
+    };
+var tradeChartOptions = {
+    showArea: false,
+    height: "245px",
+    axisX: {showGrid: false},
+    lineSmooth: true,
+    showLine: true,
+    showPoint: true,
+    fullWidth: true,
+    chartPadding: {right: 5}
+    };
 class DashboardComp extends Component {
   constructor(props) {
     super(props);
 
     this.getTotalPortfolioChart = this.getTotalPortfolioChart.bind(this);
-    this.getMonthlyTotalPortfolio = this.getMonthlyTotalPortfolio.bind(this);
+    this.refreshPortfolioChart = this.refreshPortfolioChart.bind(this);
+    this.drawPortfolioChart = this.drawPortfolioChart.bind(this);
+    this.getTotalProfitChart = this.getTotalProfitChart.bind(this);
+    this.refreshProfitChart = this.refreshProfitChart.bind(this);
+    this.drawProfitChart = this.drawProfitChart.bind(this);
+    this.getTotalTradeChart = this.getTotalTradeChart.bind(this);
+    this.refreshTradeChart = this.refreshTradeChart.bind(this);
+    this.drawTradeChart = this.drawTradeChart.bind(this);
+    this.getPortfolioPieChart = this.getPortfolioPieChart.bind(this);
+    this.refreshPortfolioPieChart = this.refreshPortfolioPieChart.bind(this);
+    this.drawPortfolioPieChart = this.drawPortfolioPieChart.bind(this);
     this.getCards = this.getCards.bind(this);
     this.getNews = this.getNews.bind(this);
-    this.getMonthlyTotalPortfolio();
+
     this.getCards();
     this.getNews();
     this.state = {
-      totalPortfolioChart: {},
+      totalPortfolioChart: {
+         daily:{}, weekly:{}, monthly:{}, yearly:{}
+      },
       totalPortfolioUpdateDate: new Date().toLocaleString(),
+      portfolioPieChart: {
+         Margin:{}, GainLoss:{}
+      },
+      portfolioPieUpdateDate: new Date().toLocaleString(),
+      totalProfitChart: {
+         daily:{}, weekly:{}, monthly:{}, yearly:{}
+      },
+      totalProfitUpdateDate: new Date().toLocaleString(),
+      totalTradeChart: {
+         daily:{}, weekly:{}, monthly:{}, yearly:{}
+      },
+      totalTradeUpdateDate: new Date().toLocaleString(),
       news: []
     };
+    this.refreshPortfolioChart();
+    this.refreshProfitChart();
+    this.refreshTradeChart();
+    this.refreshPortfolioPieChart();
   }
 
-  getTotalPortfolioChart(length, period) {
+  getTotalPortfolioChart(length, period, key) {
     axiosGetWithAuth(
       "/api/chart/getPortfolio?length=" + length + "&period=" + period
     )
       .then(res => {
+        this.state.totalPortfolioChart[key] = res.data;
         this.setState({
-          totalPortfolioChart: res.data,
+          totalPortfolioChart: this.state.totalPortfolioChart,
           totalPortfolioUpdateDate: new Date().toLocaleString()
         });
       })
@@ -45,7 +104,56 @@ class DashboardComp extends Component {
         alertError(error);
       });
   }
+  getPortfolioPieChart(type) {
+    axiosGetWithAuth(
+      "/api/chart/getPortfolioPie?type=" + type
+    )
+      .then(res => {
+        this.state.portfolioPieChart[type]['labels'] = res.data.labels;
+        this.state.portfolioPieChart[type]['series'] = res.data.series[0];
+        this.setState({
+          portfolioPieChart: this.state.portfolioPieChart,
+          portfolioPieUpdateDate: new Date().toLocaleString()
+        });
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
+  }
+  getTotalProfitChart(length, period, key) {
+    axiosGetWithAuth(
+      "/api/chart/getProfit?length=" + length + "&period=" + period
+    )
+      .then(res => {
+        this.state.totalProfitChart[key] = res.data;
+        this.setState({
+          totalProfitChart: this.state.totalProfitChart,
+          totalProfitUpdateDate: new Date().toLocaleString()
+        });
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
+  }
 
+  getTotalTradeChart(length, period, key) {
+    axiosGetWithAuth(
+      "/api/chart/getTrades?length=" + length + "&period=" + period
+    )
+      .then(res => {
+        this.state.totalTradeChart[key] = res.data;
+        this.setState({
+          totalTradeChart: this.state.totalTradeChart,
+          totalTradeUpdateDate: new Date().toLocaleString()
+        });
+      })
+      .catch(error => {
+        console.log(error);
+        alertError(error);
+      });
+  }
   getCards() {
     axiosGetWithAuth("/api/notification/dashboard")
       .then(res => {
@@ -92,10 +200,6 @@ class DashboardComp extends Component {
       });
   }
 
-  getMonthlyTotalPortfolio() {
-    this.getTotalPortfolioChart(30, 86400);
-  }
-
   getNews() {
     axiosGetWithAuth("/api/news/getNewsList?num=3")
       .then(res => {
@@ -111,10 +215,8 @@ class DashboardComp extends Component {
   appendNews() {
     if (this.state.news.length > 0) {
       return (
-        <Row>
-          <Col sm={12}>
-            <Carousel interval={5000} className="card card-stats">
-              {this.state.news.map(newsItem => (
+         <Carousel interval={5000} className="card card-stats">
+            {this.state.news.map(newsItem => (
                 <Carousel.Item
                   key={newsItem.newsId}
                   onClick={() => {
@@ -131,23 +233,68 @@ class DashboardComp extends Component {
                     <h4 style={{ marginTop: 10 }}>{newsItem.title}</h4>
                   </Carousel.Caption>
                 </Carousel.Item>
-              ))}
-            </Carousel>
-          </Col>
-        </Row>
+            ))}
+         </Carousel>
       );
-    } else {
-      return <Row />;
     }
   }
 
+  refreshPortfolioChart() {
+     this.getTotalPortfolioChart(24, 1296000, 'yearly');
+     this.getTotalPortfolioChart(30, 86400, 'monthly');
+     this.getTotalPortfolioChart(14, 43200, 'weekly');
+     this.getTotalPortfolioChart(24, 3600, 'daily');
+  }
+
+  refreshProfitChart() {
+     this.getTotalProfitChart(24, 1296000, 'yearly');
+     this.getTotalProfitChart(30, 86400, 'monthly');
+     this.getTotalProfitChart(7, 86400, 'weekly');
+     this.getTotalProfitChart(24, 3600, 'daily');
+  }
+
+  refreshTradeChart() {
+     this.getTotalTradeChart(24, 1296000, 'yearly');
+     this.getTotalTradeChart(30, 86400, 'monthly');
+     this.getTotalTradeChart(7, 86400, 'weekly');
+     this.getTotalTradeChart(24, 3600, 'daily');
+  }
+  refreshPortfolioPieChart() {
+     this.getPortfolioPieChart('Margin');
+     this.getPortfolioPieChart('GainLoss');
+  }
+  drawPortfolioChart() {
+    this.setState({
+             totalPortfolioChart: this.state.totalPortfolioChart
+            });
+  }
+  drawPortfolioPieChart() {
+    this.setState({
+             portfolioPieChart: this.state.portfolioPieChart
+            });
+  }
+
+  drawProfitChart() {
+    this.setState({
+             totalProfitChart: this.state.totalProfitChart
+            });
+  }
+  drawTradeChart() {
+    this.setState({
+             totalTradeChart: this.state.totalTradeChart
+            });
+  }
   render() {
     return (
       <div className="main-content">
         <Grid fluid>
-          {this.appendNews()}
           <Row>
-          <Col xl={3} lg={6} sm={6}>
+              <Col xl={12} lg={12} md={12} sm={12}>
+                  {this.appendNews()}
+              </Col>
+          </Row>
+          <Row>
+          <Col xl={4} lg={4} md={6} sm={12}>
               <div className="card card-stats">
                 <div className="content">
                   <div
@@ -187,7 +334,7 @@ class DashboardComp extends Component {
                 </div>
               </div>
             </Col>
-            <Col xl={3} lg={6} sm={6}>
+            <Col xl={4} lg={4} md={6} sm={12}>
               <div className="card card-stats">
                 <div className="content">
                   <div
@@ -229,7 +376,7 @@ class DashboardComp extends Component {
               </div>
             </Col>
 
-            <Col xl={3} lg={6} sm={6}>
+            <Col xl={4} lg={4} md={6} sm={12}>
               <div className="card card-stats">
                 <div className="content">
                   <div
@@ -272,7 +419,7 @@ class DashboardComp extends Component {
                 </div>
               </div>
             </Col>
-            <Col xl={3} lg={6} sm={6}>
+            <Col xl={4} lg={4} md={6} sm={12}>
               <div className="card card-stats">
                 <div className="content">
                   <div
@@ -315,7 +462,7 @@ class DashboardComp extends Component {
                 </div>
               </div>
             </Col>
-            <Col xl={3} lg={6} sm={6}>
+            <Col xl={4} lg={4} md={6} sm={12}>
               <div className="card card-stats">
                 <div className="content">
                   <div
@@ -358,7 +505,7 @@ class DashboardComp extends Component {
                 </div>
               </div>
             </Col>
-            <Col xl={3} lg={6} sm={6}>
+            <Col xl={4} lg={4} md={6} sm={12}>
               <div className="card card-stats">
                 <div className="content">
                   <div
@@ -403,43 +550,237 @@ class DashboardComp extends Component {
             </Col>
           </Row>
           <Row>
-            <Col md={12}>
+            <Col xl={6} lg={6} md={12} sm={12}>
               <Card
-                title="Total Portfolio"
-                category="30 Days"
+                title="Portfolio Change"
+                category=""
                 content={
-                  <ChartistGraph
-                    data={this.state.totalPortfolioChart}
-                    type="Line"
-                    options={{
-                      showArea: false,
-                      height: "245px",
-                      axisX: {
-                        showGrid: false
-                      },
-                      lineSmooth: true,
-                      showLine: true,
-                      showPoint: true,
-                      fullWidth: true,
-                      chartPadding: {
-                        right: 50
-                      }
-                    }}
-                    responsiveOptions={responsiveSales}
-                  />
-                }
-                legend={
-                  <div>
-                    <i className="fa fa-circle text-info" /> Total Portfolio
-                    Time
-                  </div>
+                    <Tab.Container id="portfolioChart" defaultActiveKey="daily" ref="portfolioChart">
+                        <Row className="clearfix">
+                            <Col sm={12}>
+                                <Nav bsStyle="tabs">
+                                    <NavItem eventKey="daily">Daily</NavItem>
+                                    <NavItem eventKey="weekly">Weekly</NavItem>
+                                    <NavItem eventKey="monthly">Monthly</NavItem>
+                                    <NavItem eventKey="yearly">Yearly</NavItem>
+                                </Nav>
+                            </Col>
+                            <Col sm={12}>
+                                <Tab.Content animation>
+                                    <Tab.Pane eventKey="daily" onEnter={this.drawPortfolioChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalPortfolioChart['daily']}
+                                        type="Line"
+                                        options={portfolioChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="weekly" onEnter={this.drawPortfolioChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalPortfolioChart['weekly']}
+                                        type="Line"
+                                        options={portfolioChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="monthly" onEnter={this.drawPortfolioChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalPortfolioChart['monthly']}
+                                        type="Line"
+                                        options={portfolioChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="yearly" onEnter={this.drawPortfolioChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalPortfolioChart['yearly']}
+                                        type="Line"
+                                        options={portfolioChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                </Tab.Content>
+                            </Col>
+                        </Row>
+                    </Tab.Container>
                 }
                 stats={
                   <div>
-                    <Button bsSize="xs" onClick={this.getMonthlyTotalPortfolio}>
+                    <Button bsSize="xs" onClick={this.refreshPortfolioChart}>
                       <i className="fa fa-history" />
                     </Button>{" "}
                     Updated at {this.state.totalPortfolioUpdateDate}
+                  </div>
+                }
+              />
+            </Col>
+            <Col xl={6} lg={6} md={12} sm={12}>
+              <Card
+                title="Portfolio Pie Chart"
+                category=""
+                content={
+                    <Tab.Container id="portfolioPieChart" defaultActiveKey="GainLoss" ref="portfolioPieChart">
+                        <Row className="clearfix">
+                            <Col sm={12}>
+                                <Nav bsStyle="tabs">
+                                    <NavItem eventKey="GainLoss">Gain / Loss</NavItem>
+                                    <NavItem eventKey="Margin">Deposit / Loan</NavItem>
+                                </Nav>
+                            </Col>
+                            <Col sm={12}>
+                                <Tab.Content animation>
+                                    <Tab.Pane eventKey="GainLoss" onEnter={this.drawPortfolioPieChart}>
+                                    <ChartistGraph
+                                        data={this.state.portfolioPieChart['GainLoss']}
+                                        type="Pie"
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="Margin" onEnter={this.drawPortfolioPieChart}>
+                                    <ChartistGraph
+                                        data={this.state.portfolioPieChart['Margin']}
+                                        type="Pie"
+                                        />
+                                    </Tab.Pane>
+
+                                </Tab.Content>
+                            </Col>
+                        </Row>
+                    </Tab.Container>
+                }
+                stats={
+                  <div>
+                    <Button bsSize="xs" onClick={this.refreshPortfolioPieChart}>
+                      <i className="fa fa-history" />
+                    </Button>{" "}
+                    Updated at {this.state.portfolioPieUpdateDate}
+                  </div>
+                }
+              />
+            </Col>
+            <Col xl={6} lg={6} md={12} sm={12}>
+              <Card
+                title="Aggregated Profit"
+                category=""
+                content={
+                    <Tab.Container id="profitChart" defaultActiveKey="weekly" ref="profitChart">
+                        <Row className="clearfix">
+                            <Col sm={12}>
+                                <Nav bsStyle="tabs">
+                                    <NavItem eventKey="daily">Daily</NavItem>
+                                    <NavItem eventKey="weekly">Weekly</NavItem>
+                                    <NavItem eventKey="monthly">Monthly</NavItem>
+                                    <NavItem eventKey="yearly">Yearly</NavItem>
+                                </Nav>
+                            </Col>
+                            <Col sm={12}>
+                                <Tab.Content animation>
+                                    <Tab.Pane eventKey="daily" onEnter={this.drawProfitChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalProfitChart['daily']}
+                                        type="Bar"
+                                        options={profitChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="weekly" onEnter={this.drawProfitChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalProfitChart['weekly']}
+                                        type="Bar"
+                                        options={profitChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="monthly" onEnter={this.drawProfitChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalProfitChart['monthly']}
+                                        type="Bar"
+                                        options={profitChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="yearly" onEnter={this.drawProfitChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalProfitChart['yearly']}
+                                        type="Bar"
+                                        options={profitChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                </Tab.Content>
+                            </Col>
+                        </Row>
+                    </Tab.Container>
+                }
+                stats={
+                  <div>
+                    <Button bsSize="xs" onClick={this.refreshProfitChart}>
+                      <i className="fa fa-history" />
+                    </Button>{" "}
+                    Updated at {this.state.totalProfitUpdateDate}
+                  </div>
+                }
+              />
+            </Col>
+            <Col xl={6} lg={6} md={12} sm={12}>
+              <Card
+                title="Aggregated Trades"
+                category=""
+                content={
+                    <Tab.Container id="tradeChart" defaultActiveKey="weekly" ref="tradeChart">
+                        <Row className="clearfix">
+                            <Col sm={12}>
+                                <Nav bsStyle="tabs">
+                                    <NavItem eventKey="daily">Daily</NavItem>
+                                    <NavItem eventKey="weekly">Weekly</NavItem>
+                                    <NavItem eventKey="monthly">Monthly</NavItem>
+                                    <NavItem eventKey="yearly">Yearly</NavItem>
+                                </Nav>
+                            </Col>
+                            <Col sm={12}>
+                                <Tab.Content animation>
+                                    <Tab.Pane eventKey="daily" onEnter={this.drawTradeChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalTradeChart['daily']}
+                                        type="Bar"
+                                        options={tradeChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="weekly" onEnter={this.drawTradeChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalTradeChart['weekly']}
+                                        type="Bar"
+                                        options={tradeChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="monthly" onEnter={this.drawTradeChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalTradeChart['monthly']}
+                                        type="Bar"
+                                        options={tradeChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                    <Tab.Pane eventKey="yearly" onEnter={this.drawTradeChart}>
+                                    <ChartistGraph
+                                        data={this.state.totalTradeChart['yearly']}
+                                        type="Bar"
+                                        options={tradeChartOptions}
+                                        responsiveOptions={responsiveSales}
+                                        />
+                                    </Tab.Pane>
+                                </Tab.Content>
+                            </Col>
+                        </Row>
+                    </Tab.Container>
+                }
+                stats={
+                  <div>
+                    <Button bsSize="xs" onClick={this.refreshTradeChart}>
+                      <i className="fa fa-history" />
+                    </Button>{" "}
+                    Updated at {this.state.totalTradeUpdateDate}
                   </div>
                 }
               />
