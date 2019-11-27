@@ -1,16 +1,23 @@
 package com.ultrader.bot.controller;
 
 import com.ultrader.bot.dao.AssetListDao;
+import com.ultrader.bot.dao.ConditionalSettingDao;
 import com.ultrader.bot.dao.UserDao;
 import com.ultrader.bot.model.AssetList;
+import com.ultrader.bot.model.ConditionalSetting;
 import com.ultrader.bot.model.User;
 import com.ultrader.bot.util.DefaultSetting;
+import com.ultrader.bot.util.MarketTrend;
+import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * User Controller
@@ -26,6 +33,8 @@ public class UserController {
     private UserDao userDao;
     @Autowired
     private AssetListDao assetListDao;
+    @Autowired
+    private ConditionalSettingDao conditionalSettingDao;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -65,6 +74,28 @@ public class UserController {
         assetListDao.save(DefaultSetting.NASDAQ100);
         assetListDao.save(DefaultSetting.SP500);
         assetListDao.save(DefaultSetting.ULTRADER600);
+        List<ConditionalSetting> conditionalSettings = new ArrayList<>();
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.SUPER_BULL.name(), SettingConstant.TRADE_BUY_STRATEGY.getName(), "21"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.SUPER_BULL.name(), SettingConstant.TRADE_SELL_STRATEGY.getName(), "29"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.SUPER_BULL.name(), SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "5"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.SUPER_BULL.name(), SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "20%"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.BULL.name(), SettingConstant.TRADE_BUY_STRATEGY.getName(), "21"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.BULL.name(), SettingConstant.TRADE_SELL_STRATEGY.getName(), "29"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.BULL.name(), SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "5"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.BULL.name(), SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "20%"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.NORMAL.name(), SettingConstant.TRADE_BUY_STRATEGY.getName(), "20"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.NORMAL.name(), SettingConstant.TRADE_SELL_STRATEGY.getName(), "30"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.NORMAL.name(), SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "10"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.NORMAL.name(), SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "10%"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.BEAR.name(), SettingConstant.TRADE_BUY_STRATEGY.getName(), "22"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.BEAR.name(), SettingConstant.TRADE_SELL_STRATEGY.getName(), "31"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.BEAR.name(), SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "5"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.BEAR.name(), SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "10%"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.SUPER_BEAR.name(), SettingConstant.TRADE_BUY_STRATEGY.getName(), "22"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.SUPER_BEAR.name(), SettingConstant.TRADE_SELL_STRATEGY.getName(), "31"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.SUPER_BEAR.name(), SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "5"));
+        conditionalSettings.add(new ConditionalSetting(null, MarketTrend.SUPER_BEAR.name(), SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "10%"));
+
     }
     @RequestMapping(method = RequestMethod.GET, value = "/getUsers")
     @ResponseBody

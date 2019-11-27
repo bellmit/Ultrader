@@ -140,6 +140,16 @@ public enum RuleType {
     StopLossRule("StopLossRule", "Stop Loss Rule",
             new String[]{TradingUtil.translateToString(CLOSE_PRICE, NUMBER)},
             new String[]{"Satisfied when the current price reaches the loss percentage (e.g. 5% = 5)."},
+            new String[]{"Current Price|Percentage (Positive)"}),
+
+    TrailingStopGainRule("TrailingStopGainRule", "Tailing Stop Gain Rule",
+            new String[]{TradingUtil.translateToString(CLOSE_PRICE, NUMBER)},
+            new String[]{"Satisfied when the gain percentage was higher than the percentage X then lower than X. (e.g. 5% = 5)."},
+            new String[]{"Current Price|Percentage (Positive)"}),
+
+    TrailingStopLossRule("TrailingStopLossRule", "Tailing Stop Loss Rule",
+            new String[]{TradingUtil.translateToString(CLOSE_PRICE, NUMBER)},
+            new String[]{"Satisfied when the current price lower than highest price X percentage. (e.g. 5% = 5)."},
             new String[]{"Current Price|Percentage (Positive)"});
 
     private final String name;

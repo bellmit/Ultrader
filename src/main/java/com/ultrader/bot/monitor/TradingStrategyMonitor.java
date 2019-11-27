@@ -224,7 +224,7 @@ public class TradingStrategyMonitor extends Monitor {
             }
             LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
                     validCount, noTimeSeries, notLongEnough, notNewEnough);
-            checkMarketData(validCount);
+            checkMarketData(validCount, notNewEnough);
         } catch (Exception e) {
             LOGGER.error("Failed to execute trading strategy.", e);
         }
@@ -254,22 +254,13 @@ public class TradingStrategyMonitor extends Monitor {
         }
     }
 
-    private void checkMarketData(int validCount) {
-
-        int totalAsset = 0;
-        try {
-            for (Set<String> assets : MarketDataMonitor.getInstance().getAvailableStock().values()) {
-                totalAsset += assets.size();
-            }
-        } catch (IllegalAccessException e) {
-            LOGGER.error("Cannot access available stocks", e);
-        }
+    private void checkMarketData(int validCount, int notNewEnough) {
         if (MarketDataMonitor.timeSeriesMap.size() * 0.1 > validCount) {
-            notifier.sendMarketDataStatus("error", validCount, totalAsset);
+            notifier.sendMarketDataStatus("error", validCount, validCount + notNewEnough);
         } else if (MarketDataMonitor.timeSeriesMap.size() * 0.5 > validCount) {
-            notifier.sendMarketDataStatus("warning", validCount, totalAsset);
+            notifier.sendMarketDataStatus("warning", validCount, validCount + notNewEnough);
         } else {
-            notifier.sendMarketDataStatus("normal", validCount, totalAsset);
+            notifier.sendMarketDataStatus("normal", validCount, validCount + notNewEnough);
         }
 
     }

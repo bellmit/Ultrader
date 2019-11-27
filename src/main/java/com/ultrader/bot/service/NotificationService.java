@@ -7,6 +7,7 @@ import com.ultrader.bot.model.*;
 import com.ultrader.bot.model.websocket.DashboardDataMessage;
 import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.monitor.LicenseMonitor;
+import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
 import com.ultrader.bot.util.ChartType;
 import com.ultrader.bot.util.NotificationType;
@@ -192,10 +193,11 @@ public class NotificationService {
 
     public void sendMarketStatus(boolean isOpen) {
         try {
+            String marketTrend = " Market Trend: " + MarketDataMonitor.getMarketTrend().name();
             if (isOpen) {
-                notifier.convertAndSend("/topic/status/market", new StatusMessage("opened", "Market is open"));
+                notifier.convertAndSend("/topic/status/market", new StatusMessage("opened", "Market is open." + marketTrend));
             } else {
-                notifier.convertAndSend("/topic/status/market", new StatusMessage("closed", "Market is closed"));
+                notifier.convertAndSend("/topic/status/market", new StatusMessage("closed", "Market is closed." + marketTrend));
             }
         } catch (Exception e) {
             LOGGER.error("Send market status isOpen {} failed.", isOpen);
