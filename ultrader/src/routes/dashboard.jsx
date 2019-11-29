@@ -1,6 +1,7 @@
 import Dashboard from "containers/Dashboard/Dashboard.jsx";
 import SettingsWizard from "containers/Settings/SettingsWizard.jsx";
 import EditSettings from "containers/Settings/EditSettings.jsx";
+import EditConditionalSettings from "containers/Settings/EditConditionalSettings.jsx";
 
 import GreetingMonitor from "containers/Monitors/GreetingMonitor.jsx";
 import Rules from "containers/Rules/Rules.jsx";
@@ -29,12 +30,29 @@ var dashboardRoutes = [
     requiredRoleId: 1
   },
   {
-    path: "/settings/editSettings",
-    tour: "tour-settings",
+    collapse: true,
+    path: "/settings",
     name: "Settings",
+    state: "openSettings",
     icon: "pe-7s-config",
-    component: EditSettings,
-    requiredRoleId: 2
+    requiredRoleId: 2,
+    views: [
+      {
+        path: "/settings/editSettings",
+        tour: "tour-settings",
+        name: "Settings",
+        mini: "S",
+        component: EditSettings,
+        requiredRoleId: 2
+      },
+      {
+        path: "/settings/editConditionalSettings",
+        name: "Conditional Settings",
+        mini: "CS",
+        component: EditConditionalSettings,
+        requiredRoleId: 2
+      }
+    ]
   },
   {
     path: "/rules",

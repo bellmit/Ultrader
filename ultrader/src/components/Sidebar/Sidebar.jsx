@@ -137,12 +137,14 @@ class Sidebar extends Component {
                                     className="nav-link"
                                     activeClassName="active"
                                   >
-                                    <span className="sidebar-mini">
-                                      {prop.mini}
-                                    </span>
-                                    <span className="sidebar-normal">
-                                      {prop.name}
-                                    </span>
+                                    <TourBox data-tour={prop.tour}>
+                                      <span className="sidebar-mini">
+                                        {prop.mini}
+                                      </span>
+                                      <span className="sidebar-normal">
+                                        {prop.name}
+                                      </span>
+                                    </TourBox>
                                   </NavLink>
                                 </li>
                               );

@@ -545,7 +545,7 @@ class EditSettingsComp extends Component {
     ];
     return (
       <div className="main-content">
-        <Tabs defaultActiveKey={steps[0].name} animation={false}>
+        <Tabs defaultActiveKey={steps[0].name} animation={false} id="settingsTab">
           {steps.map(step => {
             return (
               <Tab

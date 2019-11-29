@@ -35,17 +35,17 @@ var dictionary = {
 export function tooltip(term) {
   if(term in dictionary) {
     return (
-      <OverlayTrigger placement="top" overlay={<Tooltip>{dictionary[term]}</Tooltip>}>
-        <Button bsStyle="secondary" simple type="button" bsSize="xs">
-          <i class="fa fa-info-circle" color="secondary"></i>
+      <OverlayTrigger placement="top" overlay={<Tooltip id={term+"tooltip"}>{dictionary[term]}</Tooltip>}>
+        <Button bsStyle="default" simple type="button" bsSize="xs">
+          <i className="fa fa-info-circle" color="secondary"></i>
         </Button>
       </OverlayTrigger>
     );
   } else {
     return (
-      <OverlayTrigger placement="top" overlay={<Tooltip>{term}</Tooltip>}>
-        <Button bsStyle="secondary" simple type="button" bsSize="xs">
-          <i class="fa fa-info-circle" color="secondary"></i>
+      <OverlayTrigger placement="top" overlay={<Tooltip id={term+"tooltip"}>{term}</Tooltip>}>
+        <Button bsStyle="default" simple type="button" bsSize="xs">
+          <i className="fa fa-info-circle" color="secondary"></i>
         </Button>
       </OverlayTrigger>
     );
