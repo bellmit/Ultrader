@@ -57,14 +57,14 @@ var dashboardRoutes = [
   {
     path: "/rules",
     name: "Rules",
-    icon: "pe-7s-copy-file",
+    icon: "pe-7s-file",
     component: Rules,
     requiredRoleId: 3
   },
   {
     path: "/strategies",
     name: "Strategies",
-    icon: "pe-7s-file",
+    icon: "pe-7s-copy-file",
     component: Strategies,
     requiredRoleId: 3
   },

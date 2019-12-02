@@ -222,7 +222,7 @@ public class NotificationService {
         }
     }
 
-    public ChartResponse aggregatePortfolioChart(long length, long period) {
+    public ChartResponse aggregatePortfolioChart(long length, long period, int step) {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startDate = now.minusSeconds(length * period);
         long offset = now.toEpochSecond(ZoneOffset.UTC) - new Date().getTime() / 1000;
@@ -240,11 +240,11 @@ public class NotificationService {
         Double lastValue = 0.0;
         DateTimeFormatter formatter;
         if (period > 24 * 3600) {
-            formatter = DateTimeFormatter.ofPattern("MM-dd");
+            formatter = DateTimeFormatter.ofPattern("MM/dd");
         } else if (period == 24 * 3600) {
             formatter = DateTimeFormatter.ofPattern("dd");
         } else if (period > 3600) {
-            formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+            formatter = DateTimeFormatter.ofPattern("dd");
         } else {
             formatter = DateTimeFormatter.ofPattern("HH:mm");
         }
@@ -252,7 +252,7 @@ public class NotificationService {
         startDate = startDate.plusSeconds(period);
         while (startDate.toEpochSecond(ZoneOffset.UTC) - offset < charts.get(0).getDate().getTime() / 1000) {
             values.add(0.0);
-            labels.add(startDate.format(formatter));
+            labels.add(labels.size() % step == 0 ? startDate.format(formatter) : "");
             startDate = startDate.plusSeconds(period);
         }
         for (Chart chart : charts) {
@@ -262,7 +262,7 @@ public class NotificationService {
             } else {
                 if (lastValue > 0) {
                     values.add(lastValue);
-                    labels.add(startDate.format(formatter));
+                    labels.add(labels.size() % step == 0 ? startDate.format(formatter) : "");
                 }
 
                 startDate = startDate.plusSeconds(period);
@@ -272,7 +272,7 @@ public class NotificationService {
         return response;
     }
 
-    public ChartResponse aggregateProfitChart(long length, long period) {
+    public ChartResponse aggregateProfitChart(long length, long period, int step) {
         LocalDateTime startDate = getEastCoastMidnight(period * length / 86400);
         LocalDateTime endDate =LocalDateTime.now();
         long offset = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) - new Date().getTime() / 1000;
@@ -289,33 +289,33 @@ public class NotificationService {
         }
         DateTimeFormatter formatter;
         if (period > 24 * 3600) {
-            formatter = DateTimeFormatter.ofPattern("MM-dd");
+            formatter = DateTimeFormatter.ofPattern("MM/dd");
         } else if (period == 24 * 3600) {
             formatter = DateTimeFormatter.ofPattern("dd");
         } else if (period > 3600) {
-            formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+            formatter = DateTimeFormatter.ofPattern("dd");
         } else {
             formatter = DateTimeFormatter.ofPattern("HH:mm");
         }
-        labels.add(startDate.format(formatter));
+        labels.add(labels.size() % step == 0 ? startDate.format(formatter) : "");
         values.add(0.0);
         for (Trade trade : trades) {
             while (trade.getSellDate().getTime() / 1000 > startDate.toEpochSecond(ZoneOffset.UTC) - offset) {
                 startDate = startDate.plusSeconds(period);
-                labels.add(startDate.format(formatter));
+                labels.add(labels.size() % step == 0 ? startDate.format(formatter) : "");
                 values.add(0.0);
             }
             values.set(values.size() - 1, values.get(values.size()-1) + trade.getProfit());
         }
         while (endDate.isAfter(startDate)) {
             startDate = startDate.plusSeconds(period);
-            labels.add(startDate.format(formatter));
+            labels.add(labels.size() % step == 0 ? startDate.format(formatter) : "");
             values.add(0.0);
         }
         return response;
     }
 
-    public ChartResponse aggregateTradeChart(long length, long period) {
+    public ChartResponse aggregateTradeChart(long length, long period, int step) {
         LocalDateTime startDate = getEastCoastMidnight(period * length / 86400);
         LocalDateTime endDate =LocalDateTime.now();
         long offset = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) - new Date().getTime() / 1000;
@@ -332,28 +332,28 @@ public class NotificationService {
         }
         DateTimeFormatter formatter;
         if (period > 24 * 3600) {
-            formatter = DateTimeFormatter.ofPattern("MM-dd");
+            formatter = DateTimeFormatter.ofPattern("MM/dd");
         } else if (period == 24 * 3600) {
             formatter = DateTimeFormatter.ofPattern("dd");
         } else if (period > 3600) {
-            formatter = DateTimeFormatter.ofPattern("MM-dd HH:mm");
+            formatter = DateTimeFormatter.ofPattern("dd");
         } else {
             formatter = DateTimeFormatter.ofPattern("HH:mm");
         }
-        labels.add(startDate.format(formatter));
+        labels.add(labels.size() % step == 0 ? startDate.format(formatter) : "");
         values.add(0.0);
         for (Trade trade : trades) {
 
             while (trade.getSellDate().getTime() / 1000 > startDate.toEpochSecond(ZoneOffset.UTC) - offset) {
                 startDate = startDate.plusSeconds(period);
-                labels.add(startDate.format(formatter));
+                labels.add(labels.size() % step == 0 ? startDate.format(formatter) : "");
                 values.add(0.0);
             }
             values.set(values.size() - 1, values.get(values.size()-1) + 1);
         }
         while (endDate.isAfter(startDate)) {
             startDate = startDate.plusSeconds(period);
-            labels.add(startDate.format(formatter));
+            labels.add(labels.size() % step == 0 ? startDate.format(formatter) : "");
             values.add(0.0);
         }
         return response;

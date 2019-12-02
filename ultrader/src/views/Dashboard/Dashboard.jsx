@@ -88,9 +88,9 @@ class DashboardComp extends Component {
     this.refreshPortfolioPieChart();
   }
 
-  getTotalPortfolioChart(length, period, key) {
+  getTotalPortfolioChart(length, step, period, key) {
     axiosGetWithAuth(
-      "/api/chart/getPortfolio?length=" + length + "&period=" + period
+      "/api/chart/getPortfolio?length=" + length + "&period=" + period + "&step=" + step
     )
       .then(res => {
         this.state.totalPortfolioChart[key] = res.data;
@@ -121,9 +121,9 @@ class DashboardComp extends Component {
         alertError(error);
       });
   }
-  getTotalProfitChart(length, period, key) {
+  getTotalProfitChart(length, step, period, key) {
     axiosGetWithAuth(
-      "/api/chart/getProfit?length=" + length + "&period=" + period
+      "/api/chart/getProfit?length=" + length + "&period=" + period + "&step=" + step
     )
       .then(res => {
         this.state.totalProfitChart[key] = res.data;
@@ -138,9 +138,9 @@ class DashboardComp extends Component {
       });
   }
 
-  getTotalTradeChart(length, period, key) {
+  getTotalTradeChart(length, step, period, key) {
     axiosGetWithAuth(
-      "/api/chart/getTrades?length=" + length + "&period=" + period
+      "/api/chart/getTrades?length=" + length + "&period=" + period + "&step=" + step
     )
       .then(res => {
         this.state.totalTradeChart[key] = res.data;
@@ -240,24 +240,24 @@ class DashboardComp extends Component {
   }
 
   refreshPortfolioChart() {
-     this.getTotalPortfolioChart(24, 1296000, 'yearly');
-     this.getTotalPortfolioChart(30, 86400, 'monthly');
-     this.getTotalPortfolioChart(14, 43200, 'weekly');
-     this.getTotalPortfolioChart(24, 3600, 'daily');
+     this.getTotalPortfolioChart(180, 10, 172800, 'yearly');
+     this.getTotalPortfolioChart(90, 6, 28800, 'monthly');
+     this.getTotalPortfolioChart(84, 6, 7200, 'weekly');
+     this.getTotalPortfolioChart(96, 8, 900, 'daily');
   }
 
   refreshProfitChart() {
-     this.getTotalProfitChart(24, 1296000, 'yearly');
-     this.getTotalProfitChart(30, 86400, 'monthly');
-     this.getTotalProfitChart(7, 86400, 'weekly');
-     this.getTotalProfitChart(24, 3600, 'daily');
+     this.getTotalProfitChart(24, 2, 1296000, 'yearly');
+     this.getTotalProfitChart(30, 2, 86400, 'monthly');
+     this.getTotalProfitChart(28, 4, 21600, 'weekly');
+     this.getTotalProfitChart(48, 2, 1800, 'daily');
   }
 
   refreshTradeChart() {
-     this.getTotalTradeChart(24, 1296000, 'yearly');
-     this.getTotalTradeChart(30, 86400, 'monthly');
-     this.getTotalTradeChart(7, 86400, 'weekly');
-     this.getTotalTradeChart(24, 3600, 'daily');
+     this.getTotalTradeChart(24, 2, 1296000, 'yearly');
+     this.getTotalTradeChart(30, 2, 86400, 'monthly');
+     this.getTotalTradeChart(28, 4, 21600, 'weekly');
+     this.getTotalTradeChart(48, 2, 1800, 'daily');
   }
   refreshPortfolioPieChart() {
      this.getPortfolioPieChart('Margin');

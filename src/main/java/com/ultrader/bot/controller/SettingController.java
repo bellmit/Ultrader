@@ -9,6 +9,7 @@ import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.util.DatabaseUtil;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Setting Controller
@@ -68,8 +70,16 @@ public class SettingController {
     @ResponseBody
     public Iterable<ConditionalSetting> saveConditionalSettings(@RequestBody List<ConditionalSetting> settings) {
         try {
-            Iterable<ConditionalSetting> savedSettings = conditionalSettingDao.saveAll(settings);
-            return savedSettings;
+            Iterable<ConditionalSetting> existedSettings = conditionalSettingDao.findAll();
+            for (ConditionalSetting conditionalSetting : existedSettings) {
+                Optional<ConditionalSetting> setting = settings.stream().filter(s -> s.getSettingName().equals(conditionalSetting.getSettingName())).findFirst();
+                if (setting.isPresent() && StringUtils.isNotBlank(setting.get().getSettingValue())) {
+                    conditionalSetting.setSettingValue(setting.get().getSettingValue());
+                    conditionalSetting.setId(setting.get().getId());
+                }
+            }
+            conditionalSettingDao.saveAll(existedSettings);
+            return existedSettings;
         } catch (Exception e) {
             LOGGER.error("Save setting failed.", e);
             return null;

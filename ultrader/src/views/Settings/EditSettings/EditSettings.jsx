@@ -276,6 +276,20 @@ class EditSettingsComp extends Component {
     });
 
     /*****************************************************************************/
+    var enableWhiteListOption = booleanOptions.find(
+      e => e.value == this.props.settings["TRADE_WHITE_LIST_ENABLE"]
+    );
+    let selectedEnableWhiteListOption = enableWhiteListOption
+      ? enableWhiteListOption
+      : {};
+    this.setState({
+      selectedOptions: {
+        ...this.state.selectedOptions,
+        TRADE_WHITE_LIST_ENABLE: selectedEnableWhiteListOption
+      }
+    });
+
+    /*****************************************************************************/
     var marginCheckOption = marginCheckOptions.find(
       e => e.value == this.props.settings["ALPACA_DTMC"]
     );
@@ -526,6 +540,9 @@ class EditSettingsComp extends Component {
             selectAssetListOption={this.selectAssetListOption}
             orderTypeOptions={orderTypeOptions}
             assetListOptions={this.state.assetListOptions}
+            selectedOptions={this.state.selectedOptions}
+            selectOption={this.selectOption}
+            booleanOptions={booleanOptions}
           />
         )
       },

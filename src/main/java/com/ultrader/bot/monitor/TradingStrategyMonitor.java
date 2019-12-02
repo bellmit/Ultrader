@@ -271,6 +271,16 @@ public class TradingStrategyMonitor extends Monitor {
             //Change trading setting
             List<ConditionalSetting> conditionalSettings = conditionalSettingDao.findByMarketTrend(MarketDataMonitor.getMarketTrend().name());
             List<ConditionalSetting> defaultSettings = conditionalSettingDao.findByMarketTrend(MarketTrend.NORMAL.name());
+            //If default setting is empty, copy current settings as normal
+            if (defaultSettings.size() == 0) {
+                for (String settingName : ConditionalSetting.getSupportSettings()) {
+                    Optional<Setting> setting = settingDao.findById(settingName);
+                    if (setting.isPresent()) {
+                        defaultSettings.add(new ConditionalSetting(null, MarketTrend.NORMAL.name(), settingName, setting.get().getValue()));
+                    }
+                }
+                conditionalSettingDao.saveAll(defaultSettings);
+            }
             //Merge settings
             List<Setting> changes = new ArrayList<>();
             for (ConditionalSetting defaultSetting : defaultSettings) {

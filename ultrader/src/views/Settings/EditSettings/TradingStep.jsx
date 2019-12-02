@@ -21,8 +21,8 @@ var exchangeOptions = [
   { value: "NYSEARCA", label: "NYSEARCA" }
 ];
 var booleanOptions = [
-  { value: "true", label: "Enable" },
-  { value: "false", label: "Disable" }
+  { value: "true", label: "True" },
+  { value: "false", label: "False" }
 ];
 var intervalOptions = [
   { value: "60", label: "1 Minute" },
@@ -86,12 +86,15 @@ class TradingStep extends Component {
               <ControlLabel>
                 Is Trading White List Enabled {tooltip("WhiteListEnabled")}
               </ControlLabel>
-              <FormControl
+              <Select
+                placeholder="true or false"
+                name="isWhiteListEnabled"
+                options={this.props.booleanOptions}
+                value={this.props.selectedOptions["TRADE_WHITE_LIST_ENABLE"]}
                 id="TRADE_WHITE_LIST_ENABLE"
-                value={this.props.settings["TRADE_WHITE_LIST_ENABLE"]}
-                onChange={this.textOnChange}
-                type="text"
-                placeholder="Is Trading White List Enabled"
+                onChange={option =>
+                  this.props.selectOption("TRADE_WHITE_LIST_ENABLE", option)
+                }
               />
             </FormGroup>
             <FormGroup>

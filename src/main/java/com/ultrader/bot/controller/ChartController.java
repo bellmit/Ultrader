@@ -38,9 +38,9 @@ public class ChartController {
     private NotificationService notificationService;
 
     @RequestMapping(method = RequestMethod.GET, value = "/getPortfolio")
-    public ResponseEntity<ChartResponse> getPortfolio(@RequestParam long length, @RequestParam long period) {
+    public ResponseEntity<ChartResponse> getPortfolio(@RequestParam int length, @RequestParam long period, @RequestParam int step) {
         try {
-            return ResponseEntity.ok(notificationService.aggregatePortfolioChart(length, period));
+            return ResponseEntity.ok(notificationService.aggregatePortfolioChart(length, period, step));
         } catch (Exception e) {
             LOGGER.error("Get portfolio chart failed.", e);
             return ResponseEntity.badRequest().build();
@@ -48,9 +48,9 @@ public class ChartController {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/getProfit")
-    public ResponseEntity<ChartResponse> getProfit(@RequestParam long length, @RequestParam long period) {
+    public ResponseEntity<ChartResponse> getProfit(@RequestParam int length, @RequestParam long period, @RequestParam int step) {
         try {
-            return ResponseEntity.ok(notificationService.aggregateProfitChart(length, period));
+            return ResponseEntity.ok(notificationService.aggregateProfitChart(length, period, step));
         } catch (Exception e) {
             LOGGER.error("Get profit chart failed.", e);
             return ResponseEntity.badRequest().build();
@@ -58,9 +58,9 @@ public class ChartController {
     }
 
     @RequestMapping(method = RequestMethod.GET, value = "/getTrades")
-    public ResponseEntity<ChartResponse> getTrades(@RequestParam long length, @RequestParam long period) {
+    public ResponseEntity<ChartResponse> getTrades(@RequestParam int length, @RequestParam long period,  @RequestParam int step) {
         try {
-            return ResponseEntity.ok(notificationService.aggregateTradeChart(length, period));
+            return ResponseEntity.ok(notificationService.aggregateTradeChart(length, period, step));
         } catch (Exception e) {
             LOGGER.error("Get trade chart failed.", e);
             return ResponseEntity.badRequest().build();

@@ -636,12 +636,20 @@ var optionsSales = {
   }
 };
 var responsiveSales = [
+  ['screen and (min-width: 1000px) and (max-width: 2000px)', {
+    showPoint: false,
+    axisX: {
+      labelInterpolationFnc: function(value) {
+        return value;
+      }
+    }
+  }],
   [
-    "screen and (max-width: 640px)",
+    "screen and (max-width: 1000px)",
     {
       axisX: {
         labelInterpolationFnc: function(value) {
-          return value[0];
+          return "";
         }
       }
     }
