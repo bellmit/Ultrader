@@ -12,7 +12,7 @@ import EditAssetList from "containers/AssetLists/EditAssetList.jsx";
 
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
-
+import { tooltip } from "helpers/TooltipHelper";
 class AssetListsComp extends Component {
   constructor(props) {
     super(props);
@@ -99,7 +99,7 @@ class AssetListsComp extends Component {
               <Card
                 title={
                   <div>
-                    Asset Lists
+                    Asset Lists{tooltip("AssetListsPage")}
                     <PrivateButton
                       {...this.props}
                       requiredRoleId={2}

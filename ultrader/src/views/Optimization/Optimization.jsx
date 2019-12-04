@@ -282,6 +282,11 @@ class OptimizationComp extends Component {
         </Modal>
         <Grid fluid>
           <Card
+            title={
+             <div>
+                 Optimization{tooltip("OptimizationPage")}
+             </div>
+            }
             content={
               <div>
                 <div className={"alert alert-warning"}>

@@ -14,7 +14,7 @@ import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 
 import { axiosGetWithAuth } from "helpers/UrlHelper";
-
+import { tooltip } from "helpers/TooltipHelper";
 import { parseMoney, parsePercentage, parseDate, parseProfit } from "helpers/ParseHelper";
 
 class HistoryOrdersComp extends Component {
@@ -90,7 +90,7 @@ class HistoryOrdersComp extends Component {
             <Row>
               <Col md={12}>
                 <Card
-                  title="Orders"
+                  title={<div>History Orders{tooltip("HistoryOrdersPage")}</div>}
                   content={
                     <ReactTable
                       data={this.props.historyOrders}

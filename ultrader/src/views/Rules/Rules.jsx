@@ -10,7 +10,7 @@ import axios from "axios";
 
 import AddRule from "containers/Rules/AddRule.jsx";
 import EditRule from "containers/Rules/EditRule.jsx";
-
+import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 
@@ -92,7 +92,7 @@ class RulesComp extends Component {
               <Card
                 title={
                   <div>
-                    Rules
+                    Rules{tooltip("RulesPage")}
                     <PrivateButton
                       className="add_button"
                       variant="primary"

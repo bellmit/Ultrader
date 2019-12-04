@@ -314,6 +314,11 @@ class BacktestComp extends Component {
         </Modal>
         <Grid fluid>
           <Card
+             title={
+              <div>
+                  Back Test{tooltip("BackTestPage")}
+              </div>
+             }
             content={
               <div>
                 <div className={"alert alert-warning"}>

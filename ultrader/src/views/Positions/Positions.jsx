@@ -9,7 +9,7 @@ import axios from "axios";
 
 import { confirmAlert } from "react-confirm-alert"; // Import
 import "react-confirm-alert/src/react-confirm-alert.css"; // Import css
-
+import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { parseDate, parseProfit } from "helpers/ParseHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
@@ -110,7 +110,7 @@ class PositionsComp extends Component {
               <Card
                 title={
                   <div>
-                    Positions
+                    Positions{tooltip("PositionsPage")}
                     <PrivateButton
                       {...this.props}
                       requiredRoleId={2}

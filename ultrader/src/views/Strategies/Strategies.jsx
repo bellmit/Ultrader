@@ -9,7 +9,7 @@ import axios from "axios";
 
 import AddStrategy from "containers/Strategies/AddStrategy.jsx";
 import EditStrategy from "containers/Strategies/EditStrategy.jsx";
-
+import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 
@@ -137,7 +137,7 @@ class StrategiesComp extends Component {
               <Card
                 title={
                   <div>
-                    Strategies
+                    Strategies{tooltip("StrategiesPage")}
                     <PrivateButton
                       {...this.props}
                       requiredRoleId={2}

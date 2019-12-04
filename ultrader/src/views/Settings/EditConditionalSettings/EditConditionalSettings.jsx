@@ -8,7 +8,7 @@ import axios from "axios";
 import Card from "components/Card/Card.jsx";
 
 import SettingsForm from "./SettingsForm.jsx";
-
+import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 
@@ -376,6 +376,7 @@ class EditConditionalSettingsCompComp extends Component {
   render() {
     return (
       <div className="main-content">
+        <h4 class="title"><div>Conditional Settings{tooltip("ConditionalSettingsPage")}</div></h4>
         <FormGroup>
           <ControlLabel>Trend</ControlLabel>
           <Select

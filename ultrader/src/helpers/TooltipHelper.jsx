@@ -30,7 +30,17 @@ var dictionary = {
     "UseMargin": "Use Alpaca margin in trading",
     "EmailNotification": "all or none. If none, emails for order fills are not sent.",
     "SuspendTrade": "If true, new orders are blocked.",
-    "NoShortingTrade": "If true, account becomes long-only mode."
+    "NoShortingTrade": "If true, account becomes long-only mode.",
+    "AssetListsPage": "Asset list is a list of stocks or other assets. It can be used for limiting the scope of trading or back testing and optimization the trading strategy.",
+    "BackTestPage": "Back test a trading strategy to evaluate the performance.",
+    "OptimizationPage": "Optimize a trading strategy to maximize the optimization goal. Essentially, to make more profit. It will return a list of recommended value for some parameters.",
+    "HistoryOrdersPage": "Closed orders, which mean nothing will change anymore.",
+    "PendingOrdersPage": "Opening orders, the price may change over time.",
+    "PositionsPage": "The assets you currently hold.",
+    "RulesPage": "Trading rule is the atomic building block of a trading strategy. It described a conditional you are interested in.",
+    "StrategiesPage": "Strategy is a complex combination of trading rules. It a boolean expression to describe when you want to buy or sell.",
+    "ConditionalSettingsPage" : "A group of settings only take effect during a specific market trend, such as NORMAL, BULL, SELL, etc.",
+    "UsersPage" : "Management other users if you want to share Ultrader with others."
 }
 export function tooltip(term) {
   if(term in dictionary) {

@@ -6,7 +6,7 @@ import { Grid, Row, Col } from "react-bootstrap";
 import Card from "components/Card/Card.jsx";
 import Button from "components/CustomButton/CustomButton.jsx";
 import axios from "axios";
-
+import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 
 class PendingOrdersComp extends Component {
@@ -29,7 +29,7 @@ class PendingOrdersComp extends Component {
           <Row>
             <Col md={12}>
               <Card
-                title="Orders"
+                title={<div>Pending Orders{tooltip("PendingOrdersPage")}</div>}
                 content={
                   <ReactTable
                     data={this.props.pendingOrders}

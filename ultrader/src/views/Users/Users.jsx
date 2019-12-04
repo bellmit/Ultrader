@@ -9,7 +9,7 @@ import axios from "axios";
 
 import AddUser from "containers/Users/AddUser.jsx";
 import EditUser from "containers/Users/EditUser.jsx";
-
+import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 
@@ -97,7 +97,7 @@ class UsersComp extends Component {
               <Card
                 title={
                   <div>
-                    Users
+                    Users{tooltip("UsersPage")}
                     <Button
                       className="add_button"
                       variant="primary"
