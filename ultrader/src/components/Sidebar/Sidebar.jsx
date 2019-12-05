@@ -88,6 +88,7 @@ class Sidebar extends Component {
           </a>
         </div>
         <div className="sidebar-wrapper" ref="sidebarWrapper">
+        <TourBox data-tour="tour-menu">
           <ul className="nav">
             {/* If we are on responsive, we want both links from navbar and sidebar
                             to appear in sidebar, so we render here HeaderLinks */}
@@ -177,6 +178,7 @@ class Sidebar extends Component {
               }
             })}
           </ul>
+          </TourBox>
         </div>
       </div>
     );

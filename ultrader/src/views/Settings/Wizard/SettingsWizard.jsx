@@ -107,7 +107,7 @@ class SettingsWizardComp extends Component {
             " settings and strategy template"
         );
         axiosGetWithAuth("/api/setting/restart");
-        window.location = "/";
+        window.location = "/#/Dashboard?showTour";
       })
       .catch(error => {
         alertError(error);

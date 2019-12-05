@@ -209,7 +209,7 @@ class HeaderLinks extends Component {
               eventKey={3}
               title={
                 <div>
-                  <TourBox data-tour="tour-notifications-status">
+                  <TourBox data-tour="tour-notifications">
                     <i className="fa fa-bell-o" />
                   </TourBox>
                   <span className="notification">
@@ -264,7 +264,9 @@ class HeaderLinks extends Component {
               eventKey={4}
               title={
                 <div>
+                <TourBox data-tour="tour-operations">
                   <i className="fa fa-cog" />
+                </TourBox>
                   <p className="hidden-md hidden-lg">
                     More
                     <b className="caret" />
@@ -275,20 +277,17 @@ class HeaderLinks extends Component {
               id="basic-nav-dropdown-3"
               bsClass="dropdown-with-icons dropdown"
             >
-              <MenuItem eventKey={4.1}>
-                <i className="pe-7s-mail" /> Messages
-              </MenuItem>
-              <MenuItem eventKey={4.2} onClick={this.openTour}>
+              <MenuItem eventKey={4.1} onClick={this.openTour}>
                 <i className="pe-7s-help1" /> Tour Guide
               </MenuItem>
 
               <MenuItem divider />
-              <MenuItem eventKey={4.3} onClick={this.reboot}>
+              <MenuItem eventKey={4.2} onClick={this.reboot}>
                 <div className="text-danger">
                   <i className="pe-7s-refresh" /> Reboot
                 </div>
               </MenuItem>
-              <MenuItem eventKey={4.4} onClick={logout}>
+              <MenuItem eventKey={4.3} onClick={logout}>
                 <div className="text-danger">
                   <i className="pe-7s-door-lock" /> Log out
                 </div>
@@ -315,35 +314,23 @@ class HeaderLinks extends Component {
 const tourConfig = [
   {
     selector: '[data-tour="tour-welcome"]',
-    content: `Welcome to Ultrader.`
+    content: `Welcome to the Ultrader user guide.`
   },
   {
     selector: '[data-tour="tour-statuses"]',
-    content: `You can check the tool status here.`
+    content: `Indicators to tell you if the Ultrader is working expectedly. Hover on the icons to see more details.`
   },
-  // {
-  //   selector: '[data-tour="tour-bot-status"]',
-  //   content: `You can check bot running status here.`
-  // },
-  // {
-  //   selector: '[data-tour="tour-data-status"]',
-  //   content: `You can check data sync status here.`
-  // },
-  // {
-  //   selector: '[data-tour="tour-account-status"]',
-  //   content: `You can check account update status here.`
-  // },
-  // {
-  //   selector: '[data-tour="tour-market-status"]',
-  //   content: `You can check market status here.`
-  // },
-  // {
-  //   selector: '[data-tour="tour-notifications-status"]',
-  //   content: `Click to see trade records.`
-  // },
   {
-    selector: '[data-tour="tour-settings"]',
-    content: `Please configure your registered Ultrader key/secret and Alpaca key/secret in SETTINGS.`
+    selector: '[data-tour="tour-notifications"]',
+    content: `Click to see all kinds of notifications. It's good to check if there is any critical error.`
+  },
+  {
+    selector: '[data-tour="tour-operations"]',
+    content: `Operations you can do, such as log out and reboot the Ultrader.`
+  },
+  {
+    selector: '[data-tour="tour-menu"]',
+    content: `Use the menu to navigate to the functions. Hover the information icon on each page to see more details.`
   }
 ];
 
