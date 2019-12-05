@@ -259,6 +259,8 @@ public class TradingStrategyMonitor extends Monitor {
             notifier.sendMarketDataStatus("error", validCount, validCount + notNewEnough);
         } else if (MarketDataMonitor.timeSeriesMap.size() * 0.5 > validCount) {
             notifier.sendMarketDataStatus("warning", validCount, validCount + notNewEnough);
+        } else if (validCount == 0) {
+            notifier.sendMarketDataStatus("error", validCount, validCount + notNewEnough);
         } else {
             notifier.sendMarketDataStatus("normal", validCount, validCount + notNewEnough);
         }

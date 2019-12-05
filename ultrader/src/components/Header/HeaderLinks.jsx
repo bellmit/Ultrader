@@ -29,10 +29,16 @@ class HeaderLinks extends Component {
     this.readNotification = this.readNotification.bind(this);
     this.getNotification = this.getNotification.bind(this);
     this.getNotification();
+    if (window.location.href.indexOf("showTour") > 0) {
+        this.state = {
+            isTourOpen: true
+        };
+    } else {
+		this.state = {
+            isTourOpen: false
+        };
+    }
 
-    this.state = {
-      isTourOpen: false
-    };
   }
 
   getNotification() {

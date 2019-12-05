@@ -225,13 +225,10 @@ class DashboardComp extends Component {
                   style={{ cursor: "pointer" }}
                 >
                   <img
-                    style={{ margin: "auto", minHeight: 100, width: "100%" }}
+                    style={{ margin: "auto", maxHeight: 400, maxWidth: 1200, backgroundRepeat: 'no-repeat',backgroundPosition: 'center', backgroundSize: 'contain',backgroundOrigin:'cover' }}
                     src={newsItem.img}
                     alt="Test img"
                   />
-                  <Carousel.Caption>
-                    <h4 style={{ marginTop: 10 }}>{newsItem.title}</h4>
-                  </Carousel.Caption>
                 </Carousel.Item>
             ))}
          </Carousel>
@@ -785,6 +782,7 @@ class DashboardComp extends Component {
                 }
               />
             </Col>
+
           </Row>
         </Grid>
       </div>
