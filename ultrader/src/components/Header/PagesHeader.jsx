@@ -34,7 +34,7 @@ class PagesHeader extends Component {
         <Navbar.Header>
           <Navbar.Brand>
             <NavLink to={"/dashboard"} className="nav-link">
-              {this.state.width > 429 ? "ULTRA TRADER" : "ULTRA TRADER"}
+              {this.state.width > 429 ? "ULTRADER" : "ULTRADER"}
             </NavLink>
           </Navbar.Brand>
           <Navbar.Toggle onClick={this.mobileSidebarToggle} />
