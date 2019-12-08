@@ -225,7 +225,7 @@ class DashboardComp extends Component {
                   style={{ cursor: "pointer" }}
                 >
                   <img
-                    style={{ margin: "auto", maxHeight: 400, maxWidth: 1200, backgroundRepeat: 'no-repeat',backgroundPosition: 'center', backgroundSize: 'contain',backgroundOrigin:'cover' }}
+                    style={{ margin: "auto", maxHeight: 400, maxWidth: window.innerWidth < 1200 ? '100%' : 1200, backgroundRepeat: 'no-repeat',backgroundPosition: 'center', backgroundSize: 'cover',backgroundOrigin:'content' }}
                     src={newsItem.img}
                     alt="Test img"
                   />
