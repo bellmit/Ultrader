@@ -358,4 +358,8 @@ public class NotificationService {
         }
         return response;
     }
+
+    public SimpMessagingTemplate getNotifier() {
+       return this.notifier;
+    }
 }
