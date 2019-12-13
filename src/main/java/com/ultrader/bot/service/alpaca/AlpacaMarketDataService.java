@@ -51,6 +51,7 @@ public class AlpacaMarketDataService implements MarketDataService {
     private RestTemplate client;
     private SettingDao settingDao;
     private RateLimiter rateLimiter = RateLimiter.create(1);
+    private int maxGap = 0;
 
     private ParameterizedTypeReference<HashMap<String, ArrayList<Bar>>> barResponseType;
 
@@ -59,6 +60,7 @@ public class AlpacaMarketDataService implements MarketDataService {
         Validate.notNull(settingDao, "settingDao is required");
 
         this.settingDao = settingDao;
+        this.maxGap = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_MAX_GAP.getName(), "3"));
         this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
         this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
         if (alpacaKey.equals("") || alpacaSecret.equals("")) {
@@ -275,16 +277,16 @@ public class AlpacaMarketDataService implements MarketDataService {
                         batchTimeSeries.get(stock).addBar(newBar, true);
                         LOGGER.debug("Replaced {} last bar {}", stock, newBar);
                     } else {
-                        if (barSize == 0 || endDate.getDayOfYear() != batchTimeSeries.get(stock).getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond()) <= 7200) {
+                        if (barSize == 0 || endDate.getDayOfYear() != batchTimeSeries.get(stock).getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond()) <= interval / 1000 * maxGap) {
                             //Time series must be continuous
                             batchTimeSeries.get(stock).addBar(newBar);
                         } else {
-                            LOGGER.debug("Filter out {}, {}, {}", stock, endDate.toEpochSecond(), batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond());
-                            //Remove the time series
-                            batchTimeSeries.remove(stock);
-
-                            filterCount++;
-                            break;
+                            //If it's not continuous, start from now
+                            TimeSeries newTimeSeries = new BaseTimeSeries(stock);
+                            newTimeSeries.setMaximumBarCount(batchTimeSeries.get(stock).getMaximumBarCount());
+                            batchTimeSeries.get(stock).getBarData().clear();
+                            batchTimeSeries.put(stock, newTimeSeries);
+                            batchTimeSeries.get(stock).addBar(newBar);
                         }
 
                     }

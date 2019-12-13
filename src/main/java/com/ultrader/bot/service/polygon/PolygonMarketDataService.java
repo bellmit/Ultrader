@@ -55,6 +55,7 @@ public class PolygonMarketDataService implements MarketDataService {
     private final SettingDao settingDao;
     private final SimpleClientHttpRequestFactory clientHttpRequestFactory;
     private RateLimiter rateLimiter;
+    private int maxGap = 0;
 
     public PolygonMarketDataService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
@@ -62,6 +63,7 @@ public class PolygonMarketDataService implements MarketDataService {
 
         rateLimiter = RateLimiter.create(150);
         this.settingDao = settingDao;
+        this.maxGap = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_MAX_GAP.getName(), "3"));
         this.restTemplateBuilder = restTemplateBuilder;
         clientHttpRequestFactory = new SimpleClientHttpRequestFactory();
         //Connect timeout
@@ -352,7 +354,24 @@ public class PolygonMarketDataService implements MarketDataService {
                         Instant i = Instant.ofEpochSecond(bar.getT() / 1000);
                         ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE));
                         Bar newBar = new BaseBar(Duration.ofMillis(interval), endDate, PrecisionNum.valueOf(bar.getO()), PrecisionNum.valueOf(bar.getH()), PrecisionNum.valueOf(bar.getL()), PrecisionNum.valueOf(bar.getC()), PrecisionNum.valueOf(bar.getV()), PrecisionNum.valueOf(bar.getV() * bar.getC()));
-                        timeSeries.addBar(newBar);
+                        if (barSize > 0 && timeSeries.getLastBar().getEndTime().toEpochSecond() == endDate.toEpochSecond()) {
+                            //Replace last bar
+                            timeSeries.addBar(newBar, true);
+                            LOGGER.debug("Replaced {} last bar {}", timeSeries.getName(), newBar);
+                        } else {
+                            if (barSize == 0 || endDate.getDayOfYear() != timeSeries.getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - timeSeries.getLastBar().getEndTime().toEpochSecond()) <= interval / 1000 * maxGap) {
+                                //Time series must be continuous
+                                timeSeries.addBar(newBar);
+                            } else {
+                                //If it's not continuous, start from now
+                                TimeSeries newTimeSeries = new BaseTimeSeries(timeSeries.getName());
+                                newTimeSeries.setMaximumBarCount(timeSeries.getMaximumBarCount());
+                                timeSeries.getBarData().clear();
+                                timeSeries = newTimeSeries;
+                                timeSeries.addBar(newBar);
+                            }
+
+                        }
                     }
                 }
                 LOGGER.debug("Loaded stock {}, {} bars", timeSeries.getName(), response.getResults().size());

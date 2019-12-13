@@ -152,7 +152,6 @@ public class TradingStrategyMonitor extends Monitor {
                             TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, timeSeries, null, false),
                             TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, timeSeries, null, false));
                     Double currentPrice = timeSeries.getLastBar().getClosePrice().doubleValue();
-
                     TradingRecord tradingRecord = new BaseTradingRecord();
                     if (positions.containsKey(stock)) {
                         //If the actual buy date is during the time series, set as the right index

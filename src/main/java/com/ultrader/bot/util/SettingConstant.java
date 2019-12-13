@@ -21,6 +21,8 @@ public enum SettingConstant {
     TRADING_PLATFORM("GLOBAL_TRADING_PLATFORM"),
     //Market data platform name
     MARKET_DATA_PLATFORM("GLOBAL_MARKETDATA_PLATFORM"),
+    //Max tolerance of the time gap between two continuous data point
+    MARKET_DATA_MAX_GAP("GLOBAL_MARKETDATA_MAX_GAP"),
     //Enabled auto trading
     AUTO_TRADING_ENABLE("GLOBAL_AUTO_TRADING_ENABLE"),
     //Trading period, 1min, 5min, etc
