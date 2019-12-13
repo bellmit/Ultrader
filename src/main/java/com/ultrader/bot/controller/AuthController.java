@@ -64,7 +64,11 @@ public class AuthController {
                 || RepositoryUtil.getSetting(settingDao, SettingConstant.BOT_SECRET.getName(), "").isEmpty()) {
             isSetup = false;
         }
-        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt,"Bearer", isSetup, user.getRoleId()));
+
+        // return user obj without password
+        user.setPasswordHash(null);
+
+        return ResponseEntity.ok(new JwtAuthenticationResponse(jwt,"Bearer", isSetup, user));
     }
 
 }

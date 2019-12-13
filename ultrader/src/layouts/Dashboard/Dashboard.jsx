@@ -9,6 +9,7 @@ import NotificationSystem from "react-notification-system";
 
 import Sidebar from "components/Sidebar/Sidebar.jsx";
 import Header from "components/Header/Header.jsx";
+import Footer from "components/Footer/Footer.jsx";
 
 // dinamically create dashboard routes
 import dashboardRoutes from "routes/dashboard.jsx";
@@ -362,6 +363,7 @@ class DashboardComp extends Component {
               }
             })}
           </Switch>
+          <Footer fluid />
         </div>
       </div>
     );

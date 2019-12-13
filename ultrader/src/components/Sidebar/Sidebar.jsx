@@ -88,97 +88,118 @@ class Sidebar extends Component {
           </a>
         </div>
         <TourBox data-tour="tour-menu">
-        <div className="sidebar-wrapper" ref="sidebarWrapper">
-          <ul className="nav">
-            {/* If we are on responsive, we want both links from navbar and sidebar
+          <div className="sidebar-wrapper" ref="sidebarWrapper">
+            {this.props.user ? (
+              <div className="user">
+                <div className="photo">
+                  <i
+                    className="pe-7s-user"
+                    style={{ fontSize: "42px", margin: "-6px" }}
+                  />
+                </div>
+                <div className="info">
+                  <a
+                    onClick={() =>
+                      this.setState({ openAvatar: !this.state.openAvatar })
+                    }
+                  >
+                    <span>{"Welcome " + this.props.user.userName + "!"}</span>
+                  </a>
+                </div>
+              </div>
+            ) : (
+              ""
+            )}
+            <ul className="nav">
+              {/* If we are on responsive, we want both links from navbar and sidebar
                             to appear in sidebar, so we render here HeaderLinks */}
-            {this.state.width <= 992 ? <HeaderLinks {...this.props} /> : null}
-            {/*
+              {this.state.width <= 992 ? <HeaderLinks {...this.props} /> : null}
+              {/*
                             here we render the links in the sidebar
                             if the link is simple, we make a simple link, if not,
                             we have to create a collapsible group,
                             with the specific parent button and with it's children which are the links
                         */}
-            {dashboardRoutes.map((prop, key) => {
-              var st = {};
-              st[prop["state"]] = !this.state[prop.state];
-              if (checkRolePermission(this.props.user, prop.requiredRoleId)) {
-                if (prop.collapse) {
-                  return (
-                    <li className={this.activeRoute(prop.path)} key={key}>
-                      <a onClick={() => this.setState(st)}>
-                        <i className={prop.icon} />
-                        <p>
-                          {prop.name}
-                          <b
-                            className={
-                              this.state[prop.state]
-                                ? "caret rotate-180"
-                                : "caret"
-                            }
-                          />
-                        </p>
-                      </a>
-                      <Collapse in={this.state[prop.state]}>
-                        <ul className="nav">
-                          {prop.views.map((prop, key) => {
-                            if (
-                              checkRolePermission(
-                                this.props.user,
-                                prop.requiredRoleId
-                              )
-                            ) {
-                              return (
-                                <li
-                                  className={this.activeRoute(prop.path)}
-                                  key={key}
-                                >
-                                  <NavLink
-                                    to={prop.path}
-                                    className="nav-link"
-                                    activeClassName="active"
-                                  >
-                                    <TourBox data-tour={prop.tour}>
-                                      <span className="sidebar-mini">
-                                        {prop.mini}
-                                      </span>
-                                      <span className="sidebar-normal">
-                                        {prop.name}
-                                      </span>
-                                    </TourBox>
-                                  </NavLink>
-                                </li>
-                              );
-                            }
-                          })}
-                        </ul>
-                      </Collapse>
-                    </li>
-                  );
-                } else {
-                  if (prop.redirect) {
-                    return null;
-                  } else {
+              {dashboardRoutes.map((prop, key) => {
+                var st = {};
+                st[prop["state"]] = !this.state[prop.state];
+                if (checkRolePermission(this.props.user, prop.requiredRoleId)) {
+                  if (prop.collapse) {
                     return (
                       <li className={this.activeRoute(prop.path)} key={key}>
-                        <NavLink
-                          to={prop.path}
-                          className="nav-link"
-                          activeClassName="active"
-                        >
-                          <TourBox data-tour={prop.tour}>
-                            <i className={prop.icon} />
-                            <p>{prop.name}</p>
-                          </TourBox>
-                        </NavLink>
+                        <a onClick={() => this.setState(st)}>
+                          <i className={prop.icon} />
+                          <p>
+                            {prop.name}
+                            <b
+                              className={
+                                this.state[prop.state]
+                                  ? "caret rotate-180"
+                                  : "caret"
+                              }
+                            />
+                          </p>
+                        </a>
+                        <Collapse in={this.state[prop.state]}>
+                          <ul className="nav">
+                            {prop.views.map((prop, key) => {
+                              if (
+                                checkRolePermission(
+                                  this.props.user,
+                                  prop.requiredRoleId
+                                )
+                              ) {
+                                return (
+                                  <li
+                                    className={this.activeRoute(prop.path)}
+                                    key={key}
+                                  >
+                                    <NavLink
+                                      to={prop.path}
+                                      className="nav-link"
+                                      activeClassName="active"
+                                    >
+                                      <TourBox data-tour={prop.tour}>
+                                        <span className="sidebar-mini">
+                                          {prop.mini}
+                                        </span>
+                                        <span className="sidebar-normal">
+                                          {prop.name}
+                                        </span>
+                                      </TourBox>
+                                    </NavLink>
+                                  </li>
+                                );
+                              }
+                            })}
+                          </ul>
+                        </Collapse>
                       </li>
                     );
+                  } else {
+                    if (prop.redirect) {
+                      return null;
+                    } else {
+                      return (
+                        <li className={this.activeRoute(prop.path)} key={key}>
+                          <NavLink
+                            to={prop.path}
+                            className="nav-link"
+                            activeClassName="active"
+                          >
+                            <TourBox data-tour={prop.tour}>
+                              <i className={prop.icon} />
+                              <p>{prop.name}</p>
+                            </TourBox>
+                          </NavLink>
+                        </li>
+                      );
+                    }
                   }
                 }
-              }
-            })}
-          </ul>
-        </div>
+              })}
+            </ul>
+          </div>
         </TourBox>
       </div>
     );

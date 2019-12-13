@@ -56,27 +56,25 @@ class LoginPageComp extends Component {
       username: username,
       password: password
     })
-      .then(user => {
-        if (!user) {
+      .then(res => {
+        if (!res) {
           alertError("Invalid Username or Password!");
         } else {
           let userObj = {
-            token: user.data.accessToken,
-            roleId: user.data.roleId
-          };
-          let userStateObj = {
-            roleId: user.data.roleId
+            token: res.data.accessToken,
+            roleId: res.data.user.roleId,
+            userName: res.data.user.username
           };
           localStorage.setItem("user", JSON.stringify(userObj));
-          this.props.onLoginSuccess(userStateObj);
-          if (user.data.setup) {
+          this.props.onLoginSuccess(userObj);
+          if (res.data.setup) {
             window.location = "/#/Dashboard";
           } else {
             window.location = "/#/setup/wizard";
           }
         }
 
-        return user;
+        return res;
       })
       .catch(err => {
         const error = err.response;

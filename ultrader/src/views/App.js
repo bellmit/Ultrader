@@ -23,11 +23,9 @@ class AppComp extends Component {
       )
     );
     return (
-      <div>
         <HashRouter>
           <Switch>{mainRouteComponents}</Switch>
         </HashRouter>
-      </div>
     );
   }
 }
