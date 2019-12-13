@@ -143,7 +143,7 @@ public class MarketDataMonitor extends Monitor {
                 }
                 //TODO Currently we force all the indicator have to use same period, we should support different period for different indicators
                 Map<String, TimeSeries> currentTimeSeries = new HashMap<>();
-                int maxLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "100")) * 2;
+                int maxLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "50")) * 2;
                 maxLength = maxLength > 1000 ? 1000 : maxLength;
                 List<TimeSeries> updateSeries = new ArrayList<>();
                 for (String stock : watchList) {

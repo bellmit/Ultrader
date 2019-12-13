@@ -7,6 +7,7 @@ import com.ultrader.bot.model.AssetList;
 import com.ultrader.bot.model.HistoryMarketData;
 import com.ultrader.bot.model.ProgressMessage;
 import com.ultrader.bot.model.Rule;
+import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.util.HistoryMarketDataUtil;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.FileSystemUtils;
 import org.springframework.web.bind.annotation.*;
+import org.ta4j.core.Bar;
 import org.ta4j.core.BaseTimeSeries;
 import org.ta4j.core.TimeSeries;
 
@@ -77,6 +79,28 @@ public class HistoryMarketDataController {
             return ResponseEntity.ok(data);
         } catch (Exception e) {
             LOGGER.error("Get history market data list failed.", e);
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getCurrentMarketData/{stock}")
+    public ResponseEntity<String> getCurrentMarketData(@PathVariable String stock) {
+        try {
+            if (MarketDataMonitor.timeSeriesMap.containsKey(stock)) {
+                StringBuilder sb = new StringBuilder();
+                MarketDataMonitor.timeSeriesMap.get(stock).getBarData().stream().forEach(b -> sb.append(
+                        String.format("EndTime:%s, Open:%.2f, Close:%.2f, High:%.2f, Low:%.2f \n",
+                                b.getEndTime().toString(),
+                                b.getOpenPrice().doubleValue(),
+                                b.getClosePrice().doubleValue(),
+                                b.getMaxPrice().doubleValue(),
+                                b.getMinPrice().doubleValue())));
+                return ResponseEntity.ok(sb.toString());
+            } else {
+                return ResponseEntity.ok(null);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Get current market data failed.", e);
             return ResponseEntity.badRequest().build();
         }
     }
