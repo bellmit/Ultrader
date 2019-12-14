@@ -51,7 +51,6 @@ public class AlpacaMarketDataService implements MarketDataService {
     private RestTemplate client;
     private SettingDao settingDao;
     private RateLimiter rateLimiter = RateLimiter.create(1);
-    private int maxGap = 0;
 
     private ParameterizedTypeReference<HashMap<String, ArrayList<Bar>>> barResponseType;
 
@@ -60,7 +59,6 @@ public class AlpacaMarketDataService implements MarketDataService {
         Validate.notNull(settingDao, "settingDao is required");
 
         this.settingDao = settingDao;
-        this.maxGap = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_MAX_GAP.getName(), "3"));
         this.alpacaKey = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_KEY.getName(), "");
         this.alpacaSecret = RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_PAPER_SECRET.getName(), "");
         if (alpacaKey.equals("") || alpacaSecret.equals("")) {
@@ -119,7 +117,7 @@ public class AlpacaMarketDataService implements MarketDataService {
             LOGGER.debug(msg);
             if (notifier != null) {
                 long progress = 50 * (currentDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC)) / (endDate.toEpochSecond(ZoneOffset.UTC) - startDate.toEpochSecond(ZoneOffset.UTC));
-                notifier.convertAndSend(topic, new ProgressMessage("InProgress", msg, (int)progress));
+                notifier.convertAndSend(topic, new ProgressMessage("InProgress", msg, (int) progress));
             }
             StringBuilder symbols = new StringBuilder();
             for (TimeSeries timeSeries : stocks) {
@@ -259,41 +257,69 @@ public class AlpacaMarketDataService implements MarketDataService {
         LOGGER.debug("Download {} stocks market data", responseEntity.getBody().size());
         int filterCount = 0;
         //Update time series
+
         for (String stock : responseEntity.getBody().keySet()) {
             LOGGER.debug(String.format("Update stocks %s, %d bars", stock, responseEntity.getBody().get(stock).size()));
-            for (Bar bar : responseEntity.getBody().get(stock)) {
-                int barSize = batchTimeSeries.get(stock).getBarCount();
-                if (barSize == 0 || batchTimeSeries.get(stock).getLastBar().getBeginTime().toEpochSecond() <= bar.getT()) {
-                    LOGGER.debug("Last bar begin at {}, current bar begin at {}, stock {}, bars {}",
-                            barSize == 0 ? "null" : batchTimeSeries.get(stock).getLastBar().getBeginTime().toEpochSecond(),
-                            bar.getT(),
-                            stock,
-                            barSize);
-                    Instant i = Instant.ofEpochSecond(bar.getT() + interval / 1000);
-                    ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE));
-                    org.ta4j.core.Bar newBar = new BaseBar(Duration.ofMillis(interval), endDate, PrecisionNum.valueOf(bar.getO()), PrecisionNum.valueOf(bar.getH()), PrecisionNum.valueOf(bar.getL()), PrecisionNum.valueOf(bar.getC()), PrecisionNum.valueOf(bar.getV()), PrecisionNum.valueOf(bar.getV() * bar.getC()));
-                    if (barSize > 0 && batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond() == endDate.toEpochSecond()) {
-                        //Replace last bar
-                        batchTimeSeries.get(stock).addBar(newBar, true);
-                        LOGGER.debug("Replaced {} last bar {}", stock, newBar);
-                    } else {
-                        if (barSize == 0 || endDate.getDayOfYear() != batchTimeSeries.get(stock).getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - batchTimeSeries.get(stock).getLastBar().getEndTime().toEpochSecond()) <= interval / 1000 * maxGap) {
-                            //Time series must be continuous
-                            batchTimeSeries.get(stock).addBar(newBar);
+            try {
+                for (Bar bar : responseEntity.getBody().get(stock)) {
+                    int barSize = batchTimeSeries.get(stock).getBarCount();
+                    org.ta4j.core.Bar lastBar = barSize == 0 ? null : batchTimeSeries.get(stock).getLastBar();
+                    if (barSize == 0 || lastBar.getBeginTime().toEpochSecond() <= bar.getT()) {
+                        LOGGER.debug("Last bar begin at {}, current bar begin at {}, stock {}, bars {}",
+                                barSize == 0 ? "null" : lastBar.getBeginTime().toEpochSecond(),
+                                bar.getT(),
+                                stock,
+                                barSize);
+                        Instant i = Instant.ofEpochSecond(bar.getT() + interval / 1000);
+                        ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE));
+                        org.ta4j.core.Bar newBar = new BaseBar(
+                                Duration.ofMillis(interval),
+                                endDate,
+                                PrecisionNum.valueOf(bar.getO()),
+                                PrecisionNum.valueOf(bar.getH()),
+                                PrecisionNum.valueOf(bar.getL()),
+                                PrecisionNum.valueOf(bar.getC()),
+                                PrecisionNum.valueOf(bar.getV()),
+                                PrecisionNum.valueOf(bar.getV() * bar.getC()));
+
+                        if (barSize > 0 && lastBar.getEndTime().toEpochSecond() == endDate.toEpochSecond()) {
+                            //Replace last bar
+                            batchTimeSeries.get(stock).addBar(newBar, true);
+                            LOGGER.debug("Replaced {} last bar {}", stock, newBar);
                         } else {
-                            //If it's not continuous, start from now
-                            TimeSeries newTimeSeries = new BaseTimeSeries(stock);
-                            newTimeSeries.setMaximumBarCount(batchTimeSeries.get(stock).getMaximumBarCount());
-                            batchTimeSeries.get(stock).getBarData().clear();
-                            batchTimeSeries.put(stock, newTimeSeries);
-                            batchTimeSeries.get(stock).addBar(newBar);
+                            if (barSize == 0 || endDate.getDayOfYear() != lastBar.getEndTime().getDayOfYear() || newBar.getBeginTime().equals(lastBar.getEndTime())) {
+                                //Time series must be continuous
+                                batchTimeSeries.get(stock).addBar(newBar);
+                            } else {
+                                //Auto filling the gap
+                                while (lastBar.getEndTime().isBefore(newBar.getBeginTime())) {
+                                    //Copy previous bar
+                                    org.ta4j.core.Bar duplicateBar = new BaseBar(
+                                            Duration.ofMillis(interval),
+                                            lastBar.getEndTime().plusSeconds(interval / 1000),
+                                            lastBar.getOpenPrice(),
+                                            lastBar.getMaxPrice(),
+                                            lastBar.getMinPrice(),
+                                            lastBar.getClosePrice(),
+                                            lastBar.getVolume(),
+                                            lastBar.getAmount());
+
+                                    batchTimeSeries.get(stock).addBar(duplicateBar);
+                                    lastBar = duplicateBar;
+                                }
+                                batchTimeSeries.get(stock).addBar(newBar);
+                            }
+
                         }
 
                     }
-
                 }
+            } catch (Exception e) {
+                LOGGER.error("Update {} market data failed.", stock, e);
             }
         }
+
+
         LOGGER.debug("Filtered out {} stocks when downloading.", filterCount);
     }
 

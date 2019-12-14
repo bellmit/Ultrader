@@ -359,15 +359,24 @@ public class PolygonMarketDataService implements MarketDataService {
                             timeSeries.addBar(newBar, true);
                             LOGGER.debug("Replaced {} last bar {}", timeSeries.getName(), newBar);
                         } else {
-                            if (barSize == 0 || endDate.getDayOfYear() != timeSeries.getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - timeSeries.getLastBar().getEndTime().toEpochSecond()) <= interval / 1000 * maxGap) {
+                            if (barSize == 0 || endDate.getDayOfYear() != timeSeries.getLastBar().getEndTime().getDayOfYear() || (endDate.toEpochSecond() - timeSeries.getLastBar().getEndTime().toEpochSecond()) == interval) {
                                 //Time series must be continuous
                                 timeSeries.addBar(newBar);
                             } else {
-                                //If it's not continuous, start from now
-                                TimeSeries newTimeSeries = new BaseTimeSeries(timeSeries.getName());
-                                newTimeSeries.setMaximumBarCount(timeSeries.getMaximumBarCount());
-                                timeSeries.getBarData().clear();
-                                timeSeries = newTimeSeries;
+                                //Auto filling the gap
+                                while (timeSeries.getLastBar().getEndTime().isBefore(newBar.getBeginTime())) {
+                                    //Copy previous bar
+                                    org.ta4j.core.Bar duplicateBar = new BaseBar(
+                                            Duration.ofMillis(interval),
+                                            timeSeries.getLastBar().getEndTime().plusSeconds(interval / 1000),
+                                            timeSeries.getLastBar().getOpenPrice(),
+                                            timeSeries.getLastBar().getMaxPrice(),
+                                            timeSeries.getLastBar().getMinPrice(),
+                                            timeSeries.getLastBar().getClosePrice(),
+                                            timeSeries.getLastBar().getVolume(),
+                                            timeSeries.getLastBar().getAmount());
+                                    timeSeries.addBar(duplicateBar);
+                                }
                                 timeSeries.addBar(newBar);
                             }
 
