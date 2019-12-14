@@ -46,10 +46,14 @@ public class PolygonMessageHandler implements MessageHandler {
                 LOGGER.debug("Update {}, last bar end {}, message end {}",
                         aggregation.getSym(), timeSeries.getLastBar().getEndTime().toEpochSecond(), aggregation.getE() / 1000);
                 long now = LocalDateTime.now(ZoneOffset.UTC).atZone(ZoneOffset.UTC).toEpochSecond() / 1000;
-                if(timeSeries.getLastBar().getEndTime().toEpochSecond() - interval < aggregation.getE()  / 1000) {
+                if(timeSeries.getLastBar().getEndTime().toEpochSecond() < aggregation.getE() / 1000) {
                     //If it's newer than the last bar
                     //Calculate the start time of the new bar
-                    i = Instant.ofEpochSecond( aggregation.getE() / 1000 + interval);
+                    long startEpoch = timeSeries.getLastBar().getEndTime().toEpochSecond();
+                    while (startEpoch + interval < aggregation.getE() / 1000) {
+                        startEpoch += interval;
+                    }
+                    i = Instant.ofEpochSecond( startEpoch + interval);
                     Bar bar = new BaseBar(Duration.ofMillis(interval),
                             ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE)),
                             PrecisionNum.valueOf(aggregation.getO()),
