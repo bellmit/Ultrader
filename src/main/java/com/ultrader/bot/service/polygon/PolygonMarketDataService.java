@@ -353,7 +353,15 @@ public class PolygonMarketDataService implements MarketDataService {
                     if (barSize == 0 || timeSeries.getLastBar().getBeginTime().toEpochSecond() <= bar.getT() / 1000) {
                         Instant i = Instant.ofEpochSecond((bar.getT() + interval) / 1000);
                         ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE));
-                        Bar newBar = new BaseBar(Duration.ofMillis(interval), endDate, PrecisionNum.valueOf(bar.getO()), PrecisionNum.valueOf(bar.getH()), PrecisionNum.valueOf(bar.getL()), PrecisionNum.valueOf(bar.getC()), PrecisionNum.valueOf(bar.getV()), PrecisionNum.valueOf(bar.getV() * bar.getC()));
+                        Bar newBar = new BaseBar(
+                                Duration.ofMillis(interval),
+                                endDate,
+                                PrecisionNum.valueOf(bar.getO()),
+                                PrecisionNum.valueOf(bar.getH()),
+                                PrecisionNum.valueOf(bar.getL()),
+                                PrecisionNum.valueOf(bar.getC()),
+                                PrecisionNum.valueOf(bar.getV()),
+                                PrecisionNum.valueOf(bar.getV() * bar.getC()));
                         if (barSize > 0 && timeSeries.getLastBar().getEndTime().toEpochSecond() == endDate.toEpochSecond()) {
                             //Replace last bar
                             timeSeries.addBar(newBar, true);

@@ -1,22 +1,28 @@
 package com.ultrader.bot.util;
 
+import com.ultrader.bot.model.HistoryMarketData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.FileSystemUtils;
 import org.ta4j.core.Bar;
+import org.ta4j.core.BaseBar;
+import org.ta4j.core.BaseTimeSeries;
 import org.ta4j.core.TimeSeries;
+import org.ta4j.core.num.PrecisionNum;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 /**
  * Util for History Market Data
+ *
  * @author ytx1991
  */
 public class HistoryMarketDataUtil {
@@ -25,6 +31,7 @@ public class HistoryMarketDataUtil {
 
     /**
      * Persist TimeSeries to file
+     *
      * @param timeSeriesList
      * @param mid
      * @return
@@ -59,24 +66,57 @@ public class HistoryMarketDataUtil {
 
     /**
      * Delete a specific history market data folder
+     *
      * @param mid
      * @return
      */
     public static boolean deleteDataFolder(long mid) {
-       return FileSystemUtils.deleteRecursively(new File(DEFAULT_PATH + mid));
+        return FileSystemUtils.deleteRecursively(new File(DEFAULT_PATH + mid));
     }
 
     /**
      * Read market data from file to TimeSeries
-     * @param filename
+     *
+     * @param historyMarketData
+     * @param symbol
      * @return
      */
-    public static List<TimeSeries> fileToTimeSeries(String filename) {
-        return null;
+    public static TimeSeries fileToTimeSeries(HistoryMarketData historyMarketData, String symbol) {
+        String file = DEFAULT_PATH + historyMarketData.getId() + "/" + symbol;
+        BufferedReader reader = null;
+        TimeSeries timeSeries = new BaseTimeSeries(symbol);
+        try {
+            reader = new BufferedReader(new FileReader(file));
+            while (reader != null) {
+                String currentLine = reader.readLine();
+                if (currentLine == null) {
+                    break;
+                }
+                String[] token = currentLine.split(",");
+                Instant i = Instant.ofEpochSecond(Long.parseLong(token[0]));
+                ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE));
+                timeSeries.addBar(
+                        new BaseBar(
+                                Duration.ofSeconds(historyMarketData.getPeriod()),
+                                endDate,
+                                PrecisionNum.valueOf(token[1]),
+                                PrecisionNum.valueOf(token[2]),
+                                PrecisionNum.valueOf(token[3]),
+                                PrecisionNum.valueOf(token[4]),
+                                PrecisionNum.valueOf(token[5]),
+                                PrecisionNum.valueOf(token[6])));
+            }
+            reader.close();
+            return timeSeries;
+        } catch (Exception e) {
+            LOGGER.error("Cannot read market data {} / {}", historyMarketData.getName(), symbol, e);
+            return null;
+        }
     }
 
     /**
      * Get size of the market data
+     *
      * @param mid
      * @return
      */
