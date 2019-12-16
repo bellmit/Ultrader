@@ -377,12 +377,12 @@ public class PolygonMarketDataService implements MarketDataService {
                                     org.ta4j.core.Bar duplicateBar = new BaseBar(
                                             Duration.ofMillis(interval),
                                             timeSeries.getLastBar().getEndTime().plusSeconds(interval / 1000),
-                                            timeSeries.getLastBar().getOpenPrice(),
-                                            timeSeries.getLastBar().getMaxPrice(),
-                                            timeSeries.getLastBar().getMinPrice(),
                                             timeSeries.getLastBar().getClosePrice(),
-                                            timeSeries.getLastBar().getVolume(),
-                                            timeSeries.getLastBar().getAmount());
+                                            timeSeries.getLastBar().getClosePrice(),
+                                            timeSeries.getLastBar().getClosePrice(),
+                                            timeSeries.getLastBar().getClosePrice(),
+                                            PrecisionNum.valueOf(0),
+                                            PrecisionNum.valueOf(0));
                                     timeSeries.addBar(duplicateBar);
                                 }
                                 timeSeries.addBar(newBar);

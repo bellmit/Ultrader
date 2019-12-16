@@ -297,12 +297,12 @@ public class AlpacaMarketDataService implements MarketDataService {
                                     org.ta4j.core.Bar duplicateBar = new BaseBar(
                                             Duration.ofMillis(interval),
                                             lastBar.getEndTime().plusSeconds(interval / 1000),
-                                            lastBar.getOpenPrice(),
-                                            lastBar.getMaxPrice(),
-                                            lastBar.getMinPrice(),
                                             lastBar.getClosePrice(),
-                                            lastBar.getVolume(),
-                                            lastBar.getAmount());
+                                            lastBar.getClosePrice(),
+                                            lastBar.getClosePrice(),
+                                            lastBar.getClosePrice(),
+                                            PrecisionNum.valueOf(0),
+                                            PrecisionNum.valueOf(0));
 
                                     batchTimeSeries.get(stock).addBar(duplicateBar);
                                     lastBar = duplicateBar;
