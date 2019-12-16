@@ -46,6 +46,8 @@ public class AlpacaMarketDataService implements MarketDataService {
     private static final int MAX_STOCK = 150;
     private final static int MIN_PER_TRADING_DAY = 390;
     private final static int MAX_DATA_PER_REQUEST = 1000;
+    private final static LocalTime MARKET_OPEN_TIME = LocalTime.parse("09:30:01");
+    private final static LocalTime MARKET_CLOSE_TIME = LocalTime.parse("16:00:00");
     private String alpacaKey;
     private String alpacaSecret;
     private RestTemplate client;
@@ -272,6 +274,10 @@ public class AlpacaMarketDataService implements MarketDataService {
                                 barSize);
                         Instant i = Instant.ofEpochSecond(bar.getT() + interval / 1000);
                         ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE));
+                        if (endDate.toLocalTime().isBefore(MARKET_OPEN_TIME) || endDate.toLocalTime().isAfter(MARKET_CLOSE_TIME)) {
+                            //Filter out market closed hours data
+                            continue;
+                        }
                         org.ta4j.core.Bar newBar = new BaseBar(
                                 Duration.ofMillis(interval),
                                 endDate,

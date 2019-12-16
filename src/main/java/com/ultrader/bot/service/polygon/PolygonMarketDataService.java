@@ -46,6 +46,8 @@ public class PolygonMarketDataService implements MarketDataService {
     private final static Logger LOGGER = LoggerFactory.getLogger(PolygonMarketDataService.class);
     private final static int MIN_PER_TRADING_DAY = 390;
     private final static int MAX_DATA_PER_REQUEST = 5000;
+    private final static LocalTime MARKET_OPEN_TIME = LocalTime.parse("09:30:01");
+    private final static LocalTime MARKET_CLOSE_TIME = LocalTime.parse("16:00:00");
     private String polygonKey;
     private RestTemplate client;
     private RestTemplateBuilder restTemplateBuilder;
@@ -353,6 +355,10 @@ public class PolygonMarketDataService implements MarketDataService {
                     if (barSize == 0 || timeSeries.getLastBar().getBeginTime().toEpochSecond() <= bar.getT() / 1000) {
                         Instant i = Instant.ofEpochSecond((bar.getT() + interval) / 1000);
                         ZonedDateTime endDate = ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE));
+                        if (endDate.toLocalTime().isBefore(MARKET_OPEN_TIME) || endDate.toLocalTime().isAfter(MARKET_CLOSE_TIME)) {
+                            //Filter out market closed hours data
+                            continue;
+                        }
                         Bar newBar = new BaseBar(
                                 Duration.ofMillis(interval),
                                 endDate,
