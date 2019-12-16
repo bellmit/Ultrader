@@ -5,6 +5,7 @@ import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.ProgressMessage;
 import com.ultrader.bot.model.alpaca.Bar;
 import com.ultrader.bot.service.MarketDataService;
+import com.ultrader.bot.util.MarketDataUtil;
 import com.ultrader.bot.util.MarketTrend;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
@@ -300,18 +301,8 @@ public class AlpacaMarketDataService implements MarketDataService {
                                 //Auto filling the gap
                                 while (lastBar.getEndTime().isBefore(newBar.getBeginTime())) {
                                     //Copy previous bar
-                                    org.ta4j.core.Bar duplicateBar = new BaseBar(
-                                            Duration.ofMillis(interval),
-                                            lastBar.getEndTime().plusSeconds(interval / 1000),
-                                            lastBar.getClosePrice(),
-                                            lastBar.getClosePrice(),
-                                            lastBar.getClosePrice(),
-                                            lastBar.getClosePrice(),
-                                            PrecisionNum.valueOf(0),
-                                            PrecisionNum.valueOf(0));
-
-                                    batchTimeSeries.get(stock).addBar(duplicateBar);
-                                    lastBar = duplicateBar;
+                                    batchTimeSeries.get(stock).addBar(MarketDataUtil.fillBarGap(lastBar, interval / 1000));
+                                    lastBar = batchTimeSeries.get(stock).getLastBar();
                                 }
                                 batchTimeSeries.get(stock).addBar(newBar);
                             }

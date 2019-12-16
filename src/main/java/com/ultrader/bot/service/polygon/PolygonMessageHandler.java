@@ -3,6 +3,7 @@ package com.ultrader.bot.service.polygon;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ultrader.bot.model.polygon.Aggregation;
 import com.ultrader.bot.monitor.MarketDataMonitor;
+import com.ultrader.bot.util.MarketDataUtil;
 import com.ultrader.bot.util.TradingUtil;
 import io.nats.client.Message;
 import io.nats.client.MessageHandler;
@@ -25,6 +26,8 @@ import java.util.Map;
  */
 public class PolygonMessageHandler implements MessageHandler {
     private static final Logger LOGGER = LoggerFactory.getLogger(PolygonMessageHandler.class);
+    private final static LocalTime MARKET_OPEN_TIME = LocalTime.parse("09:30:01");
+    private final static LocalTime MARKET_CLOSE_TIME = LocalTime.parse("16:00:00");
     private ObjectMapper objectMapper;
     private long interval;
     private final PolygonMarketDataService service;
@@ -59,6 +62,11 @@ public class PolygonMessageHandler implements MessageHandler {
                         //Calculate the start time of the new bar
                         long startEpoch = timeSeries.getLastBar().getEndTime().toEpochSecond();
                         while (startEpoch + interval < aggregation.getE() / 1000) {
+                            if (timeSeries.getLastBar().getEndTime().toLocalTime().isAfter(MARKET_OPEN_TIME)
+                                    && timeSeries.getLastBar().getEndTime().toLocalTime().isBefore(MARKET_CLOSE_TIME)) {
+                                //Fill the gap of bars
+                                timeSeries.addBar(MarketDataUtil.fillBarGap(timeSeries.getLastBar(), startEpoch + interval - timeSeries.getLastBar().getEndTime().toEpochSecond()));
+                            }
                             startEpoch += interval;
                         }
                         i = Instant.ofEpochSecond( startEpoch + interval);

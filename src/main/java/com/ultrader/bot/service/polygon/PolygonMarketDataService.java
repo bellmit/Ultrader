@@ -7,6 +7,7 @@ import com.ultrader.bot.model.polygon.AggResponse;
 import com.ultrader.bot.model.polygon.Aggv2;
 import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.service.MarketDataService;
+import com.ultrader.bot.util.MarketDataUtil;
 import com.ultrader.bot.util.MarketTrend;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
@@ -380,16 +381,7 @@ public class PolygonMarketDataService implements MarketDataService {
                                 //Auto filling the gap
                                 while (timeSeries.getLastBar().getEndTime().isBefore(newBar.getBeginTime())) {
                                     //Copy previous bar
-                                    org.ta4j.core.Bar duplicateBar = new BaseBar(
-                                            Duration.ofMillis(interval),
-                                            timeSeries.getLastBar().getEndTime().plusSeconds(interval / 1000),
-                                            timeSeries.getLastBar().getClosePrice(),
-                                            timeSeries.getLastBar().getClosePrice(),
-                                            timeSeries.getLastBar().getClosePrice(),
-                                            timeSeries.getLastBar().getClosePrice(),
-                                            PrecisionNum.valueOf(0),
-                                            PrecisionNum.valueOf(0));
-                                    timeSeries.addBar(duplicateBar);
+                                    timeSeries.addBar(MarketDataUtil.fillBarGap(timeSeries.getLastBar(), interval / 1000));
                                 }
                                 timeSeries.addBar(newBar);
                             }
