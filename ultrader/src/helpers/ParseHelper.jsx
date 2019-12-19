@@ -18,7 +18,7 @@ export function parseProfit(value, base) {
  value = Number(value);
  base = Number(base);
  var color = value >= 0 ? "green" : "red";
- var profitPercentText = (value / base * 100).toFixed(2) + "%";
+ var profitPercentText = (value / (base - value) * 100).toFixed(2) + "%";
  return (<span style={{ color: color }}>
            {"$" + value.toFixed(2) + " (" + profitPercentText + ")"}
          </span>
