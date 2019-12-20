@@ -40,6 +40,7 @@ class Header extends Component {
     });
     return name;
   }
+
   // function that makes the sidebar from normal to mini and vice-versa
   handleMinimizeSidebar() {
     document.body.classList.toggle("sidebar-mini");
@@ -64,7 +65,7 @@ class Header extends Component {
         <Navbar.Header>
           <Navbar.Brand>
             {/* Here we create navbar brand, based on route name */}
-            <a href="#pablo">{this.makeBrand()}</a>
+			 <a href="#pablo">{this.makeBrand()}</a>
           </Navbar.Brand>
           <Navbar.Toggle onClick={this.mobileSidebarToggle} />
         </Navbar.Header>

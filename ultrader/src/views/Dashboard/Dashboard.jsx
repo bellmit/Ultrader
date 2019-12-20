@@ -235,7 +235,32 @@ class DashboardComp extends Component {
       );
     }
   }
-
+  componentDidMount() {
+    const s = document.createElement('script');
+    s.type = 'text/javascript';
+    s.async = true;
+    s.src = "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";
+    s.innerHTML = `{
+                    "symbols": [
+                       {
+                         "proName": "OANDA:SPX500USD",
+                         "title": "S&P 500"
+                       },
+                       {
+                         "proName": "OANDA:NAS100USD",
+                         "title": "Nasdaq 100"
+                       },
+                       { "proName":"FOREXCOM:DJI",
+                         "title":"Dow 30"
+                       }
+                     ],
+                     "colorTheme": "light",
+                     "isTransparent": false,
+                     "displayMode": "adaptive",
+                     "locale": "en"
+                   }`;
+    document.getElementById("tradingview_ticker").appendChild(s);
+  }
   refreshPortfolioChart() {
      this.getTotalPortfolioChart(180, 10, 172800, 'yearly');
      this.getTotalPortfolioChart(90, 6, 28800, 'monthly');
@@ -286,6 +311,12 @@ class DashboardComp extends Component {
       <div className="main-content">
         <Grid fluid>
           <Row>
+              <Col xl={12} lg={12} md={12} sm={12}>
+                <div className="tradingview-widget-container" id="tradingview_ticker">
+                <div className="tradingview-widget-container__widget"></div>
+                <div className="tradingview-widget-copyright"><a href="https://www.tradingview.com" rel="noopener" target="_blank"><span className="blue-text">Ticker Tape</span></a> by TradingView</div>
+                </div>
+              </Col>
               <Col xl={12} lg={12} md={12} sm={12}>
                   {this.appendNews()}
               </Col>
