@@ -201,7 +201,7 @@ public class GradientDescentOptimizer {
     private List<Double> updateParameters(List<Double> gradients) {
         List<Double> newParameters = new ArrayList<>();
         for (int i = 0; i < gradients.size(); i++) {
-            newParameters.add(parameters.get(i) + step * gradients.get(i));
+            newParameters.add(parameters.get(i) + Math.abs(parameters.get(i)) * step * gradients.get(i));
         }
         return newParameters;
     }

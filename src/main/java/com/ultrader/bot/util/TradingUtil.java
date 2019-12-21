@@ -390,6 +390,7 @@ public class TradingUtil {
                     TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, series, parameterQueue, false),
                     TradingUtil.generateTradingStrategy(strategyDao, ruleDao, sellStrategyId, series, parameterQueue, false));
 
+            strategy.setUnstablePeriod(20);
             TradingRecord tradingRecord = manager.run(strategy);
             // Getting the cash flow of the resulting trades
             CashFlow cashFlow = new CashFlow(series, tradingRecord);
