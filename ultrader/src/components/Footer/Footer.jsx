@@ -14,8 +14,11 @@ class Footer extends Component {
             "container" + (this.props.fluid !== undefined ? "-fluid" : "")
           }
         >
+          <p className="copyright pull-left">
+              Version 1.0.0
+          </p>
           <p className="copyright pull-right">
-            Copyright &copy; {1900 + new Date().getYear()}{". "}
+            Copyright &copy; 2020{". "}
             Ultrader All rights reserved.
           </p>
         </div>
