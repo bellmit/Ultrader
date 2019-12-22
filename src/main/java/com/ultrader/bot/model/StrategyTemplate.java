@@ -12,21 +12,21 @@ public enum StrategyTemplate {
                     "         \"name\":\"Normal Buy Strategy\",\n" +
                     "         \"description\":\"Buy strategy for normal market\",\n" +
                     "         \"type\":\"Buy\",\n" +
-                    "         \"formula\":\"18&,16&,15&,12&,9\"\n" +
+                    "         \"formula\":\"19&,12&,9\"\n" +
                     "      },\n" +
                     "      { \n" +
                     "         \"id\":21,\n" +
                     "         \"name\":\"Bullish Buy Strategy\",\n" +
                     "         \"description\":\"Buy strategy for bullish market\",\n" +
                     "         \"type\":\"Buy\",\n" +
-                    "         \"formula\":\"18&,16&,15&,12&,8\"\n" +
+                    "         \"formula\":\"19&,12&,8\"\n" +
                     "      },\n" +
                     "      { \n" +
                     "         \"id\":22,\n" +
                     "         \"name\":\"Bearish Buy Strategy\",\n" +
                     "         \"description\":\"Buy strategy for bearish market\",\n" +
                     "         \"type\":\"Buy\",\n" +
-                    "         \"formula\":\"18&,16&,15&,12&,10\"\n" +
+                    "         \"formula\":\"19&,12&,10\"\n" +
                     "      },\n" +
                     "      { \n" +
                     "         \"id\":23,\n" +
@@ -140,14 +140,14 @@ public enum StrategyTemplate {
                     "         \"name\":\"MACD Bullish Buy Signal\",\n" +
                     "         \"description\":\"MACD buy signal for bullish market\",\n" +
                     "         \"type\":\"UnderIndicatorRule\",\n" +
-                    "         \"formula\":\"MACDIndicator:ClosePrice,Number:0.06\"\n" +
+                    "         \"formula\":\"MACDIndicator:ClosePrice,Number:-0.06\"\n" +
                     "      },\n" +
                     "      { \n" +
                     "         \"id\":9,\n" +
                     "         \"name\":\"MACD Normal Buy Signal\",\n" +
                     "         \"description\":\"MACD buy signal for normal market\",\n" +
                     "         \"type\":\"UnderIndicatorRule\",\n" +
-                    "         \"formula\":\"MACDIndicator:ClosePrice,Number:-0.065\"\n" +
+                    "         \"formula\":\"MACDIndicator:ClosePrice,Number:-0.15\"\n" +
                     "      },\n" +
                     "      { \n" +
                     "         \"id\":10,\n" +
@@ -158,17 +158,17 @@ public enum StrategyTemplate {
                     "      },\n" +
                     "      { \n" +
                     "         \"id\":11,\n" +
-                    "         \"name\":\"Hold 3 Days\",\n" +
-                    "         \"description\":\"Hold no longer than 4 days (345600 seconds)\",\n" +
+                    "         \"name\":\"Hold 7 Days\",\n" +
+                    "         \"description\":\"Hold no longer than 7 days (604800 seconds)\",\n" +
                     "         \"type\":\"StopHoldRule\",\n" +
-                    "         \"formula\":\"ClosePrice,Integer:345600\"\n" +
+                    "         \"formula\":\"ClosePrice,Integer:604800\"\n" +
                     "      },\n" +
                     "      { \n" +
                     "         \"id\":12,\n" +
                     "         \"name\":\"RSI Buy Signal\",\n" +
-                    "         \"description\":\"RSI crossed up 30\",\n" +
+                    "         \"description\":\"RSI crossed up 15\",\n" +
                     "         \"type\":\"CrossedUpIndicatorRule\",\n" +
-                    "         \"formula\":\"RSIIndicator:ClosePrice:14,Number:30\"\n" +
+                    "         \"formula\":\"RSIIndicator:ClosePrice:14,Number:15\"\n" +
                     "      },\n" +
                     "      { \n" +
                     "         \"id\":13,\n" +
