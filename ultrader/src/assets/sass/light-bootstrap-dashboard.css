@@ -4977,9 +4977,18 @@ h1 .subtitle {
 
 .sidebar .user,
 .bootstrap-navbar .user {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
   padding-bottom: 20px;
-  margin-top: 20px; }
+  margin-top: 20px;
+  position: relative;}
+  .sidebar .user:before,
+  .bootstrap-navbar .user:before {
+    content: "";
+    position: absolute;
+    bottom: 0px;
+    right: 15px;
+    width: calc(100% - 30px);
+    height: 1px;
+    background-color: rgba(255, 255, 255, 0.3);}
   .sidebar .user .photo,
   .bootstrap-navbar .user .photo {
     width: 34px;
