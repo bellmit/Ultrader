@@ -634,8 +634,8 @@ class DashboardComp extends Component {
                 }
                 stats={
                   <div>
-                    <Button bsSize="xs" onClick={this.refreshPortfolioChart}>
-                      <i className="fa fa-history" />
+                    <Button bsSize="xs" bsStyle="info" onClick={this.refreshPortfolioChart}>
+                      <i className="fa fa-refresh" />
                     </Button>{" "}
                     Updated at {this.state.totalPortfolioUpdateDate}
                   </div>
@@ -677,8 +677,8 @@ class DashboardComp extends Component {
                 }
                 stats={
                   <div>
-                    <Button bsSize="xs" onClick={this.refreshPortfolioPieChart}>
-                      <i className="fa fa-history" />
+                    <Button bsSize="xs" bsStyle="info" onClick={this.refreshPortfolioPieChart}>
+                      <i className="fa fa-refresh" />
                     </Button>{" "}
                     Updated at {this.state.portfolioPieUpdateDate}
                   </div>
@@ -741,8 +741,8 @@ class DashboardComp extends Component {
                 }
                 stats={
                   <div>
-                    <Button bsSize="xs" onClick={this.refreshProfitChart}>
-                      <i className="fa fa-history" />
+                    <Button bsSize="xs" bsStyle="info" onClick={this.refreshProfitChart}>
+                      <i className="fa fa-refresh" />
                     </Button>{" "}
                     Updated at {this.state.totalProfitUpdateDate}
                   </div>
@@ -805,8 +805,8 @@ class DashboardComp extends Component {
                 }
                 stats={
                   <div>
-                    <Button bsSize="xs" onClick={this.refreshTradeChart}>
-                      <i className="fa fa-history" />
+                    <Button bsSize="xs" bsStyle="info" onClick={this.refreshTradeChart}>
+                      <i className="fa fa-refresh" />
                     </Button>{" "}
                     Updated at {this.state.totalTradeUpdateDate}
                   </div>
