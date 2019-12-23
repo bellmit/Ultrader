@@ -36,4 +36,6 @@ public class Order {
     private String status;
     @Column(name="close_date")
     private Date closeDate;
+    @Column(name="reason")
+    private String reason;
 }

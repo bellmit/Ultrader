@@ -93,7 +93,7 @@ public class MarketDataMonitor extends Monitor {
             }
             //Sync history orders
             try {
-                orderDao.saveAll(tradingPlatform.getTradingService().getHistoryOrders(null, null));
+                OrderUtil.loadHistoryOrders(orderDao, tradingPlatform.getTradingService());
                 notifier.sendProfitNotification(1, true);
                 notifier.sendProfitNotification(7, true);
                 notifier.sendProfitNotification(30, true);

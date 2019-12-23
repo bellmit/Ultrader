@@ -268,7 +268,13 @@ public class AlpacaTradingServiceV2 implements TradingService {
                     orderResponseEntity.getBody().getQty(),
                     order.getAveragePrice(),
                     orderResponseEntity.getBody().getStatus(),
-                    null);
+                    null,
+                    order.getReason());
+            try {
+                orderDao.save(responseOrder);
+            } catch (Exception e) {
+                LOGGER.error("Save order {} failed.", responseOrder, e);
+            }
             return responseOrder;
         } catch (Exception e) {
             LOGGER.error("Failed to call /orders api.", e);
@@ -296,7 +302,8 @@ public class AlpacaTradingServiceV2 implements TradingService {
                         order.getQty(),
                         order.getLimit_price(),
                         order.getStatus(),
-                        null));
+                        null,
+                        ""));
             }
             return orderMap;
         } catch (Exception e) {
@@ -327,7 +334,8 @@ public class AlpacaTradingServiceV2 implements TradingService {
                         order.getQty(),
                         order.getFilled_avg_price(),
                         order.getStatus(),
-                        order.getFilled_at()));
+                        order.getFilled_at(),
+                        ""));
             }
             return orderList;
         } catch (Exception e) {

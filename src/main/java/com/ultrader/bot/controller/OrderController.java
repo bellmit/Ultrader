@@ -8,6 +8,7 @@ import com.ultrader.bot.model.Trade;
 import com.ultrader.bot.monitor.TradingAccountMonitor;
 import com.ultrader.bot.monitor.TradingStrategyMonitor;
 import com.ultrader.bot.service.TradingPlatform;
+import com.ultrader.bot.util.OrderUtil;
 import com.ultrader.bot.util.TradingUtil;
 import org.apache.commons.lang.time.DateUtils;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class OrderController {
     @ResponseBody
     public void loadOrders() {
         try {
-            orderDao.saveAll(tradingPlatform.getTradingService().getHistoryOrders(null, null));
+            OrderUtil.loadHistoryOrders(orderDao, tradingPlatform.getTradingService());
         } catch (Exception e) {
             LOGGER.error("Load orders failed.", e);
         }
@@ -64,7 +65,7 @@ public class OrderController {
             for (String asset : assets.split(",")) {
                 //sell strategy satisfy & has position
                 Position position = TradingAccountMonitor.getPositions().get(asset);
-                if (tradingPlatform.getTradingService().postOrder(new com.ultrader.bot.model.Order("", asset, "sell", "market", position.getQuantity(), position.getCurrentPrice(), "", null)) != null) {
+                if (tradingPlatform.getTradingService().postOrder(new com.ultrader.bot.model.Order("", asset, "sell", "market", position.getQuantity(), position.getCurrentPrice(), "", null, "Manual Sell")) != null) {
                     account.setBuyingPower(account.getBuyingPower() + position.getQuantity() * position.getQuantity());
                     LOGGER.info(String.format("Sell %s %d shares at price %f.", asset, position.getQuantity(), position.getCurrentPrice()));
                 }
@@ -97,7 +98,9 @@ public class OrderController {
                                sellOrder.getCloseDate(),
                                order.getAveragePrice(),
                                sellOrder.getAveragePrice(),
-                               (sellOrder.getAveragePrice() - order.getAveragePrice()) * order.getQuantity()));
+                               (sellOrder.getAveragePrice() - order.getAveragePrice()) * order.getQuantity(),
+                               order.getReason(),
+                               sellOrder.getReason()));
 
                    }
                }

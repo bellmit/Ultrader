@@ -6,6 +6,7 @@ import com.ultrader.bot.model.websocket.StatusMessage;
 import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.NotificationType;
+import com.ultrader.bot.util.OrderUtil;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import org.apache.commons.lang.Validate;
@@ -59,7 +60,7 @@ public class TradingAccountMonitor extends Monitor {
         this.positionDao = positionDao;
         //Load missing orders
         try {
-            orderDao.saveAll(tradingService.getHistoryOrders(null, null));
+            OrderUtil.loadHistoryOrders(orderDao, tradingService);
         } catch (Exception e) {
             LOGGER.error("Load history orders failed.");
         }

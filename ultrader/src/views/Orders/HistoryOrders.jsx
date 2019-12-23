@@ -32,6 +32,7 @@ class HistoryOrdersComp extends Component {
   getHistoryOrders(days) {
     axiosGetWithAuth("/api/order/getClosedOrders/" + days)
       .then(res => {
+        console.log(res);
         this.props.onGetHistoryOrdersSuccess(res);
       })
       .catch(error => {
@@ -117,12 +118,12 @@ class HistoryOrdersComp extends Component {
                         {
                           Header: "Buy Date",
                           accessor: "buyDate",
-                          Cell: row => parseDate(row.original.buyDate)
+                          Cell: row => (<div>{parseDate(row.original.buyDate)} {tooltip(row.original.buyReason)}</div>)
                         },
                         {
                           Header: "Sell Date",
                           accessor: "sellDate",
-                          Cell: row => parseDate(row.original.sellDate)
+                          Cell: row => (<div>{parseDate(row.original.sellDate)} {tooltip(row.original.sellReason)}</div>)
                         },
                         {
                           Header: "Hold Days",

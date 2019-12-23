@@ -17,6 +17,7 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.BinaryWebSocketHandler;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 
 
 public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
@@ -82,41 +83,41 @@ public class AlpacaWebSocketHandler extends BinaryWebSocketHandler {
                     tradeUpdate.getOrder().getSymbol(),
                     tradeUpdate.getOrder().getFilled_avg_price(),
                     tradeUpdate.getOrder().getQty());
-            Order order = new Order(
-                    tradeUpdate.getOrder().getId(),
-                    tradeUpdate.getOrder().getSymbol(),
-                    tradeUpdate.getOrder().getSide(),
-                    tradeUpdate.getOrder().getOrder_type(),
-                    tradeUpdate.getOrder().getQty(),
-                    tradeUpdate.getOrder().getFilled_avg_price(),
-                    tradeUpdate.getOrder().getStatus(),
-                    tradeUpdate.getOrder().getFilled_at());
             try {
-                orderDao.save(order);
+                Optional<Order> order = orderDao.findById(tradeUpdate.getOrder().getId());
+                if (order.isPresent()) {
+                    order.get().setCloseDate(tradeUpdate.getOrder().getFilled_at());
+                    order.get().setAveragePrice(tradeUpdate.getOrder().getFilled_avg_price());
+                    order.get().setStatus(tradeUpdate.getOrder().getStatus());
+                    order.get().setType(tradeUpdate.getOrder().getOrder_type());
+                    orderDao.save(order.get());
+
+                    //Populate Dashboard Message
+                    try {
+                        TradingAccountMonitor.getInstance().syncAccount();
+                        notifier.sendAccountNotification(TradingAccountMonitor.getAccount());
+                        notifier.sendProfitNotification(1, true);
+                        notifier.sendProfitNotification(7, true);
+                        notifier.sendProfitNotification(30, true);
+                        notifier.sendProfitNotification(365, true);
+                        notifier.sendPositionNotification();
+                        notifier.sendNotification(
+                                "Stock Trade",
+                                String.format("%s stock %s at %s, quantity %s",
+                                        order.get().getSide(),
+                                        order.get().getSymbol(),
+                                        order.get().getAveragePrice(),
+                                        order.get().getQuantity()),
+                                order.get().getSide().equalsIgnoreCase(com.ultrader.bot.model.alpaca.Order.BUY) ? NotificationType.BUY : NotificationType.SELL);
+                    } catch (Exception e) {
+                        LOG.error("Sending notification failed", e);
+                    }
+                }
+
             } catch (Exception e) {
-                LOG.error("Cannot store order {}", order, e);
+                LOG.error("Cannot store order {}", tradeUpdate, e);
             }
 
-            //Populate Dashboard Message
-            try {
-                TradingAccountMonitor.getInstance().syncAccount();
-                notifier.sendAccountNotification(TradingAccountMonitor.getAccount());
-                notifier.sendProfitNotification(1, true);
-                notifier.sendProfitNotification(7, true);
-                notifier.sendProfitNotification(30, true);
-                notifier.sendProfitNotification(365, true);
-                notifier.sendPositionNotification();
-                notifier.sendNotification(
-                        "Stock Trade",
-                        String.format("%s stock %s at %s, quantity %s",
-                        order.getSide(),
-                        order.getSymbol(),
-                        order.getAveragePrice(),
-                        order.getQuantity()),
-                        order.getSide().equalsIgnoreCase(com.ultrader.bot.model.alpaca.Order.BUY) ? NotificationType.BUY : NotificationType.SELL);
-            } catch (Exception e) {
-                LOG.error("Sending notification failed", e);
-            }
 
         }
     }

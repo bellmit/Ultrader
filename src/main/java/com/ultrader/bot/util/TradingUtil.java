@@ -49,15 +49,17 @@ public class TradingUtil {
             TimeSeries stock,
             Queue<StrategyParameter> parameters,
             boolean backfill) {
-        return generateTradingStrategy(strategyDao, ruleDao, strategyId, stock, parameters, backfill, null, false);
+        return generateTradingStrategy(strategyDao, ruleDao, strategyId, stock, parameters, backfill, null, null);
     }
 
-    public static void printSatisfaction(StrategyDao strategyDao,
+    public static String printSatisfaction(StrategyDao strategyDao,
                                          RuleDao ruleDao,
                                          long strategyId,
                                          TimeSeries stock,
                                          TradingRecord tradingRecord) {
-        generateTradingStrategy(strategyDao, ruleDao, strategyId, stock, null, false, tradingRecord, true);
+        StringBuilder sb = new StringBuilder();
+        generateTradingStrategy(strategyDao, ruleDao, strategyId, stock, null, false, tradingRecord, sb);
+        return sb.toString();
     }
 
     /**
@@ -79,7 +81,7 @@ public class TradingUtil {
             Queue<StrategyParameter> parameters,
             boolean backfill,
             TradingRecord tradingRecord,
-            boolean printSatisfy) {
+            StringBuilder printSatisfy) {
         try {
             Validate.notNull(strategyDao, "strategyDao is required");
             Validate.notNull(ruleDao, "ruleDao is required");
@@ -102,8 +104,10 @@ public class TradingUtil {
                     path.add(rule.getName());
                     newRule = generateTradingRule(ruleDao, ruleId, stock, parameters, backfill, path);
                     path.remove(path.size() - 1);
-                    if (printSatisfy) {
-                        LOGGER.info("Stock:{}, Rid:{},  Name:{}, Satisfied:{}", stock.getName(), ruleId, rule.getName(), newRule.isSatisfied(stock.getEndIndex(), tradingRecord));
+                    if (printSatisfy != null) {
+                        Boolean isSatisfied = newRule.isSatisfied(stock.getEndIndex(), tradingRecord);
+                        LOGGER.info("Stock:{}, Rid:{},  Name:{}, Satisfied:{}", stock.getName(), ruleId, rule.getName(), isSatisfied);
+                        printSatisfy.append(rule.getName() + " : " + isSatisfied + ", ");
                     }
                 }
 

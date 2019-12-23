@@ -23,4 +23,6 @@ public class Trade {
     private Double buyPrice;
     private Double sellPrice;
     private Double profit;
+    private String buyReason;
+    private String sellReason;
 }

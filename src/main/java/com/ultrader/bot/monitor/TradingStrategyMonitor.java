@@ -177,7 +177,7 @@ public class TradingStrategyMonitor extends Monitor {
                                 && account.getPortfolioValue() > account.getInitialMargin()
                                 && strategy.shouldEnter(timeSeries.getEndIndex())) {
                             LOGGER.info(String.format("%s buy strategy satisfied. ", stock));
-                            TradingUtil.printSatisfaction(strategyDao, ruleDao, buyStrategyId, timeSeries, null);
+                            String reason = TradingUtil.printSatisfaction(strategyDao, ruleDao, buyStrategyId, timeSeries, null);
                             //buy strategy satisfy & no position & hold stock < limit
                             int buyQuantity = calculateBuyShares(
                                     buyLimit,
@@ -186,7 +186,7 @@ public class TradingStrategyMonitor extends Monitor {
                                     Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_USE_MARGIN.getName(), "false")));
                             if (buyQuantity > 0) {
                                 LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
-                                if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null)) != null) {
+                                if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null, reason)) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
                                     positionNum++;
                                 }
@@ -195,10 +195,10 @@ public class TradingStrategyMonitor extends Monitor {
                                 && positions.get(stock).getQuantity() > 0
                                 && strategy.shouldExit(timeSeries.getEndIndex(), tradingRecord)) {
                             LOGGER.info(String.format("%s sell strategy satisfied.", stock));
-                            TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries, tradingRecord);
+                            String reason = TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries, tradingRecord);
                             //sell strategy satisfy & has position
                             LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
-                            if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null)) != null) {
+                            if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null, reason)) != null) {
                                 account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
                                 positionNum--;
                                 sellCount++;
@@ -245,7 +245,7 @@ public class TradingStrategyMonitor extends Monitor {
         //Avoid margin call, randomly sell 1 position
         if (position.isPresent()) {
             LOGGER.info("Selling {} because of margin call.", position.get().getSymbol());
-            tradingService.postOrder(new com.ultrader.bot.model.Order("", position.get().getSymbol(), "sell", sellOrderType, position.get().getQuantity(), position.get().getCurrentPrice(), "", null));
+            tradingService.postOrder(new com.ultrader.bot.model.Order("", position.get().getSymbol(), "sell", sellOrderType, position.get().getQuantity(), position.get().getCurrentPrice(), "", null, "Cover margin call"));
             notifier.sendNotification("Cover Margin Call", "Selling " + position.get().getSymbol() + " to cover margin call.", NotificationType.WARN);
         } else {
             LOGGER.warn("No position can sell to cover, please check your trading account ASAP");
