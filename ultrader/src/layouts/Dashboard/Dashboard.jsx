@@ -53,6 +53,9 @@ class DashboardComp extends Component {
     this.processOptimizationProgressMessage = this.processOptimizationProgressMessage.bind(
       this
     );
+    this.processDownloadProgressMessage = this.processDownloadProgressMessage.bind(
+      this
+    );
     this.processNotification = this.processNotification.bind(this);
 
     this.connectToSockets = this.connectToSockets.bind(this);
@@ -95,6 +98,10 @@ class DashboardComp extends Component {
 
   processOptimizationProgressMessage(message) {
     this.props.onReceivedOptimizationProgressMessage(message);
+  }
+
+  processDownloadProgressMessage(message) {
+    this.props.onReceivedDownloadProgressMessage(message);
   }
 
   processNotification(message) {
@@ -145,6 +152,11 @@ class DashboardComp extends Component {
             "/topic/progress/optimize",
             this.processOptimizationProgressMessage
           );
+          stompClient.subscribe(
+            "/topic/progress/download",
+            this.processDownloadProgressMessage
+          );
+
           stompClient.subscribe(
             "/topic/notification",
             this.processNotification

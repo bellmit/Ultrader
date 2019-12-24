@@ -7,7 +7,6 @@ const initialState = {
      bestParameters: {},
      results: []
   },
-
   progress: {
     status: "Not Started",
     message: "Not Started",

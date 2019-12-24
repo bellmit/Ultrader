@@ -286,9 +286,18 @@
     }
 
     .user{
-        border-bottom: 1px solid rgba($white-color, 0.20);
         padding-bottom: 20px;
         margin-top: 20px;
+        position: relative;
+        &:before {
+            content: "";
+            position: absolute;
+            bottom: 0px;
+            right: 15px;
+            width: calc(100% - 30px);
+            height: 1px;
+            background-color: rgba($white-color, .3);
+        }
 
         .photo{
             width: 34px;

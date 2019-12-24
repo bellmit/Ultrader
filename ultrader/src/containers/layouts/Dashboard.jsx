@@ -7,6 +7,7 @@ import * as RULES_ACTION_TYPES from "actions/Rules/RulesActions";
 import * as STRATEGIES_ACTION_TYPES from "actions/Strategies/StrategiesActions";
 import * as BACKTEST_ACTION_TYPES from "actions/Backtest/BacktestActions";
 import * as OPTIMIZATION_TYPES from "actions/Optimization/OptimizationActions";
+import * as HISTORY_MARKET_DATA_ACTION_TYPES from "actions/HistoryMarketData/HistoryMarketDataActions";
 
 import DashboardComp from "layouts/Dashboard/Dashboard";
 
@@ -49,6 +50,9 @@ class Dashboard extends Component {
         }
         onReceivedOptimizationProgressMessage={
           this.props.onReceivedOptimizationProgressMessage
+        }
+        onReceivedDownloadProgressMessage={
+          this.props.onReceivedDownloadProgressMessage
         }
         onRetrievedRuleTypes={this.props.onRetrievedRuleTypes}
         onRetrievedIndicatorTypes={this.props.onRetrievedIndicatorTypes}
@@ -172,6 +176,11 @@ const mapDispatchToProps = dispatch => {
     onReceivedOptimizationProgressMessage: response =>
       dispatch({
         type: OPTIMIZATION_TYPES.RECEIVED_OPTIMIZATION_PROGRESS_MESSAGE,
+        response: response
+      }),
+    onReceivedDownloadProgressMessage: response =>
+      dispatch({
+        type: HISTORY_MARKET_DATA_ACTION_TYPES.RECEIVED_HISTORY_MARKET_DATA_DOWNLOAD_PROGRESS_MESSAGE,
         response: response
       }),
     // ---------------------- initialization ----------------------

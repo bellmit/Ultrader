@@ -97,7 +97,7 @@ class RulesComp extends Component {
                       className="add_button"
                       variant="primary"
                       onClick={this.handleShowAdd}
-                      {...this.props}
+                      user={this.props.user}
                       requiredRoleId={2}
                     >
                       Add Rule
@@ -158,7 +158,7 @@ class RulesComp extends Component {
                           Cell: row => (
                             <div>
                               <PrivateButton
-                                {...this.props}
+                                user={this.props.user}
                                 requiredRoleId={2}
                                 onClick={() => {
                                   this.editRule(row);
@@ -170,7 +170,7 @@ class RulesComp extends Component {
                                 <i className="fa fa-edit" />
                               </PrivateButton>
                               <PrivateButton
-                                {...this.props}
+                                user={this.props.user}
                                 requiredRoleId={2}
                                 onClick={() => {
                                   this.deleteRule(row);

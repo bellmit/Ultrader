@@ -112,7 +112,7 @@ class PositionsComp extends Component {
                   <div>
                     Positions{tooltip("PositionsPage")}
                     <PrivateButton
-                      {...this.props}
+                      user={this.props.user}
                       requiredRoleId={2}
                       className="add_button"
                       variant="primary"

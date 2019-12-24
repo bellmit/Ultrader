@@ -282,11 +282,7 @@ class OptimizationComp extends Component {
         </Modal>
         <Grid fluid>
           <Card
-            title={
-             <div>
-                 Optimization{tooltip("OptimizationPage")}
-             </div>
-            }
+            title={<div>Optimization{tooltip("OptimizationPage")}</div>}
             content={
               <div>
                 <div className={"alert alert-warning"}>
@@ -426,7 +422,7 @@ class OptimizationComp extends Component {
                       />
                     </FormGroup>
                     <PrivateButton
-                      {...this.props}
+                      user={this.props.user}
                       requiredRoleId={2}
                       fill
                       disabled={this.state.inTesting}

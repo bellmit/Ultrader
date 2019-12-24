@@ -139,7 +139,7 @@ class StrategiesComp extends Component {
                   <div>
                     Strategies{tooltip("StrategiesPage")}
                     <PrivateButton
-                      {...this.props}
+                      user={this.props.user}
                       requiredRoleId={2}
                       className="add_button"
                       variant="primary"
@@ -204,7 +204,7 @@ class StrategiesComp extends Component {
                           Cell: row => (
                             <div>
                               <PrivateButton
-                                {...this.props}
+                                user={this.props.user}
                                 requiredRoleId={2}
                                 onClick={() => {
                                   this.editStrategy(row);
@@ -216,7 +216,7 @@ class StrategiesComp extends Component {
                                 <i className="fa fa-edit" />
                               </PrivateButton>
                               <PrivateButton
-                                {...this.props}
+                                user={this.props.user}
                                 requiredRoleId={2}
                                 onClick={() => {
                                   this.deleteStrategy(row);

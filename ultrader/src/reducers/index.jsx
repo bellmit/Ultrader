@@ -12,6 +12,7 @@ import orders from './Orders/Orders';
 import dashboard from './Dashboard/Dashboard';
 import backtest from './Backtest/Backtest';
 import optimization from './Optimization/Optimization';
+import historyMarketData from './HistoryMarketData/HistoryMarketData';
 
 
 export default combineReducers({
@@ -27,5 +28,6 @@ export default combineReducers({
   settings,
   dashboard,
   backtest,
-  optimization
+  optimization,
+  historyMarketData
 })

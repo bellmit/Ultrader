@@ -157,7 +157,6 @@ class DashboardComp extends Component {
   getCards() {
     axiosGetWithAuth("/api/notification/dashboard")
       .then(res => {
-        console.log(res);
         this.props.portfolio.value = res.data.data.Portfolio;
         this.props.portfolio.buyingPower = res.data.data.BuyingPower;
         this.props.portfolio.change = res.data.data.Change;

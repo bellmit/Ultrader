@@ -9,6 +9,7 @@ import Users from "containers/Users/Users.jsx";
 import Strategies from "containers/Strategies/Strategies.jsx";
 import Positions from "containers/Positions/Positions.jsx";
 import AssetLists from "containers/AssetLists/AssetLists.jsx";
+import HistoryMarketData from "containers/HistoryMarketData/HistoryMarketData.jsx";
 import Backtest from "containers/Backtest/Backtest.jsx";
 import Optimization from "containers/Optimization/Optimization.jsx";
 import PendingOrders from "containers/Orders/PendingOrders.jsx";
@@ -105,6 +106,13 @@ var dashboardRoutes = [
         requiredRoleId: 3
       }
     ]
+  },
+  {
+    path: "/historyMarketData",
+    name: "History Market Data",
+    icon: "pe-7s-server",
+    component: HistoryMarketData,
+    requiredRoleId: 2
   },
   {
     path: "/backtest",

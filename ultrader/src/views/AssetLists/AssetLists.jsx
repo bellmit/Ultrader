@@ -101,7 +101,7 @@ class AssetListsComp extends Component {
                   <div>
                     Asset Lists{tooltip("AssetListsPage")}
                     <PrivateButton
-                      {...this.props}
+                      user={this.props.user}
                       requiredRoleId={2}
                       className="add_button"
                       variant="primary"
@@ -161,7 +161,7 @@ class AssetListsComp extends Component {
                           Cell: row => (
                             <div>
                               <PrivateButton
-                                {...this.props}
+                                user={this.props.user}
                                 requiredRoleId={2}
                                 onClick={() => {
                                   this.editAssetList(row);
@@ -173,7 +173,7 @@ class AssetListsComp extends Component {
                                 <i className="fa fa-edit" />
                               </PrivateButton>
                               <PrivateButton
-                                {...this.props}
+                                user={this.props.user}
                                 requiredRoleId={2}
                                 onClick={() => {
                                   this.deleteAssetList(row);
