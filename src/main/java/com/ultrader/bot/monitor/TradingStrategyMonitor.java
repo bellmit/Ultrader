@@ -186,7 +186,7 @@ public class TradingStrategyMonitor extends Monitor {
                                     Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_USE_MARGIN.getName(), "false")));
                             if (buyQuantity > 0) {
                                 LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
-                                if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null, reason)) != null) {
+                                if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null, reason, MarketDataUtil.getExchangeBySymbol(stock))) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
                                     positionNum++;
                                 }
@@ -198,7 +198,7 @@ public class TradingStrategyMonitor extends Monitor {
                             String reason = TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries, tradingRecord);
                             //sell strategy satisfy & has position
                             LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
-                            if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null, reason)) != null) {
+                            if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null, reason, MarketDataUtil.getExchangeBySymbol(stock))) != null) {
                                 account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
                                 positionNum--;
                                 sellCount++;
@@ -245,7 +245,16 @@ public class TradingStrategyMonitor extends Monitor {
         //Avoid margin call, randomly sell 1 position
         if (position.isPresent()) {
             LOGGER.info("Selling {} because of margin call.", position.get().getSymbol());
-            tradingService.postOrder(new com.ultrader.bot.model.Order("", position.get().getSymbol(), "sell", sellOrderType, position.get().getQuantity(), position.get().getCurrentPrice(), "", null, "Cover margin call"));
+            tradingService.postOrder(new com.ultrader.bot.model.Order(
+                    "",
+                    position.get().getSymbol(),
+                    "sell", sellOrderType,
+                    position.get().getQuantity(),
+                    position.get().getCurrentPrice(),
+                    "",
+                    null,
+                    "Cover margin call",
+                    MarketDataUtil.getExchangeBySymbol(position.get().getSymbol())));
             notifier.sendNotification("Cover Margin Call", "Selling " + position.get().getSymbol() + " to cover margin call.", NotificationType.WARN);
         } else {
             LOGGER.warn("No position can sell to cover, please check your trading account ASAP");

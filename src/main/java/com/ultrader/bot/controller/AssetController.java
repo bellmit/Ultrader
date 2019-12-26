@@ -4,6 +4,7 @@ import com.ultrader.bot.dao.AssetListDao;
 import com.ultrader.bot.model.AssetList;
 import com.ultrader.bot.model.alpaca.Asset;
 import com.ultrader.bot.monitor.MarketDataMonitor;
+import com.ultrader.bot.util.MarketDataUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +82,17 @@ public class AssetController {
             return assetLists;
         } catch (Exception e) {
             LOGGER.error("Get asset lists failed.", e);
+            return null;
+        }
+    }
+
+    @RequestMapping(method = RequestMethod.GET, value = "/getExchangeBySymbol")
+    @ResponseBody
+    public String getExchangeBySymbol(@RequestParam String symbol) {
+        try {
+            return MarketDataUtil.getExchangeBySymbol(symbol);
+        } catch (Exception e) {
+            LOGGER.error("Get exchange  failed.", e);
             return null;
         }
     }

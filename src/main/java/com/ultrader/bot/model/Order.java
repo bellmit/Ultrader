@@ -38,4 +38,6 @@ public class Order {
     private Date closeDate;
     @Column(name="reason")
     private String reason;
+    @Column(name="exchange")
+    private String exchange;
 }

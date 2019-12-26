@@ -65,7 +65,7 @@ public class OrderController {
             for (String asset : assets.split(",")) {
                 //sell strategy satisfy & has position
                 Position position = TradingAccountMonitor.getPositions().get(asset);
-                if (tradingPlatform.getTradingService().postOrder(new com.ultrader.bot.model.Order("", asset, "sell", "market", position.getQuantity(), position.getCurrentPrice(), "", null, "Manual Sell")) != null) {
+                if (tradingPlatform.getTradingService().postOrder(new com.ultrader.bot.model.Order("", asset, "sell", "market", position.getQuantity(), position.getCurrentPrice(), "", null, "Manual Sell", null)) != null) {
                     account.setBuyingPower(account.getBuyingPower() + position.getQuantity() * position.getQuantity());
                     LOGGER.info(String.format("Sell %s %d shares at price %f.", asset, position.getQuantity(), position.getCurrentPrice()));
                 }

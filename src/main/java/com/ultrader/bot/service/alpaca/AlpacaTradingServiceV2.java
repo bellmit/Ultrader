@@ -9,12 +9,10 @@ import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.model.alpaca.AccountConfiguration;
 import com.ultrader.bot.model.alpaca.Asset;
 import com.ultrader.bot.model.alpaca.Clock;
+import com.ultrader.bot.monitor.MarketDataMonitor;
 import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingService;
-import com.ultrader.bot.util.NotificationType;
-import com.ultrader.bot.util.RepositoryUtil;
-import com.ultrader.bot.util.SettingConstant;
-import com.ultrader.bot.util.TradingPlatformConstant;
+import com.ultrader.bot.util.*;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -269,7 +267,8 @@ public class AlpacaTradingServiceV2 implements TradingService {
                     order.getAveragePrice(),
                     orderResponseEntity.getBody().getStatus(),
                     null,
-                    order.getReason());
+                    order.getReason(),
+                    MarketDataUtil.getExchangeBySymbol(orderResponseEntity.getBody().getSymbol()));
             try {
                 orderDao.save(responseOrder);
             } catch (Exception e) {
@@ -303,7 +302,8 @@ public class AlpacaTradingServiceV2 implements TradingService {
                         order.getLimit_price(),
                         order.getStatus(),
                         null,
-                        ""));
+                        "",
+                        MarketDataUtil.getExchangeBySymbol(order.getSymbol())));
             }
             return orderMap;
         } catch (Exception e) {
@@ -335,7 +335,8 @@ public class AlpacaTradingServiceV2 implements TradingService {
                         order.getFilled_avg_price(),
                         order.getStatus(),
                         order.getFilled_at(),
-                        ""));
+                        "",
+                        MarketDataUtil.getExchangeBySymbol(order.getSymbol())));
             }
             return orderList;
         } catch (Exception e) {
