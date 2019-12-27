@@ -11,7 +11,7 @@ import { confirmAlert } from "react-confirm-alert"; // Import
 import "react-confirm-alert/src/react-confirm-alert.css"; // Import css
 import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
-import { parseDate, parseProfit } from "helpers/ParseHelper";
+import { parseDate, parseProfit, parseSymbolGraphModal } from "helpers/ParseHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 class PositionsComp extends Component {
   constructor(props) {
@@ -167,7 +167,8 @@ class PositionsComp extends Component {
                       },
                       {
                         Header: "Symbol",
-                        accessor: "symbol"
+                        accessor: "symbol",
+                        Cell: cell => parseSymbolGraphModal(cell.value)
                       },
                       {
                         Header: "Quantity",

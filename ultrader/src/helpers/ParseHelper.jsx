@@ -1,9 +1,11 @@
-import moment from 'moment'
+import moment from "moment";
 import React, { Component } from "react";
+import ModalLink from "components/CustomButton/CustomModalLink.jsx";
+import TradingViewWidget from "react-tradingview-widget";
 
 export function parseDate(date) {
   var parsed = moment(date);
-  return parsed.isValid() ? parsed.format('YYYY/MM/DD HH:mm:ss') : date;
+  return parsed.isValid() ? parsed.format("YYYY/MM/DD HH:mm:ss") : date;
 }
 
 export function parsePercentage(num) {
@@ -15,32 +17,41 @@ export function parseMoney(num) {
 }
 
 export function parseProfit(value, base) {
- value = Number(value);
- base = Number(base);
- var color = value >= 0 ? "green" : "red";
- var profitPercentText = (value / (base - value) * 100).toFixed(2) + "%";
- return (<span style={{ color: color }}>
-           {"$" + value.toFixed(2) + " (" + profitPercentText + ")"}
-         </span>
-        );
+  value = Number(value);
+  base = Number(base);
+  var color = value >= 0 ? "green" : "red";
+  var profitPercentText = ((value / (base - value)) * 100).toFixed(2) + "%";
+  return (
+    <span style={{ color: color }}>
+      {"$" + value.toFixed(2) + " (" + profitPercentText + ")"}
+    </span>
+  );
+}
+
+export function parseSymbolGraphModal(value) {
+  var symbol = value ? value : "NASDAQ:AAPL";
+  return (
+    <ModalLink
+      linkText={value}
+      modalTitle={"Chart for " + value}
+      modalBody={<TradingViewWidget symbol={symbol} autosize />}
+    />
+  );
 }
 
 export function isFloat(val) {
-    var floatRegex = /^-?\d+(?:[.,]\d*?)?$/;
-    if (!floatRegex.test(val))
-        return false;
+  var floatRegex = /^-?\d+(?:[.,]\d*?)?$/;
+  if (!floatRegex.test(val)) return false;
 
-    val = parseFloat(val);
-    if (isNaN(val))
-        return false;
-    return true;
+  val = parseFloat(val);
+  if (isNaN(val)) return false;
+  return true;
 }
 
 export function isInt(val) {
-    var intRegex = /^-?\d+$/;
-    if (!intRegex.test(val))
-        return false;
+  var intRegex = /^-?\d+$/;
+  if (!intRegex.test(val)) return false;
 
-    var intVal = parseInt(val, 10);
-    return parseFloat(val) == intVal && !isNaN(intVal);
+  var intVal = parseInt(val, 10);
+  return parseFloat(val) == intVal && !isNaN(intVal);
 }

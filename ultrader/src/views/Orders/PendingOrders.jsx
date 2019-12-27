@@ -8,6 +8,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 import axios from "axios";
 import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
+import { parseSymbolGraphModal } from "helpers/ParseHelper";
 
 class PendingOrdersComp extends Component {
   constructor(props) {
@@ -37,7 +38,8 @@ class PendingOrdersComp extends Component {
                     columns={[
                       {
                         Header: "Symbol",
-                        accessor: "symbol"
+                        accessor: "symbol",
+                        Cell: cell => parseSymbolGraphModal(cell.value)
                       },
                       {
                         Header: "Quantity",

@@ -15,7 +15,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 
 import { axiosGetWithAuth } from "helpers/UrlHelper";
 import { tooltip } from "helpers/TooltipHelper";
-import { parseMoney, parsePercentage, parseDate, parseProfit } from "helpers/ParseHelper";
+import { parseMoney, parsePercentage, parseDate, parseProfit, parseSymbolGraphModal } from "helpers/ParseHelper";
 
 class HistoryOrdersComp extends Component {
   constructor(props) {
@@ -99,7 +99,8 @@ class HistoryOrdersComp extends Component {
                       columns={[
                         {
                           Header: "Symbol",
-                          accessor: "symbol"
+                          accessor: "symbol",
+                          Cell: cell => parseSymbolGraphModal(cell.value)
                         },
                         {
                           Header: "Quantity",
