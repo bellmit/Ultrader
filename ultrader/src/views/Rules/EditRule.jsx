@@ -182,8 +182,10 @@ export default class EditRuleComp extends React.Component {
           };
           //Infer name for indicator args
           var argTypes = ruleFieldValue.value.indicatorArgs.map(a => a.label).join("|");
+
           var argOption = this.props.indicatorSelectOptions["NumIndicator"].find(e => (e.value.args === argTypes) && (e.value.label === ruleFieldValue.label));
           //Set correct indicator label
+
           ruleFieldValue.name = argOption.label;
           //Set correct arg label
           var argName = argOption.value.argName.split("|");
@@ -227,7 +229,7 @@ export default class EditRuleComp extends React.Component {
           label: "Integer",
           value: argsValue
         };
-      } else if (isInt(argsValue)) {
+      } else if (isFloat(argsValue)) {
         return {
           label: "Double",
           value: argsValue
