@@ -20,7 +20,7 @@ class CustomModalLink extends Component {
 
     return (
       <div>
-        <a color="primary" onClick={handleShow}>
+        <a color="primary" onClick={handleShow} style={{cursor:'pointer'}}>
           {this.props.linkText}
         </a>
 
