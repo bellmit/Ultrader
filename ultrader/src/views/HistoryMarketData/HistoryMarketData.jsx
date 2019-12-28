@@ -13,7 +13,7 @@ import EditHistoryMarketData from "containers/HistoryMarketData/EditHistoryMarke
 import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
-import { parseDate } from "helpers/ParseHelper";
+import { parseDate, parseSeconds } from "helpers/ParseHelper";
 
 class HistoryMarketDataComp extends Component {
   constructor(props) {
@@ -78,7 +78,6 @@ class HistoryMarketDataComp extends Component {
             this.removeDownloadHistoryMarketData(cell);
           }}
           bsStyle="danger"
-          simple
           icon
         >
           Remove from local
@@ -93,7 +92,6 @@ class HistoryMarketDataComp extends Component {
             this.downloadHistoryMarketData(cell);
           }}
           bsStyle="primary"
-          simple
           icon
         >
           Download to local
@@ -241,7 +239,8 @@ class HistoryMarketDataComp extends Component {
                         },
                         {
                           Header: "Period",
-                          accessor: "period"
+                          accessor: "period",
+                          Cell: cell => parseSeconds(cell.value)
                         },
                         {
                           Header: "Download Actions",

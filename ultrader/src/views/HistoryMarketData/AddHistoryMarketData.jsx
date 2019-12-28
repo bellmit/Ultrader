@@ -19,6 +19,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { tooltip } from "helpers/TooltipHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
+import { parseJavaLocalDatetime } from "helpers/ParseHelper";
 
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -86,8 +87,8 @@ export default class AddHistoryMarketDataComp extends React.Component {
         name: this.state.historyMarketDataName,
         description: this.state.historyMarketDataDescription,
         assetListName: this.state.selectedAssetListOption.label,
-        startDate: this.state.historyMarketDataStartDate,
-        endDate: this.state.historyMarketDataEndDate,
+        startDate: parseJavaLocalDatetime(this.state.historyMarketDataStartDate),
+        endDate: parseJavaLocalDatetime(this.state.historyMarketDataEndDate),
         period: this.state.selectedIntervalOption.value
       };
       console.log(historyMarketData);

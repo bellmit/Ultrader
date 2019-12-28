@@ -8,6 +8,34 @@ export function parseDate(date) {
   return parsed.isValid() ? parsed.format("YYYY/MM/DD HH:mm:ss") : date;
 }
 
+export function parseDatePickerDate(date) {
+  var parsed = moment(date);
+  return parsed.isValid() ? parsed.format("MM/DD/YYYY HH:mm A") : date;
+}
+
+export function parseJavaLocalDatetime(date) {
+  var parsed = moment(date);
+  return parsed.isValid() ? parsed.format("YYYY-MM-DDTHH:mm:ss") : date;
+}
+
+export function parseSeconds(seconds) {
+  if (seconds < 60) {
+    return seconds + " Seconds";
+  } else if (seconds == 60) {
+    return seconds / 60 + " Minute";
+  } else if (seconds < 3600) {
+    return seconds / 60 + " Minutes";
+  } else if (seconds == 3600) {
+    return seconds / 60 + " Hour";
+  } else if (seconds < 86400) {
+    return seconds / 3600 + " Hours";
+  } else if (seconds == 86400) {
+    return seconds / 3600 + " Day";
+  } else {
+    return seconds / 86400 + " Days";
+  }
+}
+
 export function parsePercentage(num) {
   return (num * 100).toFixed(3) + "%";
 }

@@ -19,6 +19,7 @@ import Button from "components/CustomButton/CustomButton.jsx";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
 import { tooltip } from "helpers/TooltipHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
+import { parseDatePickerDate, parseJavaLocalDatetime } from "helpers/ParseHelper";
 
 import Datetime from "react-datetime";
 import "react-datetime/css/react-datetime.css";
@@ -47,8 +48,8 @@ export default class EditHistoryDataComp extends React.Component {
     this.state = {
       historyMarketDataName: this.props.historyMarketData.name,
       historyMarketDataDescription: this.props.historyMarketData.description,
-      historyMarketDataStartDate: this.props.historyMarketData.startDate,
-      historyMarketDataEndDate: this.props.historyMarketData.endDate,
+      historyMarketDataStartDate: parseDatePickerDate(this.props.historyMarketData.startDate),
+      historyMarketDataEndDate: parseDatePickerDate(this.props.historyMarketData.endDate),
       selectedAssetListOption: {},
       selectedIntervalOption: {},
       assetListOptions: []
@@ -114,8 +115,8 @@ export default class EditHistoryDataComp extends React.Component {
         name: this.state.historyMarketDataName,
         description: this.state.historyMarketDataDescription,
         assetListName: this.state.selectedAssetListOption.label,
-        startDate: this.state.historyMarketDataStartDate,
-        endDate: this.state.historyMarketDataEndDate,
+        startDate: parseJavaLocalDatetime(this.state.historyMarketDataStartDate),
+        endDate: parseJavaLocalDatetime(this.state.historyMarketDataEndDate),
         period: this.state.selectedIntervalOption.value
       };
       console.log(historyMarketData);
