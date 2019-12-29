@@ -23,6 +23,7 @@ class Backtest extends Component {
 
 const mapStateToProps = state => {
   return {
+    portfolio: state.global.portfolio,
     results: state.backtest.results,
     progress: state.backtest.progress
   };
