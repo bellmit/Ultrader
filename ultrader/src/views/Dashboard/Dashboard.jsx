@@ -200,7 +200,7 @@ class DashboardComp extends Component {
   }
 
   getNews() {
-    axiosGetWithAuth("/api/news/getNewsList?num=3")
+    axiosGetWithAuth("/api/news/getNewsList?num=5")
       .then(res => {
         this.setState({
           news: res.data
