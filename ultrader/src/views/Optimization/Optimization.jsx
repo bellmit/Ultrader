@@ -36,6 +36,10 @@ var optimizationGoalOption = [
   { value: "AVG_PROFIT", label: "Average Profit Per Trade" },
   { value: "TOTAL_PROFIT", label: "Total Profit" }
 ];
+var booleanOptions = [
+  { value: true, label: "true" },
+  { value: false, label: "false" }
+];
 class OptimizationComp extends Component {
   constructor(props) {
     super(props);
@@ -45,10 +49,14 @@ class OptimizationComp extends Component {
     this.search = this.search.bind(this);
     this.selectBuyStrategyOption = this.selectBuyStrategyOption.bind(this);
     this.selectSellStrategyOption = this.selectSellStrategyOption.bind(this);
-    this.selectSellStrategyOption = this.selectSellStrategyOption.bind(this);
     this.initData = this.initData.bind(this);
     this.toggleInputs = this.toggleInputs.bind(this);
     this.showBestParameters = this.showBestParameters.bind(this);
+    this.selectUsingHistoryDataOption = this.selectUsingHistoryDataOption.bind(
+      this
+    );
+    this.selectMarketDataOption = this.selectMarketDataOption.bind(this);
+    this.marketDataFields = this.marketDataFields.bind(this);
 
     this.state = {
       showInputs: true,
@@ -58,8 +66,11 @@ class OptimizationComp extends Component {
       interval: 300,
       stocks: "AAPL",
       assetListOptions: [],
+      marketDataOptions: [],
       buyStrategyOptions: [],
       sellStrategyOptions: [],
+      usingHistoryData: true,
+      selectedUsingHistoryDataOption: booleanOptions[0],
       selectedBuyStrategyOption: {},
       selectedSellStrategyOption: {},
       totalTrades: 0,
@@ -139,6 +150,21 @@ class OptimizationComp extends Component {
       .catch(error => {
         alertError(error);
       });
+
+    axiosGetWithAuth("/api/historymarketdata/list")
+      .then(response => {
+        var marketDatas = response.data;
+        var marketDataOptions = marketDatas.map(marketData => {
+          return { label: marketData.name, value: marketData.id };
+        });
+
+        this.setState({
+          marketDataOptions: marketDataOptions
+        });
+      })
+      .catch(error => {
+        alertError(error);
+      });
   }
 
   selectAssetListOption(option) {
@@ -146,6 +172,21 @@ class OptimizationComp extends Component {
     this.setState({
       selectedAssetListOption: selectedAssetListOption,
       stocks: option.value
+    });
+  }
+
+  selectUsingHistoryDataOption(option) {
+    let selectedUsingHistoryDataOption = option ? option : {};
+    this.setState({
+      selectedUsingHistoryDataOption: selectedUsingHistoryDataOption,
+      usingHistoryData: selectedUsingHistoryDataOption.value
+    });
+  }
+
+  selectMarketDataOption(option) {
+    let selectedMarketDataOption = option ? option : {};
+    this.setState({
+      selectedMarketDataOption: selectedMarketDataOption
     });
   }
 
@@ -196,8 +237,19 @@ class OptimizationComp extends Component {
   getOptimization() {
     this.props.onOptimizationStarted();
 
-    axiosGetWithAuth(
-      "/api/strategy/optimizeStrategyByDate?" +
+    const uri = this.state.usingHistoryData
+      ? "/api/strategy/optimizeStrategyByHistoryMarketData?" +
+        "&historyMarketDataId=" +
+        this.state.selectedMarketDataOption.value +
+        "&buyStrategyId=" +
+        this.state.selectedBuyStrategyOption.value +
+        "&sellStrategyId=" +
+        this.state.selectedSellStrategyOption.value +
+        "&maxIteration=" +
+        this.state.iteration +
+        "&optimizeGoal=" +
+        this.state.selectedOptimizationGoalOption.value
+      : "/api/strategy/optimizeStrategyByDate?" +
         "startDate=" +
         this.state.startDate +
         "&endDate=" +
@@ -213,8 +265,9 @@ class OptimizationComp extends Component {
         "&maxIteration=" +
         this.state.iteration +
         "&optimizeGoal=" +
-        this.state.selectedOptimizationGoalOption.value
-    )
+        this.state.selectedOptimizationGoalOption.value;
+
+    axiosGetWithAuth(uri)
       .then(res => {
         this.setState({ inTesting: false });
         this.props.onOptimizationSuccess(res);
@@ -222,10 +275,16 @@ class OptimizationComp extends Component {
       })
       .catch(error => {
         this.setState({ inTesting: false });
-        if (error.indexOf("411")) {
-          alertError(
-            "Insufficient training data, please add more assets or increase the data range."
-          );
+        if (error && error.response && error.response.status) {
+          if (error.response.status == 411) {
+            alertError(
+              "Insufficient training data, please add more assets or increase the data range."
+            );
+          } else if (error.response.status == 400) {
+            alertError(
+              "Cannot find history market data, please check the history market data is downloaded."
+            );
+          }
         } else {
           alertError(error);
         }
@@ -234,10 +293,20 @@ class OptimizationComp extends Component {
 
   validate() {
     if (
+      !this.state.usingHistoryData &&
       this.state.startDate &&
       this.state.endDate &&
       this.state.selectedIntervalOption &&
       this.state.stocks &&
+      this.state.selectedBuyStrategyOption &&
+      this.state.selectedSellStrategyOption &&
+      this.state.iteration &&
+      this.state.selectedOptimizationGoalOption
+    ) {
+      return true;
+    } else if (
+      this.state.usingHistoryData &&
+      this.state.selectedUsingHistoryDataOption &&
       this.state.selectedBuyStrategyOption &&
       this.state.selectedSellStrategyOption &&
       this.state.iteration &&
@@ -263,6 +332,85 @@ class OptimizationComp extends Component {
     if (this.validate() && !this.state.inTesting) {
       this.setState({ inTesting: true });
       this.getOptimization();
+    }
+  }
+
+  marketDataFields() {
+    const usingHistoryData = this.state.usingHistoryData;
+    if (usingHistoryData) {
+      return (
+        <FormGroup>
+          <ControlLabel>
+            History Market Data {tooltip("History Market Data stored locally.")}
+          </ControlLabel>
+          <Select
+            placeholder="Choose a History Market Data"
+            name="tradingStockList"
+            options={this.state.marketDataOptions}
+            value={this.state.selectedMarketDataOption}
+            id="stocks"
+            onChange={option => this.selectMarketDataOption(option)}
+          />
+        </FormGroup>
+      );
+    } else {
+      return (
+        <div>
+          <FormGroup>
+            <ControlLabel>
+              Start Date {tooltip("Start date of the training data")}
+            </ControlLabel>
+            <Datetime
+              id="startDate"
+              inputProps={{ placeholder: "Test Start Date" }}
+              onChange={e => {
+                this.setState({ startDate: e.format() });
+              }}
+            />
+          </FormGroup>
+          <FormGroup>
+            <ControlLabel>
+              End Date {tooltip("End date of the training data")}
+            </ControlLabel>
+            <Datetime
+              id="endDate"
+              inputProps={{ placeholder: "Test End Date" }}
+              onChange={e => {
+                this.setState({ endDate: e.format() });
+              }}
+            />
+          </FormGroup>
+          <FormGroup>
+            <ControlLabel>
+              Trading Period {tooltip("Trading period used in the training")}
+            </ControlLabel>
+            <Select
+              placeholder="One bar represent how long"
+              name="intervalInput"
+              options={intervalOptions}
+              value={this.state.selectedIntervalOption}
+              id="intervalInput1"
+              onChange={option => this.selectIntervalOption(option)}
+            />
+          </FormGroup>
+          <FormGroup>
+            <ControlLabel>
+              Asset List{" "}
+              {tooltip(
+                "Assets in the list will be regarded as the training data"
+              )}
+            </ControlLabel>
+            <Select
+              placeholder="Choose a created Asset List"
+              name="tradingStockList"
+              options={this.state.assetListOptions}
+              value={this.state.selectedAssetListOption}
+              id="stocks"
+              onChange={option => this.selectAssetListOption(option)}
+            />
+          </FormGroup>
+        </div>
+      );
     }
   }
 
@@ -302,58 +450,22 @@ class OptimizationComp extends Component {
                   <form onSubmit={this.search}>
                     <FormGroup>
                       <ControlLabel>
-                        Start Date {tooltip("Start date of the training data")}
-                      </ControlLabel>
-                      <Datetime
-                        id="startDate"
-                        inputProps={{ placeholder: "Test Start Date" }}
-                        onChange={e => {
-                          this.setState({ startDate: e.format() });
-                        }}
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <ControlLabel>
-                        End Date {tooltip("End date of the training data")}
-                      </ControlLabel>
-                      <Datetime
-                        id="endDate"
-                        inputProps={{ placeholder: "Test End Date" }}
-                        onChange={e => {
-                          this.setState({ endDate: e.format() });
-                        }}
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <ControlLabel>
-                        Trading Period{" "}
-                        {tooltip("Trading period used in the training")}
-                      </ControlLabel>
-                      <Select
-                        placeholder="One bar represent how long"
-                        name="intervalInput"
-                        options={intervalOptions}
-                        value={this.state.selectedIntervalOption}
-                        id="intervalInput1"
-                        onChange={option => this.selectIntervalOption(option)}
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <ControlLabel>
-                        Asset List{" "}
+                        Use History Market Data{" "}
                         {tooltip(
-                          "Assets in the list will be regarded as the training data"
+                          "Use history market data stored locally or not."
                         )}
                       </ControlLabel>
                       <Select
-                        placeholder="Choose a created Asset List"
-                        name="tradingStockList"
-                        options={this.state.assetListOptions}
-                        value={this.state.selectedAssetListOption}
-                        id="stocks"
-                        onChange={option => this.selectAssetListOption(option)}
+                        name="useHistoryMarketData"
+                        options={booleanOptions}
+                        value={this.state.selectedUsingHistoryDataOption}
+                        id="useHistoryMarketData"
+                        onChange={option =>
+                          this.selectUsingHistoryDataOption(option)
+                        }
                       />
                     </FormGroup>
+                    {this.marketDataFields()}
                     <FormGroup>
                       <ControlLabel>
                         Trade Buy Strategy{" "}

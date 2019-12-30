@@ -33,6 +33,11 @@ var intervalOptions = [
   { value: "86400", label: "1 Day" }
 ];
 
+var booleanOptions = [
+  { value: true, label: "true" },
+  { value: false, label: "false" }
+];
+
 class BacktestComp extends Component {
   constructor(props) {
     super(props);
@@ -46,6 +51,11 @@ class BacktestComp extends Component {
     this.initData = this.initData.bind(this);
     this.toggleInputs = this.toggleInputs.bind(this);
     this.generateSummary = this.generateSummary.bind(this);
+    this.selectUsingHistoryDataOption = this.selectUsingHistoryDataOption.bind(
+      this
+    );
+    this.selectMarketDataOption = this.selectMarketDataOption.bind(this);
+    this.marketDataFields = this.marketDataFields.bind(this);
 
     this.state = {
       showInputs: true,
@@ -54,6 +64,8 @@ class BacktestComp extends Component {
       length: 300,
       interval: 300,
       stocks: "AAPL",
+      usingHistoryData: true,
+      selectedUsingHistoryDataOption: booleanOptions[0],
       assetListOptions: [],
       buyStrategyOptions: [],
       sellStrategyOptions: [],
@@ -135,6 +147,21 @@ class BacktestComp extends Component {
       .catch(error => {
         alertError(error);
       });
+
+    axiosGetWithAuth("/api/historymarketdata/list")
+      .then(response => {
+        var marketDatas = response.data;
+        var marketDataOptions = marketDatas.map(marketData => {
+          return { label: marketData.name, value: marketData.id };
+        });
+
+        this.setState({
+          marketDataOptions: marketDataOptions
+        });
+      })
+      .catch(error => {
+        alertError(error);
+      });
   }
 
   selectAssetListOption(option) {
@@ -142,6 +169,21 @@ class BacktestComp extends Component {
     this.setState({
       selectedAssetListOption: selectedAssetListOption,
       stocks: option.value
+    });
+  }
+
+  selectUsingHistoryDataOption(option) {
+    let selectedUsingHistoryDataOption = option ? option : {};
+    this.setState({
+      selectedUsingHistoryDataOption: selectedUsingHistoryDataOption,
+      usingHistoryData: selectedUsingHistoryDataOption.value
+    });
+  }
+
+  selectMarketDataOption(option) {
+    let selectedMarketDataOption = option ? option : {};
+    this.setState({
+      selectedMarketDataOption: selectedMarketDataOption
     });
   }
 
@@ -205,8 +247,10 @@ class BacktestComp extends Component {
       amount = parseFloat(parseFloat(amount) / this.props.portfolio.value);
     }
     var holds = parseInt(this.state.holdLimit);
-    var estimateTrades = this.state.holdingDays / (avgHoldingDays / hasTrade) * holds;
-    estimateTrades = estimateTrades > totalTrades ? totalTrades : estimateTrades;
+    var estimateTrades =
+      (this.state.holdingDays / (avgHoldingDays / hasTrade)) * holds;
+    estimateTrades =
+      estimateTrades > totalTrades ? totalTrades : estimateTrades;
     this.state.totalProfitStrategy =
       (
         (Math.pow(
@@ -241,8 +285,15 @@ class BacktestComp extends Component {
   getBacktest() {
     this.props.onBacktestStarted();
 
-    axiosGetWithAuth(
-      "/api/strategy/backtestByDate?" +
+    const uri = this.state.usingHistoryData
+      ? "/api/strategy/backtestByHistoryMarketData?" +
+        "&historyMarketDataId=" +
+        this.state.selectedMarketDataOption.value +
+        "&buyStrategyId=" +
+        this.state.selectedBuyStrategyOption.value +
+        "&sellStrategyId=" +
+        this.state.selectedSellStrategyOption.value
+      : "/api/strategy/backtestByDate?" +
         "startDate=" +
         this.state.startDate +
         "&endDate=" +
@@ -254,8 +305,8 @@ class BacktestComp extends Component {
         "&buyStrategyId=" +
         this.state.selectedBuyStrategyOption.value +
         "&sellStrategyId=" +
-        this.state.selectedSellStrategyOption.value
-    )
+        this.state.selectedSellStrategyOption.value;
+    axiosGetWithAuth(uri)
       .then(res => {
         this.setState({ inTesting: false });
         this.generateSummary(res);
@@ -271,6 +322,7 @@ class BacktestComp extends Component {
 
   validate() {
     if (
+      !this.state.usingHistoryData &&
       this.state.startDate &&
       this.state.endDate &&
       this.state.selectedIntervalOption &&
@@ -279,7 +331,15 @@ class BacktestComp extends Component {
       this.state.selectedSellStrategyOption
     ) {
       return true;
+    } else if (
+      this.state.usingHistoryData &&
+      this.state.selectedUsingHistoryDataOption &&
+      this.state.selectedBuyStrategyOption &&
+      this.state.selectedSellStrategyOption
+    ) {
+      return true;
     } else {
+      alertError("Please fill all fields.");
       return false;
     }
   }
@@ -300,6 +360,85 @@ class BacktestComp extends Component {
     }
   }
 
+  marketDataFields() {
+    const usingHistoryData = this.state.usingHistoryData;
+    if (usingHistoryData) {
+      return (
+        <FormGroup>
+          <ControlLabel>
+            History Market Data {tooltip("History Market Data stored locally.")}
+          </ControlLabel>
+          <Select
+            placeholder="Choose a History Market Data"
+            name="tradingStockList"
+            options={this.state.marketDataOptions}
+            value={this.state.selectedMarketDataOption}
+            id="stocks"
+            onChange={option => this.selectMarketDataOption(option)}
+          />
+        </FormGroup>
+      );
+    } else {
+      return (
+        <div>
+          <FormGroup>
+            <ControlLabel>
+              Start Date {tooltip("Start date of the training data")}
+            </ControlLabel>
+            <Datetime
+              id="startDate"
+              inputProps={{ placeholder: "Test Start Date" }}
+              onChange={e => {
+                this.setState({ startDate: e.format() });
+              }}
+            />
+          </FormGroup>
+          <FormGroup>
+            <ControlLabel>
+              End Date {tooltip("End date of the training data")}
+            </ControlLabel>
+            <Datetime
+              id="endDate"
+              inputProps={{ placeholder: "Test End Date" }}
+              onChange={e => {
+                this.setState({ endDate: e.format() });
+              }}
+            />
+          </FormGroup>
+          <FormGroup>
+            <ControlLabel>
+              Trading Period {tooltip("Trading period used in the training")}
+            </ControlLabel>
+            <Select
+              placeholder="One bar represent how long"
+              name="intervalInput"
+              options={intervalOptions}
+              value={this.state.selectedIntervalOption}
+              id="intervalInput1"
+              onChange={option => this.selectIntervalOption(option)}
+            />
+          </FormGroup>
+          <FormGroup>
+            <ControlLabel>
+              Asset List{" "}
+              {tooltip(
+                "Assets in the list will be regarded as the training data"
+              )}
+            </ControlLabel>
+            <Select
+              placeholder="Choose a created Asset List"
+              name="tradingStockList"
+              options={this.state.assetListOptions}
+              value={this.state.selectedAssetListOption}
+              id="stocks"
+              onChange={option => this.selectAssetListOption(option)}
+            />
+          </FormGroup>
+        </div>
+      );
+    }
+  }
+
   render() {
     return (
       <div className="main-content">
@@ -314,11 +453,7 @@ class BacktestComp extends Component {
         </Modal>
         <Grid fluid>
           <Card
-             title={
-              <div>
-                  Back Test{tooltip("BackTestPage")}
-              </div>
-             }
+            title={<div>Back Test{tooltip("BackTestPage")}</div>}
             content={
               <div>
                 <div className={"alert alert-warning"}>
@@ -339,56 +474,22 @@ class BacktestComp extends Component {
                   <form onSubmit={this.search}>
                     <FormGroup>
                       <ControlLabel>
-                        Start Date {tooltip("Start date of the testing data")}
-                      </ControlLabel>
-                      <Datetime
-                        id="startDate"
-                        inputProps={{ placeholder: "Test Start Date" }}
-                        onChange={e => {
-                          this.setState({ startDate: e.format() });
-                        }}
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <ControlLabel>
-                        End Date {tooltip("End date of the testing data")}
-                      </ControlLabel>
-                      <Datetime
-                        id="endDate"
-                        inputProps={{ placeholder: "Test End Date" }}
-                        onChange={e => {
-                          this.setState({ endDate: e.format() });
-                        }}
-                      />
-                    </FormGroup>
-                    <FormGroup>
-                      <ControlLabel>
-                        Trading Period{" "}
-                        {tooltip("Trading period used in the testing")}
+                        Use History Market Data{" "}
+                        {tooltip(
+                          "Use history market data stored locally or not."
+                        )}
                       </ControlLabel>
                       <Select
-                        placeholder="One bar represent how long"
-                        name="intervalInput"
-                        options={intervalOptions}
-                        value={this.state.selectedIntervalOption}
-                        id="intervalInput1"
-                        onChange={option => this.selectIntervalOption(option)}
+                        name="useHistoryMarketData"
+                        options={booleanOptions}
+                        value={this.state.selectedUsingHistoryDataOption}
+                        id="useHistoryMarketData"
+                        onChange={option =>
+                          this.selectUsingHistoryDataOption(option)
+                        }
                       />
                     </FormGroup>
-                    <FormGroup>
-                      <ControlLabel>
-                        Test Asset List{" "}
-                        {tooltip("Asset List will be used in the testing")}
-                      </ControlLabel>
-                      <Select
-                        placeholder="Choose a created Asset List"
-                        name="tradingStockList"
-                        options={this.state.assetListOptions}
-                        value={this.state.selectedAssetListOption}
-                        id="stocks"
-                        onChange={option => this.selectAssetListOption(option)}
-                      />
-                    </FormGroup>
+                    {this.marketDataFields()}
                     <FormGroup>
                       <ControlLabel>
                         Test Buy Strategy{" "}
@@ -429,7 +530,8 @@ class BacktestComp extends Component {
                       onClick={this.search.bind(this)}
                       color="info"
                       style={{ textAlign: "center" }}
-                      type="submit">
+                      type="submit"
+                    >
                       Test
                     </PrivateButton>
                   </form>
