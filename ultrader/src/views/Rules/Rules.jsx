@@ -91,18 +91,20 @@ class RulesComp extends Component {
             <Col md={12}>
               <Card
                 title={
-                  <div>
-                    Rules{tooltip("RulesPage")}
-                    <PrivateButton
-                      className="add_button"
-                      variant="primary"
-                      onClick={this.handleShowAdd}
-                      user={this.props.user}
-                      requiredRoleId={2}
-                    >
-                      Add Rule
-                    </PrivateButton>
-                  </div>
+                  <Row>
+                    <Col sm={8}>Rules{tooltip("RulesPage")}</Col>
+                    <Col sm={4}>
+                      <PrivateButton
+                        className="add_button"
+                        variant="primary"
+                        onClick={this.handleShowAdd}
+                        user={this.props.user}
+                        requiredRoleId={2}
+                      >
+                        Add Rule
+                      </PrivateButton>
+                    </Col>
+                  </Row>
                 }
                 content={
                   <div>

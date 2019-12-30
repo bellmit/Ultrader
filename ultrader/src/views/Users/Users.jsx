@@ -14,9 +14,9 @@ import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 
 var roleMap = {
-    1:"Admin",
-    2:"Operator",
-    3:"Read-Only User"
+  1: "Admin",
+  2: "Operator",
+  3: "Read-Only User"
 };
 
 class UsersComp extends Component {
@@ -96,16 +96,18 @@ class UsersComp extends Component {
             <Col md={12}>
               <Card
                 title={
-                  <div>
-                    Users{tooltip("UsersPage")}
-                    <Button
-                      className="add_button"
-                      variant="primary"
-                      onClick={this.handleShowAdd}
-                    >
-                      Add User
-                    </Button>
-                  </div>
+                  <Row>
+                    <Col sm={8}>Users{tooltip("UsersPage")}</Col>
+                    <Col sm={4}>
+                      <Button
+                        className="add_button"
+                        variant="primary"
+                        onClick={this.handleShowAdd}
+                      >
+                        Add User
+                      </Button>
+                    </Col>
+                  </Row>
                 }
                 content={
                   <div>
@@ -163,19 +165,21 @@ class UsersComp extends Component {
                               >
                                 <i className="fa fa-edit" />
                               </Button>
-                              {this.props.users.filter(user => user.roleId == 1).length > 1 ||
-                                row.original.roleId != 1
-                              ?
-                              <Button
-                                onClick={() => {
-                                  this.deleteUser(row);
-                                }}
-                                bsStyle="danger"
-                                simple
-                                icon
-                              >
-                                <i className="fa fa-times" />
-                              </Button>:""}
+                              {this.props.users.filter(user => user.roleId == 1)
+                                .length > 1 || row.original.roleId != 1 ? (
+                                <Button
+                                  onClick={() => {
+                                    this.deleteUser(row);
+                                  }}
+                                  bsStyle="danger"
+                                  simple
+                                  icon
+                                >
+                                  <i className="fa fa-times" />
+                                </Button>
+                              ) : (
+                                ""
+                              )}
                             </div>
                           ),
                           sortable: false,

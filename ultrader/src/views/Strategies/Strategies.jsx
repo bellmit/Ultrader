@@ -136,18 +136,20 @@ class StrategiesComp extends Component {
             <Col md={12}>
               <Card
                 title={
-                  <div>
-                    Strategies{tooltip("StrategiesPage")}
-                    <PrivateButton
-                      user={this.props.user}
-                      requiredRoleId={2}
-                      className="add_button"
-                      variant="primary"
-                      onClick={this.handleShowAdd}
-                    >
-                      Add Strategy
-                    </PrivateButton>
-                  </div>
+                  <Row>
+                    <Col sm={8}>Strategies{tooltip("StrategiesPage")}</Col>
+                    <Col sm={4}>
+                      <PrivateButton
+                        user={this.props.user}
+                        requiredRoleId={2}
+                        className="add_button"
+                        variant="primary"
+                        onClick={this.handleShowAdd}
+                      >
+                        Add Strategy
+                      </PrivateButton>
+                    </Col>
+                  </Row>
                 }
                 content={
                   <div>

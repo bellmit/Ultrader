@@ -98,18 +98,21 @@ class AssetListsComp extends Component {
             <Col md={12}>
               <Card
                 title={
-                  <div>
-                    Asset Lists{tooltip("AssetListsPage")}
-                    <PrivateButton
-                      user={this.props.user}
-                      requiredRoleId={2}
-                      className="add_button"
-                      variant="primary"
-                      onClick={this.handleShowAdd}
-                    >
-                      Add AssetList
-                    </PrivateButton>
-                  </div>
+                  <Row>
+                    <Col sm={8}>Asset Lists{tooltip("AssetListsPage")}</Col>
+                    <Col sm={4}>
+                      {" "}
+                      <PrivateButton
+                        user={this.props.user}
+                        requiredRoleId={2}
+                        className="add_button"
+                        variant="primary"
+                        onClick={this.handleShowAdd}
+                      >
+                        Add AssetList
+                      </PrivateButton>
+                    </Col>
+                  </Row>
                 }
                 content={
                   <div>

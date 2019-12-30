@@ -13,7 +13,11 @@ import EditHistoryMarketData from "containers/HistoryMarketData/EditHistoryMarke
 import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosDeleteWithAuth } from "helpers/UrlHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
-import { parseDate, parseSeconds } from "helpers/ParseHelper";
+import {
+  parseDate,
+  parseSeconds,
+  parseReadableFileSizeString
+} from "helpers/ParseHelper";
 
 class HistoryMarketDataComp extends Component {
   constructor(props) {
@@ -157,18 +161,22 @@ class HistoryMarketDataComp extends Component {
             <Col md={12}>
               <Card
                 title={
-                  <div>
-                    History Market Data{tooltip("History Market Data Page")}
-                    <PrivateButton
-                      className="add_button"
-                      variant="primary"
-                      onClick={this.handleShowAdd}
-                      user={this.props.user}
-                      requiredRoleId={2}
-                    >
-                      Add History Market Data
-                    </PrivateButton>
-                  </div>
+                  <Row>
+                    <Col sm={8}>
+                      History Market Data{tooltip("History Market Data Page")}
+                    </Col>
+                    <Col sm={4}>
+                      <PrivateButton
+                        className="add_button pull-right"
+                        variant="primary"
+                        onClick={this.handleShowAdd}
+                        user={this.props.user}
+                        requiredRoleId={2}
+                      >
+                        Add History Market Data
+                      </PrivateButton>
+                    </Col>
+                  </Row>
                 }
                 content={
                   <div>
@@ -242,6 +250,17 @@ class HistoryMarketDataComp extends Component {
                           accessor: "period",
                           Cell: cell => parseSeconds(cell.value)
                         },
+                        {
+                          Header: "Data Size",
+                          accessor: "size",
+                          Cell: cell => parseReadableFileSizeString(cell.value)
+                        },
+                        {
+                          Header: "Assets",
+                          accessor: "assetCount",
+                          width: 70
+                        },
+
                         {
                           Header: "Download Actions",
                           accessor: "isDownloaded",

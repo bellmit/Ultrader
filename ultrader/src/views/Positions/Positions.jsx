@@ -11,7 +11,11 @@ import { confirmAlert } from "react-confirm-alert"; // Import
 import "react-confirm-alert/src/react-confirm-alert.css"; // Import css
 import { tooltip } from "helpers/TooltipHelper";
 import { axiosGetWithAuth, axiosPostWithAuth } from "helpers/UrlHelper";
-import { parseDate, parseProfit, parseSymbolGraphModal } from "helpers/ParseHelper";
+import {
+  parseDate,
+  parseProfit,
+  parseSymbolGraphModal
+} from "helpers/ParseHelper";
 import { alertSuccess, alertError } from "helpers/AlertHelper";
 class PositionsComp extends Component {
   constructor(props) {
@@ -109,18 +113,20 @@ class PositionsComp extends Component {
             <Col md={12}>
               <Card
                 title={
-                  <div>
-                    Positions{tooltip("PositionsPage")}
-                    <PrivateButton
-                      user={this.props.user}
-                      requiredRoleId={2}
-                      className="add_button"
-                      variant="primary"
-                      onClick={this.manualSell}
-                    >
-                      Liquid Selected Assets
-                    </PrivateButton>
-                  </div>
+                  <Row>
+                    <Col sm={8}>Positions{tooltip("PositionsPage")}</Col>
+                    <Col sm={4}>
+                      <PrivateButton
+                        user={this.props.user}
+                        requiredRoleId={2}
+                        className="add_button"
+                        variant="primary"
+                        onClick={this.manualSell}
+                      >
+                        Liquid Selected Assets
+                      </PrivateButton>
+                    </Col>
+                  </Row>
                 }
                 content={
                   <ReactTable
