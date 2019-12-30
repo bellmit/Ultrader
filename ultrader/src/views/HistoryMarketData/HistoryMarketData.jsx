@@ -253,7 +253,7 @@ class HistoryMarketDataComp extends Component {
                         {
                           Header: "Data Size",
                           accessor: "size",
-                          Cell: cell => parseReadableFileSizeString(cell.value)
+                          Cell: cell => parseReadableFileSizeString(cell.value * 1024)
                         },
                         {
                           Header: "Assets",

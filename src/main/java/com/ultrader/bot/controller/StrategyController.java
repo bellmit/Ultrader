@@ -296,7 +296,10 @@ public class StrategyController {
         int trades = 0, rewardRiskRatioCount = 0;
         double profitTradesRatio = 0.0, rewardRiskRatio = 0.0, vsBuyAndHold = 0.0, totalProfit = 0.0, averageHoldingDays = 0.0;
         for (String stock : symbols) {
-            timeSeriesList.add(HistoryMarketDataUtil.fileToTimeSeries(historyMarketData.get(), stock));
+            TimeSeries timeSeries = HistoryMarketDataUtil.fileToTimeSeries(historyMarketData.get(), stock);
+            if (timeSeries != null) {
+                timeSeriesList.add(timeSeries);
+            }
         }
 
         //Check time series
