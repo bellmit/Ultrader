@@ -19,6 +19,12 @@ var roleMap = {
   3: "Read-Only User"
 };
 
+var roleOptions = [
+  { value: 1, label: "Admin" },
+  { value: 2, label: "Operator" },
+  { value: 3, label: "Read-Only User" }
+];
+
 class UsersComp extends Component {
   constructor(props) {
     super(props);
@@ -118,7 +124,7 @@ class UsersComp extends Component {
                     >
                       <Modal.Header closeButton />
                       <Modal.Body>
-                        <AddUser />
+                        <AddUser roleOptions={roleOptions} />
                       </Modal.Body>
                     </Modal>
                     <Modal
@@ -131,6 +137,7 @@ class UsersComp extends Component {
                         <EditUser
                           editUser={this.state.selectedUser}
                           index={this.state.selectedUserIndex}
+                          roleOptions={roleOptions}
                         />
                       </Modal.Body>
                     </Modal>

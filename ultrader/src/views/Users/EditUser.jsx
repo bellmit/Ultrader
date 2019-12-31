@@ -28,6 +28,15 @@ export default class EditUserComp extends React.Component {
     this.handleCfPasswordChange = this.handleCfPasswordChange.bind(this);
     this.saveUser = this.saveUser.bind(this);
     this.validate = this.validate.bind(this);
+
+    var roleOption = props.roleOptions.find(
+      e => e.value == props.editUser.roleId
+    );
+    var selectedRoleOption = roleOption ? roleOption : {};
+
+    console.log(props.editUser);
+    console.log(selectedRoleOption);
+
     this.state = {
       // Register
       username: props.editUser.username,
@@ -35,7 +44,8 @@ export default class EditUserComp extends React.Component {
       cfpassword: "",
       usernameError: null,
       passwordError: null,
-      cfpasswordError: null
+      cfpasswordError: null,
+      selectedRoleOption: selectedRoleOption
     };
   }
 
@@ -86,15 +96,18 @@ export default class EditUserComp extends React.Component {
     return (
       this.state.username &&
       this.state.password.length >= 6 &&
-      this.state.cfpassword == this.state.password
+      this.state.cfpassword == this.state.password &&
+      this.state.selectedRoleOption
     );
   }
 
   saveUser() {
     if (this.validate()) {
       axiosPostWithAuth("/api/user/addUser", {
-        username: this.state.username,
-        passwordHash: this.state.password
+        id: this.props.editUser.id,
+        username: this.props.editUser.username,
+        passwordHash: this.state.password,
+        roleId: this.state.selectedRoleOption.value
       })
         .then(res => {
           console.log(res);
@@ -178,6 +191,29 @@ export default class EditUserComp extends React.Component {
                             }
                           />
                           {this.state.cfpasswordError}
+                        </Col>
+                      </FormGroup>
+                    </fieldset>
+                    <fieldset>
+                      <FormGroup>
+                        <ControlLabel className="col-sm-2">
+                          Role <span className="star">*</span>{" "}
+                          {tooltip("The role of this user")}
+                        </ControlLabel>
+                        <Col sm={10}>
+                          <Select
+                            placeholder="Role"
+                            name="roleOption"
+                            options={this.props.roleOptions}
+                            value={this.state.selectedRoleOption}
+                            id="roleOption"
+                            onChange={selectedOption => {
+                              this.setState({
+                                selectedRoleOption: selectedOption
+                              });
+                            }}
+                            isDisabled={this.props.editUser.roleId == 1}
+                          />
                         </Col>
                       </FormGroup>
                     </fieldset>

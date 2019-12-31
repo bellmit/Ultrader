@@ -35,7 +35,8 @@ export default class AddUserComp extends React.Component {
       cfpassword: "",
       usernameError: null,
       passwordError: null,
-      cfpasswordError: null
+      cfpasswordError: null,
+      selectedRoleOption: this.props.roleOptions[2]
     };
   }
 
@@ -86,7 +87,8 @@ export default class AddUserComp extends React.Component {
     return (
       this.state.username &&
       this.state.password.length >= 6 &&
-      this.state.cfpassword == this.state.password
+      this.state.cfpassword == this.state.password &&
+      this.state.selectedRoleOption
     );
   }
 
@@ -94,7 +96,8 @@ export default class AddUserComp extends React.Component {
     if (this.validate()) {
       axiosPostWithAuth("/api/user/addUser", {
         username: this.state.username,
-        passwordHash: this.state.password
+        passwordHash: this.state.password,
+        roleId: this.state.selectedRoleOption.value
       })
         .then(res => {
           console.log(res);
@@ -176,6 +179,29 @@ export default class AddUserComp extends React.Component {
                             }
                           />
                           {this.state.cfpasswordError}
+                        </Col>
+                      </FormGroup>
+                    </fieldset>
+
+                    <fieldset>
+                      <FormGroup>
+                        <ControlLabel className="col-sm-2">
+                          Role <span className="star">*</span>{" "}
+                          {tooltip("The role of this user")}
+                        </ControlLabel>
+                        <Col sm={10}>
+                          <Select
+                            placeholder="Role"
+                            name="roleOption"
+                            options={this.props.roleOptions}
+                            value={this.state.selectedRoleOption}
+                            id="roleOption"
+                            onChange={selectedOption => {
+                              this.setState({
+                                selectedRoleOption: selectedOption
+                              });
+                            }}
+                          />
                         </Col>
                       </FormGroup>
                     </fieldset>

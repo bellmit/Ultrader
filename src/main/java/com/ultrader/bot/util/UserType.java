@@ -2,6 +2,8 @@ package com.ultrader.bot.util;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import java.util.Arrays;
+
 /**
  * User Type
  * @author ytx1991
@@ -25,5 +27,9 @@ public enum  UserType {
 
     public Integer getId() {
         return id;
+    }
+
+    public static UserType findById(final int id){
+        return Arrays.stream(values()).filter(value -> value.getId().equals(id)).findFirst().orElse(null);
     }
 }

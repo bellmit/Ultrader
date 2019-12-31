@@ -43,7 +43,18 @@ public class UserController {
     public User save(@RequestBody User user) {
         try {
             user.setPasswordHash(passwordEncoder.encode(user.getPasswordHash()));
-            user.setRoleId(UserType.READ_ONLY_USER.getId().toString());
+
+            Integer roleId = null;
+            try {
+                roleId = Integer.parseInt(user.getRoleId());
+            } catch (Exception e) {
+            }
+            if(roleId != null && UserType.findById(roleId)!= null){
+                user.setRoleId(user.getRoleId());
+            }else{
+                user.setRoleId(UserType.READ_ONLY_USER.getId().toString());
+            }
+
             User savedUser = userDao.save(user);
             return savedUser;
         } catch (Exception e) {
