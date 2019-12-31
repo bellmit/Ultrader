@@ -13,6 +13,7 @@ import com.ultrader.bot.util.UserType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -60,6 +61,17 @@ public class UserController {
         } catch (Exception e) {
             LOGGER.error("Save user failed.", e);
             return null;
+        }
+    }
+    @RequestMapping(method = RequestMethod.DELETE, value = "/deleteUser/{id}")
+    @ResponseBody
+    public ResponseEntity<Boolean> deleteUser(@PathVariable Long id) {
+        try {
+            userDao.deleteById(id);
+            return ResponseEntity.ok(true);
+        } catch (Exception e) {
+            LOGGER.error("Save user failed.", e);
+            return ResponseEntity.badRequest().build();
         }
     }
 
