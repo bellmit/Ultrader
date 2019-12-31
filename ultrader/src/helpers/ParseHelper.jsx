@@ -62,7 +62,7 @@ export function parseSymbolGraphModal(value) {
     <ModalLink
       linkText={value}
       modalTitle={"Chart for " + value}
-      modalBody={<TradingViewWidget symbol={symbol} autosize />}
+      modalBody={<TradingViewWidget interval={5} studies={ ["MACD@tv-basicstudies", "RSI@tv-basicstudies"]} symbol={symbol} autosize />}
     />
   );
 }
