@@ -7,6 +7,7 @@ import com.ultrader.bot.security.JwtAuthenticationEntryPoint;
 import com.ultrader.bot.security.JwtAuthenticationFilter;
 import com.ultrader.bot.util.UserType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -15,6 +16,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.annotation.web.configurers.ExpressionUrlAuthorizationConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -39,6 +41,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Autowired
     private JwtAuthenticationEntryPoint unauthorizedHandler;
+    @Value("${app.demoMode}")
+    private Boolean isDemo;
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
@@ -78,58 +82,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.csrf().disable()
-                .authorizeRequests()
-                .and()
-                .exceptionHandling()
-                .and()
-                .authorizeRequests()
-                .requestMatchers(CorsUtils:: isPreFlightRequest).permitAll()
-                // websockets
-                .antMatchers("/ws/**").permitAll()
-                //Auth Controller
-                .antMatchers("/api/auth/**").permitAll()
-                //Metadata Controller
-                .antMatchers("/api/metadata/**").permitAll()
-                //Rule Controller
-                .antMatchers("/api/rule/getRule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                .antMatchers("/api/rule/getRules/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                .antMatchers("/api/rule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                //Asset Controller
-                .antMatchers("/api/asset/getAssetLists/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                .antMatchers("/api/asset/getAllAssets/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                .antMatchers("/api/asset/getAssetList/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                .antMatchers("/api/asset/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                //Order Controller
-                .antMatchers("/api/order/getOpenOrders/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                .antMatchers("/api/order/getClosedOrders/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                .antMatchers("/api/order/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                //Chart Controller
-                .antMatchers("/api/chart/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                //Position Controller
-                .antMatchers("/api/position/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                //Notification Controller
-                .antMatchers("/api/notification/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                //User Controller
-                .antMatchers("/api/user/addRootUser/**").permitAll()
-                .antMatchers("/api/user/getUserType/**").permitAll()
-                .antMatchers("/api/user/hasUsers/**").permitAll()
-                .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString())
-                //News  Controller
-                .antMatchers("/api/news/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                //Strategy Controller
-                .antMatchers("/api/strategy/getStrategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                .antMatchers("/api/strategy/getStrategies/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
-                .antMatchers("/api/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-                //Setting Controller
-                .antMatchers("/api/setting/check/**").permitAll()
-                .antMatchers("/api/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
-
-                .antMatchers("/admin/**").hasAuthority(UserType.ADMIN.getId().toString())
-                // database console
-                .antMatchers("/h2-console/**").permitAll();
-
-
+        setApiPermission(http);
         http.headers().frameOptions().sameOrigin();
 
         http.cors();
@@ -141,6 +94,112 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
     }
 
+    private void setApiPermission(HttpSecurity http) throws Exception {
+        if (isDemo) {
+            http.csrf().disable()
+                    .authorizeRequests()
+                    .and()
+                    .exceptionHandling()
+                    .and()
+                    .authorizeRequests()
+                    .requestMatchers(CorsUtils:: isPreFlightRequest).permitAll()
+                    // websockets
+                    .antMatchers("/ws/**").permitAll()
+                    //Auth Controller
+                    .antMatchers("/api/auth/**").permitAll()
+                    //Metadata Controller
+                    .antMatchers("/api/metadata/**").permitAll()
+                    //Rule Controller
+                    .antMatchers("/api/rule/getRule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/rule/getRules/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/rule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                    //Asset Controller
+                    .antMatchers("/api/asset/getAssetLists/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/asset/getAllAssets/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/asset/getAssetList/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/asset/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                    //Order Controller
+                    .antMatchers("/api/order/getOpenOrders/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/order/getClosedOrders/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/order/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                    //Chart Controller
+                    .antMatchers("/api/chart/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    //Position Controller
+                    .antMatchers("/api/position/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    //Notification Controller
+                    .antMatchers("/api/notification/**").permitAll()
+                    //User Controller
+                    .antMatchers("/api/user/addRootUser/**").permitAll()
+                    .antMatchers("/api/user/getUserType/**").permitAll()
+                    .antMatchers("/api/user/hasUsers/**").permitAll()
+                    .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString())
+                    //News  Controller
+                    .antMatchers("/api/news/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    //Strategy Controller
+                    .antMatchers("/api/strategy/getStrategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/strategy/getStrategies/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                    //Setting Controller
+                    .antMatchers("/api/setting/check/**").permitAll()
+                    .antMatchers("/api/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+
+                    .antMatchers("/admin/**").hasAuthority(UserType.ADMIN.getId().toString())
+                    // database console
+                    .antMatchers("/h2-console/**").permitAll();
+        } else {
+            http.csrf().disable()
+                    .authorizeRequests()
+                    .and()
+                    .exceptionHandling()
+                    .and()
+                    .authorizeRequests()
+                    .requestMatchers(CorsUtils:: isPreFlightRequest).permitAll()
+                    // websockets
+                    .antMatchers("/ws/**").permitAll()
+                    //Auth Controller
+                    .antMatchers("/api/auth/**").permitAll()
+                    //Metadata Controller
+                    .antMatchers("/api/metadata/**").permitAll()
+                    //Rule Controller
+                    .antMatchers("/api/rule/getRule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/rule/getRules/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/rule/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                    //Asset Controller
+                    .antMatchers("/api/asset/getAssetLists/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/asset/getAllAssets/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/asset/getAssetList/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/asset/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                    //Order Controller
+                    .antMatchers("/api/order/getOpenOrders/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/order/getClosedOrders/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/order/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                    //Chart Controller
+                    .antMatchers("/api/chart/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    //Position Controller
+                    .antMatchers("/api/position/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    //Notification Controller
+                    .antMatchers("/api/notification/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    //User Controller
+                    .antMatchers("/api/user/addRootUser/**").permitAll()
+                    .antMatchers("/api/user/getUserType/**").permitAll()
+                    .antMatchers("/api/user/hasUsers/**").permitAll()
+                    .antMatchers("/api/user/**").hasAuthority(UserType.ADMIN.getId().toString())
+                    //News  Controller
+                    .antMatchers("/api/news/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    //Strategy Controller
+                    .antMatchers("/api/strategy/getStrategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/strategy/getStrategies/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString(), UserType.READ_ONLY_USER.getId().toString())
+                    .antMatchers("/api/strategy/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+                    //Setting Controller
+                    .antMatchers("/api/setting/check/**").permitAll()
+                    .antMatchers("/api/setting/**").hasAnyAuthority(UserType.ADMIN.getId().toString(), UserType.OPERATOR.getId().toString())
+
+                    .antMatchers("/admin/**").hasAuthority(UserType.ADMIN.getId().toString())
+                    // database console
+                    .antMatchers("/h2-console/**").permitAll();
+
+        }
+    }
     @Bean
     CORSFilter customCorsFilter() {
         return new CORSFilter();
