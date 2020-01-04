@@ -79,7 +79,7 @@ public class MonitorManager implements CommandLineRunner {
 
         //Start Trading strategy monitor
         Thread.sleep(10000);
-        TradingStrategyMonitor.init(20000, tradingPlatform.getTradingService(), settingDao, conditionalSettingDao, strategyDao, ruleDao, notifier);
+        TradingStrategyMonitor.init(30000, tradingPlatform.getTradingService(), settingDao, conditionalSettingDao, strategyDao, ruleDao, notifier);
         threadPoolTaskExecutor.execute(TradingStrategyMonitor.getInstance());
     }
 

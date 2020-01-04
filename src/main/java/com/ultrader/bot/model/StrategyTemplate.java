@@ -166,9 +166,9 @@ public enum StrategyTemplate {
                     "      { \n" +
                     "         \"id\":12,\n" +
                     "         \"name\":\"RSI Buy Signal\",\n" +
-                    "         \"description\":\"RSI crossed up 15\",\n" +
+                    "         \"description\":\"RSI crossed up 20\",\n" +
                     "         \"type\":\"CrossedUpIndicatorRule\",\n" +
-                    "         \"formula\":\"RSIIndicator:ClosePrice:14,Number:15\"\n" +
+                    "         \"formula\":\"RSIIndicator:ClosePrice:14,Number:20\"\n" +
                     "      },\n" +
                     "      { \n" +
                     "         \"id\":13,\n" +
