@@ -18,6 +18,7 @@ public class Account {
     private String status;
     private String currency;
     private double buyingPower;
+    private double dayTradeBuyingPower;
     private double cash;
     private double cashWithdrawable;
     private double portfolioValue;
@@ -27,5 +28,6 @@ public class Account {
     private boolean isTradingBlocked;
     private boolean isTransfersBlocked;
     private boolean isAccountBlocked;
+    private double lastEquity;
 
 }

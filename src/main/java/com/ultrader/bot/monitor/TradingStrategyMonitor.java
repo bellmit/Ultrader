@@ -7,6 +7,7 @@ import com.ultrader.bot.dao.StrategyDao;
 
 import com.ultrader.bot.model.Account;
 import com.ultrader.bot.model.ConditionalSetting;
+import com.ultrader.bot.model.MarketInfo;
 import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.Setting;
 import com.ultrader.bot.service.NotificationService;
@@ -88,7 +89,7 @@ public class TradingStrategyMonitor extends Monitor {
                 LOGGER.info("Auto trading disabled");
                 return;
             }
-
+            MarketInfo marketInfo = tradingService.getMarketInfo();
             Account account = tradingService.getAccountInfo();
             Map<String, Position> positions = TradingAccountMonitor.getPositions();
             LOGGER.info("Execute trading strategy.");
@@ -135,7 +136,7 @@ public class TradingStrategyMonitor extends Monitor {
                 if (ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).toEpochSecond() - timeSeries.getLastBar().getEndTime().toEpochSecond() > tradeInterval * 3) {
                     LOGGER.debug("Skip {} trading strategy since time series is not update to date {} {}", stock, new Date().getTime(), timeSeries.getLastBar().getEndTime().toEpochSecond());
                     notNewEnough++;
-                    if (MarketDataMonitor.isMarketOpen()) {
+                    if (marketInfo.getIsOpen()) {
                         //If it is trading time, reset the times series
                         TimeSeries newTimeSeries = new BaseTimeSeries(timeSeries.getName());
                         newTimeSeries.setMaximumBarCount(timeSeries.getMaximumBarCount());
@@ -146,7 +147,7 @@ public class TradingStrategyMonitor extends Monitor {
                 validCount++;
 
                 //Check if buy satisfied
-                if (MarketDataMonitor.isMarketOpen()) {
+                if (MarketDataMonitor.isMarketOpen() && marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() > tradeInterval * 1000) {
                     //Generate strategy
                     Strategy strategy = new BaseStrategy(stock,
                             TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, timeSeries, null, false),
@@ -183,7 +184,8 @@ public class TradingStrategyMonitor extends Monitor {
                                     buyLimit,
                                     currentPrice,
                                     account,
-                                    Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_USE_MARGIN.getName(), "false")));
+                                    Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_USE_MARGIN.getName(), "false")),
+                                    Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_INTRADAY_TRADING.getName(), "false")));
                             if (buyQuantity > 0) {
                                 LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
                                 if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null, reason, MarketDataUtil.getExchangeBySymbol(stock))) != null) {
@@ -215,11 +217,11 @@ public class TradingStrategyMonitor extends Monitor {
 
                 }
             }
-            if (sellCount == 0
-                    && account.getMaintenanceMargin() > account.getPortfolioValue()
-                    && RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_AUTO_COVER.getName(), "true").equals("true")
-                    && MarketDataMonitor.isMarketOpen()) {
-                coverMarginCall(positions.values().stream().findFirst(), sellOrderType);
+            //Check if it's time to cover margin.
+            if ( RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_AUTO_COVER.getName(), "true").equals("true")
+                    && marketInfo.getIsOpen()
+                    && marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() < tradeInterval * 1000) {
+                tradingService.sellForCoverMargin(account, positions.values());
             }
             LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
                     validCount, noTimeSeries, notLongEnough, notNewEnough);
@@ -241,26 +243,6 @@ public class TradingStrategyMonitor extends Monitor {
         return dayTradeCount;
     }
 
-    private void coverMarginCall(Optional<Position> position, String sellOrderType) {
-        //Avoid margin call, randomly sell 1 position
-        if (position.isPresent()) {
-            LOGGER.info("Selling {} because of margin call.", position.get().getSymbol());
-            tradingService.postOrder(new com.ultrader.bot.model.Order(
-                    "",
-                    position.get().getSymbol(),
-                    "sell", sellOrderType,
-                    position.get().getQuantity(),
-                    position.get().getCurrentPrice(),
-                    "",
-                    null,
-                    "Cover margin call",
-                    MarketDataUtil.getExchangeBySymbol(position.get().getSymbol())));
-            notifier.sendNotification("Cover Margin Call", "Selling " + position.get().getSymbol() + " to cover margin call.", NotificationType.WARN);
-        } else {
-            LOGGER.warn("No position can sell to cover, please check your trading account ASAP");
-            notifier.sendNotification("Cover Margin Call", "No position can sell to cover, please check your trading account ASAP", NotificationType.WARN);
-        }
-    }
 
     private void checkMarketData(int validCount, int notNewEnough) {
         if (MarketDataMonitor.timeSeriesMap.size() * 0.1 > validCount) {
@@ -311,19 +293,21 @@ public class TradingStrategyMonitor extends Monitor {
         }
     }
 
-    private static int calculateBuyShares(String limit, double price, Account account, Boolean maxBuyingPower) {
+    private static int calculateBuyShares(String limit, double price, Account account, Boolean useMargin, Boolean intradayTrade) {
         double amount;
         if (limit.indexOf("%") < 0) {
             amount = Double.parseDouble(limit);
         } else {
-            if (maxBuyingPower) {
+            if (useMargin && intradayTrade) {
                 amount = (account.getPortfolioValue() - account.getCash() + account.getBuyingPower()) * Double.parseDouble(limit.substring(0, limit.length() - 1)) / 100;
+            } else if (useMargin) {
+                amount = account.getPortfolioValue() * 2 * Double.parseDouble(limit.substring(0, limit.length() - 1)) / 100;
             } else {
                 amount = account.getPortfolioValue() * Double.parseDouble(limit.substring(0, limit.length() - 1)) / 100;
             }
         }
         int quantity = (int) (Math.floor(amount / price));
-        if (account.getBuyingPower() < amount) {
+        if (account.getDayTradeBuyingPower() < amount || account.getBuyingPower() < amount) {
             quantity = 0;
         }
         return quantity;

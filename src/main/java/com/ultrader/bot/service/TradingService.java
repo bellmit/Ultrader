@@ -1,10 +1,13 @@
 package com.ultrader.bot.service;
 
 import com.ultrader.bot.model.Account;
+import com.ultrader.bot.model.MarketInfo;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.Setting;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -20,6 +23,12 @@ public interface TradingService {
      * @return
      */
     boolean isMarketOpen();
+
+    /**
+     * Get basic information of the market
+     * @return
+     */
+    MarketInfo getMarketInfo();
 
     /**
      * Get all tradable stocks
@@ -40,6 +49,13 @@ public interface TradingService {
      * @return
      */
     Order postOrder(Order order);
+
+    /**
+     * Sell assets for cover margin
+     * @param account
+     * @param positions
+     */
+    void sellForCoverMargin(Account account, Collection<Position> positions);
 
     /**
      * Get all open orders

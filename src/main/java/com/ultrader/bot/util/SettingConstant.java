@@ -53,6 +53,8 @@ public enum SettingConstant {
     TRADE_BUY_STRATEGY("TRADE_BUY_STRATEGY"),
     //Strategy id of selling
     TRADE_SELL_STRATEGY("TRADE_SELL_STRATEGY"),
+    //Enable intraday trading
+    TRADE_INTRADAY_TRADING("TRADE_INTRADAY_TRADING"),
     //Buy order type, limit, market, etc
     TRADE_BUY_ORDER_TYPE("TRADE_BUY_ORDER_TYPE"),
     //Sell order type, limit, market, etc

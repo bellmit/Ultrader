@@ -3,6 +3,7 @@ package com.ultrader.bot.service.alpaca;
 import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.model.Account;
+import com.ultrader.bot.model.MarketInfo;
 import com.ultrader.bot.model.Order;
 import com.ultrader.bot.model.Position;
 import com.ultrader.bot.model.Setting;
@@ -29,6 +30,7 @@ import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Alpaca Order API
@@ -160,6 +162,25 @@ public class AlpacaTradingServiceV2 implements TradingService {
         }
     }
 
+    @Override
+    public MarketInfo getMarketInfo() {
+        try {
+            HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
+            ResponseEntity<Clock> clock = client.exchange("/clock", HttpMethod.GET, entity, Clock.class);
+            if (clock.getStatusCode().is4xxClientError()) {
+                LOGGER.error("Invalid Alpaca key, please check you key and secret");
+                notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca clock API, Error " + clock.getStatusCode().toString(), NotificationType.ERROR);
+                return null;
+            }
+            LOGGER.debug(clock.getBody().toString());
+            return new MarketInfo(clock.getBody().getTimestamp(), clock.getBody().getIs_open(), clock.getBody().getNext_open(), clock.getBody().getNext_close());
+        } catch (Exception e) {
+            LOGGER.error("Failed to call /clock api.", e);
+            notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca clock API, Error " + e.getMessage(), NotificationType.ERROR);
+            return null;
+        }
+    }
+
     public Map<String, Set<String>> getAvailableStocks() {
         try {
             HttpEntity<Void> entity = new HttpEntity<>(generateHeader());
@@ -222,6 +243,7 @@ public class AlpacaTradingServiceV2 implements TradingService {
                     account.getBody().getStatus(),
                     account.getBody().getCurrency(),
                     account.getBody().getBuying_power(),
+                    account.getBody().getDaytrading_buying_power(),
                     account.getBody().getCash(),
                     account.getBody().getCash(),
                     account.getBody().getEquity(),
@@ -230,7 +252,8 @@ public class AlpacaTradingServiceV2 implements TradingService {
                     account.getBody().getPattern_day_trader(),
                     account.getBody().getTrading_blocked(),
                     account.getBody().getTransfers_blocked(),
-                    account.getBody().getAccount_blocked());
+                    account.getBody().getAccount_blocked(),
+                    account.getBody().getLast_equity());
         } catch (Exception e) {
             LOGGER.error("Failed to call /account api.", e);
             notifier.sendNotification("Alpaca API Failure", "Cannot call Alpaca account API, Error " + e.getMessage(), NotificationType.ERROR);
@@ -278,6 +301,31 @@ public class AlpacaTradingServiceV2 implements TradingService {
         } catch (Exception e) {
             LOGGER.error("Failed to call /orders api.", e);
             return null;
+        }
+    }
+
+    @Override
+    public void sellForCoverMargin(Account account, Collection<Position> positions) {
+        double totalAsset = 0;
+        for (Position position : positions) {
+            totalAsset += position.getQuantity() * position.getAverageCost();
+        }
+        double margin = totalAsset - account.getLastEquity() * 2;
+        if (margin < 0) {
+            LOGGER.info("No need to sell to cover margin.");
+        } else {
+            //Sort the positions by market value and sell from the top one
+            List<Position> sortedPositions = positions.stream().sorted(Comparator.comparingDouble(Position::getMarketValue)).collect(Collectors.toList());
+            Collections.reverse(sortedPositions);
+            for (Position position : sortedPositions) {
+                if (margin > 0) {
+                    String stock = position.getSymbol();
+                    Order order = postOrder(new Order("", stock, "sell", "market", position.getQuantity(), position.getAverageCost(), "", null, "Sell for covering margin", MarketDataUtil.getExchangeBySymbol(stock)));
+                    if (order != null) {
+                        margin -= position.getQuantity() * position.getAverageCost();
+                    }
+                }
+            }
         }
     }
 
