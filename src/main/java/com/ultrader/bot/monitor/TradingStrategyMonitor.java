@@ -298,8 +298,8 @@ public class TradingStrategyMonitor extends Monitor {
         if (limit.indexOf("%") < 0) {
             amount = Double.parseDouble(limit);
         } else {
-            if (useMargin && intradayTrade) {
-                amount = (account.getPortfolioValue() - account.getCash() + account.getBuyingPower()) * Double.parseDouble(limit.substring(0, limit.length() - 1)) / 100;
+            if (useMargin && intradayTrade && account.isDayTrader()) {
+                amount = account.getPortfolioValue() * 4 * Double.parseDouble(limit.substring(0, limit.length() - 1)) / 100;
             } else if (useMargin) {
                 amount = account.getPortfolioValue() * 2 * Double.parseDouble(limit.substring(0, limit.length() - 1)) / 100;
             } else {
