@@ -3,6 +3,7 @@ package com.ultrader.bot.monitor;
 import com.ultrader.bot.dao.*;
 import com.ultrader.bot.service.LicenseService;
 import com.ultrader.bot.service.NotificationService;
+import com.ultrader.bot.service.TradingNotificationService;
 import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.util.DatabaseUtil;
 import com.ultrader.bot.util.RepositoryUtil;
@@ -52,6 +53,8 @@ public class MonitorManager implements CommandLineRunner {
     private NotificationDao notificationDao;
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private TradingNotificationService sns;
 
     @Override
     public void run(String... args) throws Exception {
@@ -79,7 +82,7 @@ public class MonitorManager implements CommandLineRunner {
 
         //Start Trading strategy monitor
         Thread.sleep(10000);
-        TradingStrategyMonitor.init(60000, tradingPlatform.getTradingService(), settingDao, conditionalSettingDao, strategyDao, ruleDao, notifier);
+        TradingStrategyMonitor.init(60000, tradingPlatform.getTradingService(), settingDao, conditionalSettingDao, strategyDao, ruleDao, notifier, sns);
         threadPoolTaskExecutor.execute(TradingStrategyMonitor.getInstance());
     }
 

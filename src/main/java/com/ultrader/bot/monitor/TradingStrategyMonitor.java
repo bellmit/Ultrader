@@ -5,24 +5,23 @@ import com.ultrader.bot.dao.RuleDao;
 import com.ultrader.bot.dao.SettingDao;
 import com.ultrader.bot.dao.StrategyDao;
 
-import com.ultrader.bot.model.Account;
-import com.ultrader.bot.model.ConditionalSetting;
-import com.ultrader.bot.model.MarketInfo;
-import com.ultrader.bot.model.Position;
-import com.ultrader.bot.model.Setting;
+import com.ultrader.bot.model.*;
 import com.ultrader.bot.service.NotificationService;
+import com.ultrader.bot.service.TradingNotificationService;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.*;
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.ta4j.core.*;
+import org.ta4j.core.Strategy;
 import org.ta4j.core.num.PrecisionNum;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Order strategy monitor
@@ -41,6 +40,7 @@ public class TradingStrategyMonitor extends Monitor {
     private final ConditionalSettingDao conditionalSettingDao;
     private final TradingService tradingService;
     private final NotificationService notifier;
+    private final TradingNotificationService sns;
 
     private TradingStrategyMonitor(long interval,
                                    final TradingService tradingService,
@@ -48,7 +48,8 @@ public class TradingStrategyMonitor extends Monitor {
                                    final ConditionalSettingDao conditionalSettingDao,
                                    final StrategyDao strategyDao,
                                    final RuleDao ruleDao,
-                                   final NotificationService notifier) {
+                                   final NotificationService notifier,
+                                   final TradingNotificationService sns) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(settingDao, "settingDao is required");
@@ -56,6 +57,7 @@ public class TradingStrategyMonitor extends Monitor {
         Validate.notNull(strategyDao, "strategyDao is required");
         Validate.notNull(ruleDao, "ruleDao is required");
         Validate.notNull(notifier, "notifier is required");
+        Validate.notNull(sns, "sns is required");
 
         this.settingDao = settingDao;
         this.conditionalSettingDao = conditionalSettingDao;
@@ -63,10 +65,26 @@ public class TradingStrategyMonitor extends Monitor {
         this.ruleDao = ruleDao;
         this.tradingService = tradingService;
         this.notifier = notifier;
+        this.sns = sns;
     }
 
-    public static void init(long interval, final TradingService tradingService, final SettingDao settingDao, final ConditionalSettingDao conditionalSettingDao, final StrategyDao strategyDao, final RuleDao ruleDao, final NotificationService notifier) {
-        singleton_instance = new TradingStrategyMonitor(interval, tradingService, settingDao, conditionalSettingDao, strategyDao, ruleDao, notifier);
+    public static void init(long interval,
+                            final TradingService tradingService,
+                            final SettingDao settingDao,
+                            final ConditionalSettingDao conditionalSettingDao,
+                            final StrategyDao strategyDao,
+                            final RuleDao ruleDao,
+                            final NotificationService notifier,
+                            final TradingNotificationService sns) {
+        singleton_instance = new TradingStrategyMonitor(
+                interval,
+                tradingService,
+                settingDao,
+                conditionalSettingDao,
+                strategyDao,
+                ruleDao,
+                notifier,
+                sns);
     }
 
     public static TradingStrategyMonitor getInstance() throws IllegalAccessException {
@@ -108,7 +126,6 @@ public class TradingStrategyMonitor extends Monitor {
             String sellOrderType = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_SELL_ORDER_TYPE.getName(), "market");
             int tradeInterval = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"));
             LOGGER.info("Buy order type {}, Sell order type {}", buyOrderType, sellOrderType);
-
             int validCount = 0;
             int noTimeSeries = 0;
             int notLongEnough = 0;
@@ -145,6 +162,7 @@ public class TradingStrategyMonitor extends Monitor {
                     continue;
                 }
                 validCount++;
+
 
                 //Check if buy satisfied
                 if (MarketDataMonitor.isMarketOpen() && marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() > tradeInterval * 1000) {
@@ -190,6 +208,13 @@ public class TradingStrategyMonitor extends Monitor {
                                 LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
                                 if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null, reason, MarketDataUtil.getExchangeBySymbol(stock))) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
+                                    sns.sendNotification(TradingNotification.builder()
+                                            .symbol(stock)
+                                            .currentPositions(positions.values().stream().map(p->p.getSymbol()).collect(Collectors.toList()))
+                                            .price(currentPrice)
+                                            .side("buy")
+                                            .type("market")
+                                            .build());
                                     positionNum++;
                                 }
                             }
@@ -205,7 +230,13 @@ public class TradingStrategyMonitor extends Monitor {
                                 positionNum--;
                                 sellCount++;
                                 dayTradeCount.put(stock, 1);
-
+                                sns.sendNotification(TradingNotification.builder()
+                                        .symbol(stock)
+                                        .currentPositions(positions.values().stream().map(p->p.getSymbol()).collect(Collectors.toList()))
+                                        .price(currentPrice)
+                                        .side("sell")
+                                        .type("market")
+                                        .build());
                             }
 
                         }
