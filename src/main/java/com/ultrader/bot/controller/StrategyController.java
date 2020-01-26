@@ -192,8 +192,8 @@ public class StrategyController {
         for (String stock : symbols) {
             TimeSeries timeSeries = HistoryMarketDataUtil.fileToTimeSeries(historyMarketData.get(), stock);
             notifier.convertAndSend(BACKTEST_TOPIC, new ProgressMessage("InProgress", "Back test " + stock, 100 * count / total));
-            BackTestingResult result = backTest(timeSeries, buyStrategyId, sellStrategyId, strategyDao, ruleDao, null);
-            if (result != null) {
+            if(timeSeries != null) {
+                BackTestingResult result = backTest(timeSeries, buyStrategyId, sellStrategyId, strategyDao, ruleDao, null);
                 results.add(result);
             }
             count += 1;

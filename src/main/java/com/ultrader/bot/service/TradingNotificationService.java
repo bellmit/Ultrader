@@ -44,7 +44,7 @@ public class TradingNotificationService {
 
     public void sendNotification(TradingNotification notification) {
         String token = RepositoryUtil.getSetting(settingDao, SettingConstant.ULTRADER_PUBLISH_TOKEN.getName(), "");
-        if(token.equals("")) {
+        if(token.equals("") || notification.getStrategyId().equals("")) {
             //Missing settings, skip publishing
             return;
         }
