@@ -208,13 +208,6 @@ public class TradingStrategyMonitor extends Monitor {
                                 LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
                                 if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null, reason, MarketDataUtil.getExchangeBySymbol(stock))) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
-                                    sns.sendNotification(TradingNotification.builder()
-                                            .symbol(stock)
-                                            .currentPositions(positions.values().stream().map(p->p.getSymbol()).collect(Collectors.toList()))
-                                            .price(currentPrice)
-                                            .side("buy")
-                                            .type("market")
-                                            .build());
                                     positionNum++;
                                 }
                             }
@@ -230,13 +223,6 @@ public class TradingStrategyMonitor extends Monitor {
                                 positionNum--;
                                 sellCount++;
                                 dayTradeCount.put(stock, 1);
-                                sns.sendNotification(TradingNotification.builder()
-                                        .symbol(stock)
-                                        .currentPositions(positions.values().stream().map(p->p.getSymbol()).collect(Collectors.toList()))
-                                        .price(currentPrice)
-                                        .side("sell")
-                                        .type("market")
-                                        .build());
                             }
 
                         }

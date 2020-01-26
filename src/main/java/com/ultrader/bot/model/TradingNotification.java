@@ -17,5 +17,6 @@ public class TradingNotification {
     private String side;
     private double price;
     private String type;
+    private String amount;
     private List<String> currentPositions;
 }

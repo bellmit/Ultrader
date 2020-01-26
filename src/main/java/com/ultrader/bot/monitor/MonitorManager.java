@@ -70,14 +70,14 @@ public class MonitorManager implements CommandLineRunner {
         //Start License Monitor
         LicenseMonitor.init(24 * 3600L * 1000, licenseService, settingDao, notifier);
         threadPoolTaskExecutor.execute(LicenseMonitor.getInstance());
-
-        //Trading account monitor
-        TradingAccountMonitor.init(10000, tradingPlatform.getTradingService(), settingDao, notifier, orderDao, chartDao, positionDao);
-        threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
         //Start MarketDate Monitor
         long interval = Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")) * 1000;
         MarketDataMonitor.init(interval, tradingPlatform, settingDao, assetListDao, notifier, jdbcTemplate, orderDao);
         threadPoolTaskExecutor.execute(MarketDataMonitor.getInstance());
+        //Trading account monitor
+        TradingAccountMonitor.init(10000, tradingPlatform.getTradingService(), settingDao, notifier, orderDao, chartDao, positionDao);
+        threadPoolTaskExecutor.execute(TradingAccountMonitor.getInstance());
+
 
 
         //Start Trading strategy monitor

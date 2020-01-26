@@ -12,10 +12,7 @@ import com.ultrader.bot.util.MarketTrend;
 import com.ultrader.bot.util.RepositoryUtil;
 import com.ultrader.bot.util.SettingConstant;
 import com.ultrader.bot.util.TradingUtil;
-import io.nats.client.Connection;
-import io.nats.client.Dispatcher;
-import io.nats.client.Nats;
-import io.nats.client.Options;
+
 import org.apache.commons.lang.Validate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +21,13 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.socket.client.WebSocketConnectionManager;
+import org.springframework.web.socket.client.standard.StandardWebSocketClient;
 import org.ta4j.core.*;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.PrecisionNum;
 import org.ta4j.core.trading.rules.InSlopeRule;
-import org.ta4j.core.trading.rules.IsFallingRule;
-import org.ta4j.core.trading.rules.IsRisingRule;
 
 import java.time.*;
 import java.time.format.DateTimeFormatter;
@@ -52,8 +49,8 @@ public class PolygonMarketDataService implements MarketDataService {
     private String polygonKey;
     private RestTemplate client;
     private RestTemplateBuilder restTemplateBuilder;
-    private Dispatcher dispatcher;
-    private Connection connection;
+    private WebSocketConnectionManager connectionManager;
+    private PolygonWebSocketHandler handler;
     private ThreadPoolTaskExecutor threadPoolTaskExecutor;
     private final SettingDao settingDao;
     private final SimpleClientHttpRequestFactory clientHttpRequestFactory;
@@ -63,7 +60,6 @@ public class PolygonMarketDataService implements MarketDataService {
     public PolygonMarketDataService(SettingDao settingDao, RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
-
         rateLimiter = RateLimiter.create(150);
         this.settingDao = settingDao;
         this.maxGap = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_MAX_GAP.getName(), "3"));
@@ -97,15 +93,16 @@ public class PolygonMarketDataService implements MarketDataService {
 
         //Init Websocket
         try {
-            Options options = new Options.Builder()
-                    .server("nats1.polygon.io:31101")
-                    .server("nats2.polygon.io:31102")
-                    .server("nats3.polygon.io:31103")
-                    .token(polygonKey)
-                    .maxReconnects(-1).build();
-            connection = Nats.connect(options);
-            LOGGER.info("Connect to Polygon. Status {}, {}", connection.getStatus(), connection.getConnectedUrl());
-            dispatcher = connection.createDispatcher(new PolygonMessageHandler(this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"))));
+            //Init Websocket
+            if (!polygonKey.isEmpty()) {
+                handler = new PolygonWebSocketHandler(polygonKey, this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")));
+                connectionManager = new WebSocketConnectionManager(
+                        new StandardWebSocketClient(),
+                        handler,
+                        "wss://alpaca.socket.polygon.io/stocks");
+                connectionManager.start();
+            }
+            LOGGER.info("Connect to Polygon.");
         } catch (Exception e) {
             LOGGER.error("Failed to connect to Polygon.", e);
             return;
@@ -115,7 +112,7 @@ public class PolygonMarketDataService implements MarketDataService {
 
     @Override
     public List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) throws InterruptedException {
-        if (dispatcher == null) {
+        if (connectionManager == null || !connectionManager.isRunning()) {
             initService();
         }
         interval = interval < 60000 ? 60000 : interval;
@@ -129,7 +126,7 @@ public class PolygonMarketDataService implements MarketDataService {
         int newStockCount = 0;
         LOGGER.debug("Start date {}, End Date {}", startDate, endDate);
         for (TimeSeries timeSeries : stocks) {
-            if (timeSeries.getBarCount() == 0 && interval >= 60000 || dispatcher == null) {
+            if (timeSeries.getBarCount() == 0 && interval >= 60000 || connectionManager == null || !connectionManager.isRunning()) {
                 rateLimiter.acquire();
                 GetStockBarsTask task = new GetStockBarsTask(timeSeries, client, startDate, endDate, getPeriodUnit(interval), getPeriodLength(interval), interval, polygonKey);
                 threadPoolTaskExecutor.execute(task);
@@ -188,15 +185,15 @@ public class PolygonMarketDataService implements MarketDataService {
 
     @Override
     public void subscribe(String symbol) {
-        if (dispatcher != null) {
-            dispatcher.subscribe(getFrequency() + symbol);
+        if (handler != null) {
+            handler.subscribe(getFrequency() + symbol);
         }
     }
 
     @Override
     public void unsubscribe(String symbol) {
-        if (dispatcher != null) {
-            dispatcher.unsubscribe(getFrequency() + symbol);
+        if (handler != null) {
+            handler.unsubscribe(getFrequency() + symbol);
         }
     }
 
@@ -239,11 +236,12 @@ public class PolygonMarketDataService implements MarketDataService {
             threadPoolTaskExecutor.getThreadPoolExecutor().getQueue().clear();
             threadPoolTaskExecutor.shutdown();
         }
-        if (connection != null) {
+        //If already init, clean up
+        if (connectionManager != null) {
             try {
-                connection.close();
-            } catch (InterruptedException e) {
-                LOGGER.error("Close Polygon Websocket.", e);
+                connectionManager.stopInternal();
+            } catch (Exception e) {
+                LOGGER.info("Restart Polygon Websocket.");
             }
         }
     }
@@ -274,10 +272,6 @@ public class PolygonMarketDataService implements MarketDataService {
             return null;
         }
 
-    }
-
-    public Dispatcher getDispatcher() {
-        return dispatcher;
     }
 
     public String getFrequency() {

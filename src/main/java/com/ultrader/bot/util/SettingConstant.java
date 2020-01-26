@@ -76,7 +76,11 @@ public enum SettingConstant {
     //If true, account becomes long-only mode.
     ALPACA_NO_SHORTING("ALPACA_NO_SHORTING"),
     //Polygon web socket update frequency.
-    POLYGON_WS_FREQUENCY("POLYGON_WS_FREQUENCY");
+    POLYGON_WS_FREQUENCY("POLYGON_WS_FREQUENCY"),
+    //The strategy ID you want to publish
+    ULTRADER_PUBLISH_STRATEGY("ULTRADER_PUBLISH_STRATEGY"),
+    //The authorization token of publishing strategy
+    ULTRADER_PUBLISH_TOKEN("ULTRADER_PUBLISH_TOKEN");
 
     public static final String DELIMITER = ",";
     private String name;

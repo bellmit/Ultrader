@@ -28,9 +28,10 @@ public class TradingPlatform {
     private final NotificationService notifier;
     private final SettingDao settingDao;
     private final RestTemplateBuilder restTemplate;
+    private final TradingNotificationService sns;
 
     @Autowired
-    public TradingPlatform(SettingDao settingDao, OrderDao orderDao, NotificationService notifier, RestTemplateBuilder restTemplate) {
+    public TradingPlatform(SettingDao settingDao, OrderDao orderDao, NotificationService notifier, RestTemplateBuilder restTemplate, TradingNotificationService sns) {
         Validate.notNull(settingDao, "SettingDao is required");
         Validate.notNull(orderDao, "orderDao is required");
         Validate.notNull(notifier, "notifier is required");
@@ -39,13 +40,14 @@ public class TradingPlatform {
         this.orderDao = orderDao;
         this.notifier = notifier;
         this.restTemplate = restTemplate;
+        this.sns = sns;
         initAllPlatformServices();
     }
 
     private void initAllPlatformServices() {
         String tradingPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADING_PLATFORM.getName(), TradingPlatformConstant.ALPACA_PAPER);
         String marketDataPlatform = RepositoryUtil.getSetting(settingDao, SettingConstant.MARKET_DATA_PLATFORM.getName(), "IEX");
-        tradingService = new AlpacaTradingServiceV2(settingDao, restTemplate, orderDao, notifier, tradingPlatform);
+        tradingService = new AlpacaTradingServiceV2(settingDao, restTemplate, orderDao, notifier, tradingPlatform, sns);
 
         if(marketDataPlatform.equals(TradingPlatformConstant.POLYGON)) {
             marketDataService = new PolygonMarketDataService(settingDao, restTemplate);

@@ -2,16 +2,14 @@ package com.ultrader.bot.service.alpaca;
 
 import com.ultrader.bot.dao.OrderDao;
 import com.ultrader.bot.dao.SettingDao;
-import com.ultrader.bot.model.Account;
-import com.ultrader.bot.model.MarketInfo;
-import com.ultrader.bot.model.Order;
-import com.ultrader.bot.model.Position;
-import com.ultrader.bot.model.Setting;
+import com.ultrader.bot.model.*;
 import com.ultrader.bot.model.alpaca.AccountConfiguration;
 import com.ultrader.bot.model.alpaca.Asset;
 import com.ultrader.bot.model.alpaca.Clock;
 import com.ultrader.bot.monitor.MarketDataMonitor;
+import com.ultrader.bot.monitor.TradingAccountMonitor;
 import com.ultrader.bot.service.NotificationService;
+import com.ultrader.bot.service.TradingNotificationService;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.*;
 import org.apache.commons.lang.Validate;
@@ -47,22 +45,26 @@ public class AlpacaTradingServiceV2 implements TradingService {
     private final NotificationService notifier;
     private final SettingDao settingDao;
     private final String plaformName;
+    private final TradingNotificationService sns;
 
     public AlpacaTradingServiceV2(final SettingDao settingDao,
                                   final RestTemplateBuilder restTemplateBuilder,
                                   final OrderDao orderDao,
                                   final NotificationService notifier,
-                                  final String platformName) {
+                                  final String platformName,
+                                  final TradingNotificationService sns) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(orderDao, "orderDao is required");
         Validate.notNull(notifier, "notifier is required");
         Validate.notEmpty(platformName, "platformName is required");
+        Validate.notNull(sns, "sns is required");
         this.settingDao = settingDao;
         this.orderDao = orderDao;
         this.plaformName = platformName;
         this.notifier = notifier;
         this.restTemplateBuilder = restTemplateBuilder;
+        this.sns = sns;
         initService();
     }
 
@@ -294,6 +296,15 @@ public class AlpacaTradingServiceV2 implements TradingService {
                     MarketDataUtil.getExchangeBySymbol(orderResponseEntity.getBody().getSymbol()));
             try {
                 orderDao.save(responseOrder);
+                sns.sendNotification(TradingNotification.builder()
+                        .symbol(order.getSymbol())
+                        .price(order.getAveragePrice())
+                        .side(order.getSide())
+                        .type(order.getType())
+                        .currentPositions(TradingAccountMonitor.getPositions().values().stream().map(p->p.getSymbol()).collect(Collectors.toList()))
+                        .strategyId(RepositoryUtil.getSetting(settingDao, SettingConstant.ULTRADER_PUBLISH_STRATEGY.getName(), ""))
+                        .amount(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "1%"))
+                        .build());
             } catch (Exception e) {
                 LOGGER.error("Save order {} failed.", responseOrder, e);
             }

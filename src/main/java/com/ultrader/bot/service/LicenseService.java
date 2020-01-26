@@ -22,7 +22,7 @@ import java.util.Date;
 public class LicenseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(LicenseService.class);
 
-    private static final String LICENSE_CLIENT_URI = "http://license.ultraderbot.com/api/key";
+    private static final String LICENSE_SERVER_URI = "http://license.ultraderbot.com/api/key";
 
     private RestTemplate client;
 
@@ -30,7 +30,7 @@ public class LicenseService {
     public LicenseService(RestTemplateBuilder restTemplateBuilder) {
         Validate.notNull(restTemplateBuilder, "restTemplateBuilder is required");
 
-        client = restTemplateBuilder.rootUri(LICENSE_CLIENT_URI).build();
+        client = restTemplateBuilder.rootUri(LICENSE_SERVER_URI).build();
     }
 
     public boolean verifyLicense(String ultraderKey, String ultraderSecret, String tradingKey, String tradingPlatform) {
