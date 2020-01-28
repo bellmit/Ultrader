@@ -29,6 +29,8 @@ import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.PrecisionNum;
 import org.ta4j.core.trading.rules.InSlopeRule;
 
+import javax.websocket.ContainerProvider;
+import javax.websocket.WebSocketContainer;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -96,8 +98,11 @@ public class PolygonMarketDataService implements MarketDataService {
             //Init Websocket
             if (!polygonKey.isEmpty()) {
                 handler = new PolygonWebSocketHandler(polygonKey, this, Long.parseLong(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60")));
+                WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+                container.setDefaultMaxBinaryMessageBufferSize(1024 * 1024);
+                container.setDefaultMaxTextMessageBufferSize(10 * 1024 * 1024);
                 connectionManager = new WebSocketConnectionManager(
-                        new StandardWebSocketClient(),
+                        new StandardWebSocketClient(container),
                         handler,
                         "wss://alpaca.socket.polygon.io/stocks");
                 connectionManager.start();

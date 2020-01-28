@@ -72,6 +72,7 @@ public class PolygonWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status){
         LOGGER.info("Connection Closed [" + status.getReason() +" " + status.getCode() +"]");
+        service.restart();
     }
 
     public void subscribe(String symbol) {
