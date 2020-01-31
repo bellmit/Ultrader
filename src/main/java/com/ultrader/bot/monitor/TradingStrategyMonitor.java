@@ -40,7 +40,6 @@ public class TradingStrategyMonitor extends Monitor {
     private final ConditionalSettingDao conditionalSettingDao;
     private final TradingService tradingService;
     private final NotificationService notifier;
-    private final TradingNotificationService sns;
 
     private TradingStrategyMonitor(long interval,
                                    final TradingService tradingService,
@@ -48,8 +47,7 @@ public class TradingStrategyMonitor extends Monitor {
                                    final ConditionalSettingDao conditionalSettingDao,
                                    final StrategyDao strategyDao,
                                    final RuleDao ruleDao,
-                                   final NotificationService notifier,
-                                   final TradingNotificationService sns) {
+                                   final NotificationService notifier) {
         super(interval);
         Validate.notNull(tradingService, "tradingService is required");
         Validate.notNull(settingDao, "settingDao is required");
@@ -57,7 +55,6 @@ public class TradingStrategyMonitor extends Monitor {
         Validate.notNull(strategyDao, "strategyDao is required");
         Validate.notNull(ruleDao, "ruleDao is required");
         Validate.notNull(notifier, "notifier is required");
-        Validate.notNull(sns, "sns is required");
 
         this.settingDao = settingDao;
         this.conditionalSettingDao = conditionalSettingDao;
@@ -65,7 +62,7 @@ public class TradingStrategyMonitor extends Monitor {
         this.ruleDao = ruleDao;
         this.tradingService = tradingService;
         this.notifier = notifier;
-        this.sns = sns;
+
     }
 
     public static void init(long interval,
@@ -74,8 +71,7 @@ public class TradingStrategyMonitor extends Monitor {
                             final ConditionalSettingDao conditionalSettingDao,
                             final StrategyDao strategyDao,
                             final RuleDao ruleDao,
-                            final NotificationService notifier,
-                            final TradingNotificationService sns) {
+                            final NotificationService notifier) {
         singleton_instance = new TradingStrategyMonitor(
                 interval,
                 tradingService,
@@ -83,8 +79,7 @@ public class TradingStrategyMonitor extends Monitor {
                 conditionalSettingDao,
                 strategyDao,
                 ruleDao,
-                notifier,
-                sns);
+                notifier);
     }
 
     public static TradingStrategyMonitor getInstance() throws IllegalAccessException {
@@ -125,6 +120,9 @@ public class TradingStrategyMonitor extends Monitor {
             String buyOrderType = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_ORDER_TYPE.getName(), "market");
             String sellOrderType = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_SELL_ORDER_TYPE.getName(), "market");
             int tradeInterval = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_PERIOD_SECOND.getName(), "60"));
+            boolean isDayTrading = Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_INTRADAY_TRADING.getName(), "false"));
+            boolean marginEnable = Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_USE_MARGIN.getName(), "false"));
+            boolean autoCoverEnable = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_AUTO_COVER.getName(), "true").equals("true");
             LOGGER.info("Buy order type {}, Sell order type {}", buyOrderType, sellOrderType);
             int validCount = 0;
             int noTimeSeries = 0;
@@ -165,7 +163,7 @@ public class TradingStrategyMonitor extends Monitor {
 
 
                 //Check if buy satisfied
-                if (MarketDataMonitor.isMarketOpen() && marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() > tradeInterval * 1000) {
+                if (MarketDataMonitor.isMarketOpen()) {
                     //Generate strategy
                     Strategy strategy = new BaseStrategy(stock,
                             TradingUtil.generateTradingStrategy(strategyDao, ruleDao, buyStrategyId, timeSeries, null, false),
@@ -184,7 +182,10 @@ public class TradingStrategyMonitor extends Monitor {
                             }
                         }
                         if (timeSeries.getLastBar().getEndTime().isBefore(buyDate)) {
-                            tradingRecord.enter(timeSeries.getEndIndex(), PrecisionNum.valueOf(positions.get(stock).getAverageCost()), PrecisionNum.valueOf(positions.get(stock).getQuantity()));
+                            tradingRecord.enter(
+                                    timeSeries.getEndIndex(),
+                                    PrecisionNum.valueOf(positions.get(stock).getAverageCost()),
+                                    PrecisionNum.valueOf(positions.get(stock).getQuantity()));
                         }
                         //TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries, tradingRecord);
                     }
@@ -194,6 +195,7 @@ public class TradingStrategyMonitor extends Monitor {
                                 && !openOrders.containsKey(stock)
                                 && positionNum + buyOpenOrder < holdLimit
                                 && account.getPortfolioValue() > account.getInitialMargin()
+                                && ( marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() > 30 * 60000 || !isDayTrading)
                                 && strategy.shouldEnter(timeSeries.getEndIndex())) {
                             LOGGER.info(String.format("%s buy strategy satisfied. ", stock));
                             String reason = TradingUtil.printSatisfaction(strategyDao, ruleDao, buyStrategyId, timeSeries, null);
@@ -202,11 +204,22 @@ public class TradingStrategyMonitor extends Monitor {
                                     buyLimit,
                                     currentPrice,
                                     account,
-                                    Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.ALPACA_USE_MARGIN.getName(), "false")),
-                                    Boolean.parseBoolean(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_INTRADAY_TRADING.getName(), "false")));
+                                    marginEnable,
+                                    isDayTrading);
                             if (buyQuantity > 0) {
                                 LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
-                                if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "buy", buyOrderType, buyQuantity, currentPrice, "", null, reason, MarketDataUtil.getExchangeBySymbol(stock))) != null) {
+                                if (tradingService.postOrder(
+                                        new com.ultrader.bot.model.Order(
+                                                "",
+                                                stock,
+                                                "buy",
+                                                buyOrderType,
+                                                buyQuantity,
+                                                currentPrice,
+                                                "",
+                                                null,
+                                                reason,
+                                                MarketDataUtil.getExchangeBySymbol(stock))) != null) {
                                     account.setBuyingPower(account.getBuyingPower() - currentPrice * buyQuantity);
                                     positionNum++;
                                 }
@@ -218,7 +231,18 @@ public class TradingStrategyMonitor extends Monitor {
                             String reason = TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries, tradingRecord);
                             //sell strategy satisfy & has position
                             LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
-                            if (tradingService.postOrder(new com.ultrader.bot.model.Order("", stock, "sell", sellOrderType, positions.get(stock).getQuantity(), currentPrice, "", null, reason, MarketDataUtil.getExchangeBySymbol(stock))) != null) {
+                            if (tradingService.postOrder(
+                                    new com.ultrader.bot.model.Order(
+                                            "",
+                                            stock,
+                                            "sell",
+                                            sellOrderType,
+                                            positions.get(stock).getQuantity(),
+                                            currentPrice,
+                                            "",
+                                            null,
+                                            reason,
+                                            MarketDataUtil.getExchangeBySymbol(stock))) != null) {
                                 account.setBuyingPower(account.getBuyingPower() + currentPrice * positions.get(stock).getQuantity());
                                 positionNum--;
                                 sellCount++;
@@ -235,10 +259,11 @@ public class TradingStrategyMonitor extends Monitor {
                 }
             }
             //Check if it's time to cover margin.
-            if ( RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_AUTO_COVER.getName(), "true").equals("true")
-                    && marketInfo.getIsOpen()
-                    && marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() < tradeInterval * 1000) {
-                tradingService.sellForCoverMargin(account, positions.values());
+            if (marketInfo.getIsOpen()
+                    && marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() < 5 * 60000
+                    && autoCoverEnable) {
+                    tradingService.sellForCoverMargin(account, positions.values());
+
             }
             LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
                     validCount, noTimeSeries, notLongEnough, notNewEnough);

@@ -318,10 +318,11 @@ public class AlpacaTradingServiceV2 implements TradingService {
     @Override
     public void sellForCoverMargin(Account account, Collection<Position> positions) {
         double totalAsset = 0;
+        int multiplier = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_AUTO_COVER_MULTIPLIER.getName(), "1"));
         for (Position position : positions) {
             totalAsset += position.getQuantity() * position.getAverageCost();
         }
-        double margin = totalAsset - account.getLastEquity() * 2;
+        double margin = totalAsset - account.getLastEquity() * multiplier;
         if (margin < 0) {
             LOGGER.info("No need to sell to cover margin.");
         } else {

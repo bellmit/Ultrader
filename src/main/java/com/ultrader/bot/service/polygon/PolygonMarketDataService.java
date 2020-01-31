@@ -123,10 +123,11 @@ public class PolygonMarketDataService implements MarketDataService {
         interval = interval < 60000 ? 60000 : interval;
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         String endDate = ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).plusDays(1).format(formatter);
-        String startDate = getStartDate(stocks.get(0), endDate, interval, formatter);
+        String startDate = getStartDate(endDate, interval, formatter);
         if (startDate == null) {
-            LOGGER.error("Cannot get the start date");
-            return new ArrayList<>();
+            int index = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "100")) * 2;
+            long day =  index / (MIN_PER_TRADING_DAY / (interval / 60000)) +1;
+            startDate = ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).minusDays(day).format(formatter);
         }
         int newStockCount = 0;
         LOGGER.debug("Start date {}, End Date {}", startDate, endDate);
@@ -252,9 +253,10 @@ public class PolygonMarketDataService implements MarketDataService {
     }
 
 
-    private String getStartDate(TimeSeries timeSeries, String endDate, long interval, DateTimeFormatter formatter) {
+    private String getStartDate(String endDate, long interval, DateTimeFormatter formatter) {
         try {
-            long days = interval * timeSeries.getMaximumBarCount() / 60000 / MIN_PER_TRADING_DAY + 1;
+            int index = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "100")) * 2;
+            long days =  index / (MIN_PER_TRADING_DAY / (interval / 60000)) +1;
             ZonedDateTime startDate = ZonedDateTime.now(ZoneId.of(TradingUtil.TIME_ZONE)).minusDays(days);
             AggResponse response = null;
             int lastSize = 0;
@@ -267,10 +269,10 @@ public class PolygonMarketDataService implements MarketDataService {
                 response = client.getForObject(url, AggResponse.class);
                 if (response.getResults().size() == lastSize) {
                     //Cannot get more results, throw exception
-                    throw new Exception("Cannot get more results for stock " + timeSeries.getName() + " size: " + response.getResults().size());
+                    throw new Exception("Cannot get more results for stock AAPL size: " + response.getResults().size());
                 }
                 startDate = startDate.minusDays(1);
-            } while (response.getResults().size() < timeSeries.getMaximumBarCount());
+            } while (response.getResults().size() < index);
             return startDate.plusDays(1).format(formatter);
         } catch (Exception e) {
             LOGGER.error("Cannot figure out the start date", e);

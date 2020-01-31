@@ -74,7 +74,7 @@ public class NotificationService {
                     if (trade.size() == 2 && trade.get(1).getSide().equals("buy") && exitOrder.getQuantity() == trade.get(1).getQuantity()) {
                         entryOrder = trade.get(1);
                     } else {
-                        LOGGER.error("Cannot find buy order for {}, sell date {}", exitOrder, sellDate);
+                        LOGGER.debug("Cannot find buy order for {}, sell date {}", exitOrder, sellDate);
                     }
                 }
 
