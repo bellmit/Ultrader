@@ -345,7 +345,7 @@ public class PolygonMarketDataService implements MarketDataService {
 
         @Override
         public void run() {
-            String url = String.format("/v2/aggs/ticker/%s/range/%s/%s/%s/%s?apiKey=%s&unadjusted=false",
+            String url = String.format("/v2/aggs/ticker/%s/range/%s/%s/%s/%s?apiKey=%s&unadjusted=true",
                     timeSeries.getName(), timeLength, timeUnit, startDate, endDate, key);
             try {
                 AggResponse response = client.getForObject(url, AggResponse.class);
