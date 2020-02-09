@@ -117,7 +117,7 @@ public class PolygonMarketDataService implements MarketDataService {
 
     @Override
     public List<TimeSeries> updateTimeSeries(List<TimeSeries> stocks, Long interval) throws InterruptedException {
-        if (connectionManager == null || !connectionManager.isRunning()) {
+        if (connectionManager == null || !connectionManager.isRunning() || handler.getSession() == null) {
             initService();
         }
         interval = interval < 60000 ? 60000 : interval;

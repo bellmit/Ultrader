@@ -153,9 +153,7 @@ public class TradingStrategyMonitor extends Monitor {
                     notNewEnough++;
                     if (marketInfo.getIsOpen()) {
                         //If it is trading time, reset the times series
-                        TimeSeries newTimeSeries = new BaseTimeSeries(timeSeries.getName());
-                        newTimeSeries.setMaximumBarCount(timeSeries.getMaximumBarCount());
-                        timeSeries = newTimeSeries;
+                        MarketDataMonitor.timeSeriesMap.remove(timeSeries.getName());
                     }
                     continue;
                 }

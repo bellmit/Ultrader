@@ -80,16 +80,23 @@ public class PolygonWebSocketHandler extends TextWebSocketHandler {
     public void subscribe(String symbol) {
         try {
             String payload = String.format("{\"action\": \"subscribe\",\"params\": \"%s\"}", symbol);
-            session.sendMessage(new TextMessage(payload));
+            if(session != null) {
+                session.sendMessage(new TextMessage(payload));
+            }
         } catch (Exception e) {
             LOGGER.error("Subscribe " + symbol + " failed", e);
         }
     }
 
+    public WebSocketSession getSession() {
+        return session;
+    }
     public void unsubscribe(String symbol) {
         try {
             String payload = String.format("{\"action\": \"unsubscribe\",\"params\": \"%s\"}", symbol);
-            session.sendMessage(new TextMessage(payload));
+            if(session != null) {
+                session.sendMessage(new TextMessage(payload));
+            }
         } catch (Exception e) {
             LOGGER.error("Unsubscribe " + symbol + " failed", e);
         }
