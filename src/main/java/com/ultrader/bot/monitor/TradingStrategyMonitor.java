@@ -142,7 +142,7 @@ public class TradingStrategyMonitor extends Monitor {
                 }
 
                 //Don't trade if time series is not long enough
-                if (timeSeries.getBarCount() < minLength) {
+                if (timeSeries == null || timeSeries.getBarCount() < minLength) {
                     LOGGER.debug("Skip {} trading strategy since time series is not long enough", stock);
                     notLongEnough++;
                     continue;
@@ -153,7 +153,7 @@ public class TradingStrategyMonitor extends Monitor {
                     notNewEnough++;
                     if (marketInfo.getIsOpen()) {
                         //If it is trading time, reset the times series
-                        MarketDataMonitor.timeSeriesMap.remove(timeSeries.getName());
+                        entry.setValue(null);
                     }
                     continue;
                 }

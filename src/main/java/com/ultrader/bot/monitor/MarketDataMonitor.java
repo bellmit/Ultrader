@@ -147,7 +147,7 @@ public class MarketDataMonitor extends Monitor {
                 maxLength = maxLength > 1000 ? 1000 : maxLength;
                 List<TimeSeries> updateSeries = new ArrayList<>();
                 for (String stock : watchList) {
-                    if (timeSeriesMap.containsKey(stock)) {
+                    if (timeSeriesMap.containsKey(stock) && timeSeriesMap.get(stock) != null) {
                         updateSeries.add(timeSeriesMap.get(stock));
                         timeSeriesMap.get(stock).setMaximumBarCount(maxLength);
                     } else {

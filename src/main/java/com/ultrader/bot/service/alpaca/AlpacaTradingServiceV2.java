@@ -386,17 +386,20 @@ public class AlpacaTradingServiceV2 implements TradingService {
             List<Order> orderList = new ArrayList<>();
             for (com.ultrader.bot.model.alpaca.Order order : orders.getBody()) {
                 LOGGER.debug("Found open order {}", order.toString());
-                orderList.add(new Order(
-                        order.getId(),
-                        order.getSymbol(),
-                        order.getSide(),
-                        order.getType(),
-                        order.getQty(),
-                        order.getFilled_avg_price(),
-                        order.getStatus(),
-                        order.getFilled_at(),
-                        "",
-                        MarketDataUtil.getExchangeBySymbol(order.getSymbol())));
+                if (order.getStatus().equals("filled")) {
+                    orderList.add(new Order(
+                            order.getId(),
+                            order.getSymbol(),
+                            order.getSide(),
+                            order.getType(),
+                            order.getQty(),
+                            order.getFilled_avg_price(),
+                            order.getStatus(),
+                            order.getFilled_at(),
+                            "",
+                            MarketDataUtil.getExchangeBySymbol(order.getSymbol())));
+                }
+
             }
             return orderList;
         } catch (Exception e) {
