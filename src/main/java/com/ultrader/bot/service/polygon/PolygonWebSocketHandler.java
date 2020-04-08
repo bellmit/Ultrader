@@ -132,7 +132,7 @@ public class PolygonWebSocketHandler extends TextWebSocketHandler {
                                     ZonedDateTime.ofInstant(i, ZoneId.of(TradingUtil.TIME_ZONE)),
                                     PrecisionNum.valueOf(aggregation.getO()),
                                     PrecisionNum.valueOf(aggregation.getH()),
-                                    PrecisionNum.valueOf(aggregation.getH()),
+                                    PrecisionNum.valueOf(aggregation.getL()),
                                     PrecisionNum.valueOf(aggregation.getC()),
                                     PrecisionNum.valueOf(aggregation.getV()),
                                     PrecisionNum.valueOf(aggregation.getV() * aggregation.getA()));
@@ -145,7 +145,7 @@ public class PolygonWebSocketHandler extends TextWebSocketHandler {
                             bar.addPrice(PrecisionNum.valueOf(aggregation.getH()));
                             bar.addPrice(PrecisionNum.valueOf(aggregation.getL()));
                             bar.addPrice(PrecisionNum.valueOf(aggregation.getC()));
-                            bar.addTrade(PrecisionNum.valueOf(aggregation.getV()), PrecisionNum.valueOf(aggregation.getA()));
+                            bar.addTrade(PrecisionNum.valueOf(aggregation.getV()), PrecisionNum.valueOf(aggregation.getC()));
                             LOGGER.debug("Update bar {}", bar);
                         } else {
                             LOGGER.error("Unexpected data for {}, Now Epoch {}, Last Bar End Epoch {}", aggregation.getSym(), now, timeSeries.getLastBar().getEndTime().toEpochSecond());

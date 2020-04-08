@@ -91,6 +91,10 @@ public class MarketDataMonitor extends Monitor {
             if(marketStatusChanged || firstRun) {
                 availableStocks = tradingPlatform.getTradingService().getAvailableStocks();
             }
+            if(marketStatusChanged) {
+                //Reload market data
+                tradingPlatform.restart();
+            }
             //Sync history orders
             try {
                 OrderUtil.loadHistoryOrders(orderDao, tradingPlatform.getTradingService());
@@ -137,10 +141,7 @@ public class MarketDataMonitor extends Monitor {
             LOGGER.info(String.format("Found %d stocks need to update.", watchList.size()));
             synchronized (lock) {
                 //Update
-                if(marketStatusChanged) {
-                    //Reload market data
-                    tradingPlatform.restart();
-                }
+
                 //TODO Currently we force all the indicator have to use same period, we should support different period for different indicators
                 Map<String, TimeSeries> currentTimeSeries = new HashMap<>();
                 int maxLength = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.INDICATOR_MAX_LENGTH.getName(), "50")) * 2;
