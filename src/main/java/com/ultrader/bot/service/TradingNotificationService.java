@@ -56,7 +56,7 @@ public class TradingNotificationService {
             Validate.notEmpty(notification.getSide(), "Side is required");
             Validate.notNull(notification.getPrice(), "Price is required");
             Validate.notEmpty(notification.getType(), "Type is required");
-            Validate.notEmpty(notification.getCurrentPositions(), "CurrentPositions is required");
+            Validate.notNull(notification.getCurrentPositions(), "CurrentPositions is required");
             msg = mapper.writeValueAsString(notification);
             Long timestamp = new Date().getTime();
             TradingNotificationRequest request = new TradingNotificationRequest();
