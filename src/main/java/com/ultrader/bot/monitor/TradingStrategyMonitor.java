@@ -8,6 +8,7 @@ import com.ultrader.bot.dao.StrategyDao;
 import com.ultrader.bot.model.*;
 import com.ultrader.bot.service.NotificationService;
 import com.ultrader.bot.service.TradingNotificationService;
+import com.ultrader.bot.service.TradingPlatform;
 import com.ultrader.bot.service.TradingService;
 import com.ultrader.bot.util.*;
 import org.apache.commons.lang.Validate;
@@ -38,18 +39,18 @@ public class TradingStrategyMonitor extends Monitor {
     private final StrategyDao strategyDao;
     private final RuleDao ruleDao;
     private final ConditionalSettingDao conditionalSettingDao;
-    private final TradingService tradingService;
+    private final TradingPlatform tradingPlatform;
     private final NotificationService notifier;
 
     private TradingStrategyMonitor(long interval,
-                                   final TradingService tradingService,
+                                   final TradingPlatform tradingPlatform,
                                    final SettingDao settingDao,
                                    final ConditionalSettingDao conditionalSettingDao,
                                    final StrategyDao strategyDao,
                                    final RuleDao ruleDao,
                                    final NotificationService notifier) {
         super(interval);
-        Validate.notNull(tradingService, "tradingService is required");
+        Validate.notNull(tradingPlatform, "tradingPlatform is required");
         Validate.notNull(settingDao, "settingDao is required");
         Validate.notNull(conditionalSettingDao, "conditionalSettingDao is required");
         Validate.notNull(strategyDao, "strategyDao is required");
@@ -60,13 +61,13 @@ public class TradingStrategyMonitor extends Monitor {
         this.conditionalSettingDao = conditionalSettingDao;
         this.strategyDao = strategyDao;
         this.ruleDao = ruleDao;
-        this.tradingService = tradingService;
+        this.tradingPlatform = tradingPlatform;
         this.notifier = notifier;
 
     }
 
     public static void init(long interval,
-                            final TradingService tradingService,
+                            final TradingPlatform tradingPlatform,
                             final SettingDao settingDao,
                             final ConditionalSettingDao conditionalSettingDao,
                             final StrategyDao strategyDao,
@@ -74,7 +75,7 @@ public class TradingStrategyMonitor extends Monitor {
                             final NotificationService notifier) {
         singleton_instance = new TradingStrategyMonitor(
                 interval,
-                tradingService,
+                tradingPlatform,
                 settingDao,
                 conditionalSettingDao,
                 strategyDao,
@@ -102,15 +103,15 @@ public class TradingStrategyMonitor extends Monitor {
                 LOGGER.info("Auto trading disabled");
                 return;
             }
-            MarketInfo marketInfo = tradingService.getMarketInfo();
-            Account account = tradingService.getAccountInfo();
+            MarketInfo marketInfo = tradingPlatform.getTradingService().getMarketInfo();
+            Account account = tradingPlatform.getTradingService().getAccountInfo();
             Map<String, Position> positions = TradingAccountMonitor.getPositions();
             LOGGER.info("Execute trading strategy.");
 
             //Update trading settings based on market trend
             marketAdaptation();
             //Get open orders
-            openOrders = tradingService.getOpenOrders();
+            openOrders = tradingPlatform.getTradingService().getOpenOrders();
             String buyLimit = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_MAX_LIMIT.getName(), "1%");
             int holdLimit = Integer.parseInt(RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_BUY_HOLDING_LIMIT.getName(), "0"));
             holdLimit = holdLimit == 0 ? Integer.MAX_VALUE : holdLimit;
@@ -193,7 +194,7 @@ public class TradingStrategyMonitor extends Monitor {
                                 && !openOrders.containsKey(stock)
                                 && positionNum + buyOpenOrder < holdLimit
                                 && account.getPortfolioValue() > account.getInitialMargin()
-                                && ( marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() > 30 * 60000 || !isDayTrading)
+                                && (marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() > 30 * 60000 || !isDayTrading)
                                 && strategy.shouldEnter(timeSeries.getEndIndex())) {
                             LOGGER.info(String.format("%s buy strategy satisfied. ", stock));
                             String reason = TradingUtil.printSatisfaction(strategyDao, ruleDao, buyStrategyId, timeSeries, null);
@@ -206,7 +207,7 @@ public class TradingStrategyMonitor extends Monitor {
                                     isDayTrading);
                             if (buyQuantity > 0) {
                                 LOGGER.info(String.format("Buy %s %d shares at price %f.", stock, buyQuantity, currentPrice));
-                                if (tradingService.postOrder(
+                                if (tradingPlatform.getTradingService().postOrder(
                                         new com.ultrader.bot.model.Order(
                                                 "",
                                                 stock,
@@ -229,7 +230,7 @@ public class TradingStrategyMonitor extends Monitor {
                             String reason = TradingUtil.printSatisfaction(strategyDao, ruleDao, sellStrategyId, timeSeries, tradingRecord);
                             //sell strategy satisfy & has position
                             LOGGER.info(String.format("Sell %s %d shares at price %f.", stock, positions.get(stock).getQuantity(), currentPrice));
-                            if (tradingService.postOrder(
+                            if (tradingPlatform.getTradingService().postOrder(
                                     new com.ultrader.bot.model.Order(
                                             "",
                                             stock,
@@ -260,12 +261,12 @@ public class TradingStrategyMonitor extends Monitor {
             if (marketInfo.getIsOpen()
                     && marketInfo.getNextCloseDate().getTime() - marketInfo.getTimestamp().getTime() < 5 * 60000
                     && autoCoverEnable) {
-                    tradingService.sellForCoverMargin(account, positions.values());
+                tradingPlatform.getTradingService().sellForCoverMargin(account, positions.values());
 
             }
             LOGGER.info("Checked trading strategies for {} stocks, {} stocks no time series, {} stocks time series too short , {} stocks time series too old ",
                     validCount, noTimeSeries, notLongEnough, notNewEnough);
-            checkMarketData(validCount, notNewEnough);
+            checkMarketData(validCount, notNewEnough, marketInfo);
         } catch (Exception e) {
             LOGGER.error("Failed to execute trading strategy.", e);
         }
@@ -283,19 +284,25 @@ public class TradingStrategyMonitor extends Monitor {
         return dayTradeCount;
     }
 
-
-    private void checkMarketData(int validCount, int notNewEnough) {
+    private void checkMarketData(int validCount, int notNewEnough, MarketInfo marketInfo) {
         if (MarketDataMonitor.timeSeriesMap.size() * 0.1 > validCount) {
             notifier.sendMarketDataStatus("error", validCount, validCount + notNewEnough);
+            if (marketInfo.getIsOpen()) {
+                tradingPlatform.restart();
+            }
         } else if (MarketDataMonitor.timeSeriesMap.size() * 0.5 > validCount) {
             notifier.sendMarketDataStatus("warning", validCount, validCount + notNewEnough);
         } else if (validCount == 0) {
             notifier.sendMarketDataStatus("error", validCount, validCount + notNewEnough);
+            if (marketInfo.getIsOpen()) {
+                tradingPlatform.restart();
+            }
         } else {
             notifier.sendMarketDataStatus("normal", validCount, validCount + notNewEnough);
         }
 
     }
+
     private void marketAdaptation() {
         String currentTrend = RepositoryUtil.getSetting(settingDao, SettingConstant.TRADE_MARKET_TREND.getName(), "NORMAL");
         if (!currentTrend.equals(MarketDataMonitor.getMarketTrend().name())) {
