@@ -22,6 +22,7 @@ import java.util.*;
 
 /**
  * Order Controller
+ *
  * @author ytx1991
  */
 
@@ -47,6 +48,7 @@ public class OrderController {
             return null;
         }
     }
+
     @RequestMapping(method = RequestMethod.GET, value = "/loadOrders")
     @ResponseBody
     public void loadOrders() {
@@ -75,37 +77,65 @@ public class OrderController {
         }
     }
 
+    @RequestMapping(method = RequestMethod.POST, value = "/manualOrder")
+    @ResponseBody
+    public void manualOrder(
+            @RequestParam String asset,
+            @RequestParam String side,
+            @RequestParam String type,
+            @RequestParam int qty,
+            @RequestParam double price) {
+        try {
+            if (tradingPlatform.getTradingService().postOrder(
+                    new com.ultrader.bot.model.Order(
+                            "",
+                            asset,
+                            side,
+                            type,
+                            qty,
+                            price,
+                            "",
+                            null,
+                            "Manual Order",
+                            null)) != null) {
+                LOGGER.info(String.format("%s %s %d shares at price %f.", side, asset, qty, price));
+            }
+        } catch (Exception e) {
+            LOGGER.error("Manual order failed.", e);
+        }
+    }
+
     @RequestMapping(method = RequestMethod.GET, value = "/getClosedOrders/{days}")
     @ResponseBody
     public Iterable<Trade> getClosedOrders(@PathVariable int days) {
         try {
-           List<Order> orders = orderDao.findAllOrdersByDate(LocalDateTime.now().minusDays(days), LocalDateTime.now());
-           List<Trade> trades = new ArrayList<>();
-           Map<String, Order> stack = new HashMap<>();
-           for(Order order : orders) {
-               if(order.getSide().equals("sell")) {
-                   stack.put(order.getSymbol(), order);
-               } else {
-                   if(stack.containsKey(order.getSymbol())) {
-                       Order sellOrder = stack.get(order.getSymbol());
-                       if(sellOrder.getQuantity() != order.getQuantity()) {
-                           LOGGER.error("{} Buy & Sell quantity are not equal.", order.getSymbol());
-                       }
-                       trades.add(new Trade(
-                               order.getSymbol(),
-                               order.getQuantity(),
-                               order.getCloseDate(),
-                               sellOrder.getCloseDate(),
-                               order.getAveragePrice(),
-                               sellOrder.getAveragePrice(),
-                               (sellOrder.getAveragePrice() - order.getAveragePrice()) * order.getQuantity(),
-                               order.getReason(),
-                               sellOrder.getReason()));
+            List<Order> orders = orderDao.findAllOrdersByDate(LocalDateTime.now().minusDays(days), LocalDateTime.now());
+            List<Trade> trades = new ArrayList<>();
+            Map<String, Order> stack = new HashMap<>();
+            for (Order order : orders) {
+                if (order.getSide().equals("sell")) {
+                    stack.put(order.getSymbol(), order);
+                } else {
+                    if (stack.containsKey(order.getSymbol())) {
+                        Order sellOrder = stack.get(order.getSymbol());
+                        if (sellOrder.getQuantity() != order.getQuantity()) {
+                            LOGGER.error("{} Buy & Sell quantity are not equal.", order.getSymbol());
+                        }
+                        trades.add(new Trade(
+                                order.getSymbol(),
+                                order.getQuantity(),
+                                order.getCloseDate(),
+                                sellOrder.getCloseDate(),
+                                order.getAveragePrice(),
+                                sellOrder.getAveragePrice(),
+                                (sellOrder.getAveragePrice() - order.getAveragePrice()) * order.getQuantity(),
+                                order.getReason(),
+                                sellOrder.getReason()));
 
-                   }
-               }
-           }
-           return trades;
+                    }
+                }
+            }
+            return trades;
         } catch (Exception e) {
             LOGGER.error("Load orders failed.", e);
             return null;
